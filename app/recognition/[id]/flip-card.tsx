@@ -13,7 +13,7 @@ export function FlipCard({
 	const [isFlipped, setIsFlipped] = useState(false);
 
 	return (
-		<div className="w-full max-w-5xl">
+		<div className="w-full max-w-5xl flex flex-col items-center">
 			{/* Flip hint */}
 			<button
 				type="button"

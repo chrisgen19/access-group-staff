@@ -342,7 +342,7 @@ export default async function SharePage({
 	);
 
 	return (
-		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center py-8 px-4">
+		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center py-8 px-4">
 			<FlipCard front={card1Front} back={card2Back} />
 
 			<div className="mt-8 text-center">
