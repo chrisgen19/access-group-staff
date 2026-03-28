@@ -122,7 +122,7 @@ export function UserListClient() {
 									Employee
 								</th>
 								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
-									Role / Dept
+									Position / Dept
 								</th>
 								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
 									Status
@@ -176,7 +176,7 @@ export function UserListClient() {
 											</div>
 										</td>
 										<td className="whitespace-nowrap px-8 py-5 text-right text-sm font-medium">
-											<div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+											<div className="flex justify-end gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100">
 												<button
 													type="button"
 													onClick={() => router.push(`/dashboard/users/${user.id}`)}

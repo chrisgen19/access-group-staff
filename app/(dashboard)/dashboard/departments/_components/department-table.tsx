@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Pencil, Trash2, AlertCircle, Building2 } from "lucide-react";
 import { deleteDepartmentAction } from "@/lib/actions/department-actions";
@@ -20,6 +20,15 @@ export function DepartmentTable({
 	const [deleteTarget, setDeleteTarget] = useState<Department | null>(null);
 	const [editTarget, setEditTarget] = useState<Department | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+
+	useEffect(() => {
+		if (!deleteTarget) return;
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") setDeleteTarget(null);
+		};
+		document.addEventListener("keydown", handleKeyDown);
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [deleteTarget]);
 
 	async function handleDelete() {
 		if (!deleteTarget) return;
@@ -89,7 +98,7 @@ export function DepartmentTable({
 											{dept._count.users}
 										</td>
 										<td className="whitespace-nowrap px-8 py-5 text-right text-sm">
-											<div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+											<div className="flex justify-end gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100">
 												<button
 													type="button"
 													onClick={() => setEditTarget(dept)}

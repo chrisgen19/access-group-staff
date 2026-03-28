@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Loader2, X } from "lucide-react";
 import {
@@ -72,10 +72,28 @@ export function DepartmentFormDialog({
 		}
 	}
 
+	const dialogRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		if (!open) return;
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "Escape") onClose();
+		};
+		document.addEventListener("keydown", handleKeyDown);
+		dialogRef.current?.focus();
+		return () => document.removeEventListener("keydown", handleKeyDown);
+	}, [open, onClose]);
+
 	if (!open) return null;
 
 	return (
-		<div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
+		<div
+			ref={dialogRef}
+			tabIndex={-1}
+			className="fixed inset-0 z-50 overflow-y-auto outline-none"
+			role="dialog"
+			aria-modal="true"
+		>
 			<div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
 				<div
 					className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm transition-opacity"
