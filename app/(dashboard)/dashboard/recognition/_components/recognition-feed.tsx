@@ -79,6 +79,7 @@ function CardSkeleton() {
 interface RecognitionFeedProps {
 	filter?: "all" | "received" | "sent" | "department";
 	showTitle?: boolean;
+	cardMaxWidth?: string;
 	emptyTitle?: string;
 	emptyDescription?: string;
 }
@@ -86,6 +87,7 @@ interface RecognitionFeedProps {
 export function RecognitionFeed({
 	filter = "all",
 	showTitle = true,
+	cardMaxWidth,
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
 }: RecognitionFeedProps) {
@@ -152,11 +154,12 @@ export function RecognitionFeed({
 			{cards.map((card) => {
 				if (cardView === "physical") {
 					return (
-						<RecognitionCardMini
-							key={card.id}
-							card={card}
-							size={cardSize}
-						/>
+						<div key={card.id} className={cardMaxWidth}>
+							<RecognitionCardMini
+								card={card}
+								size={cardSize}
+							/>
+						</div>
 					);
 				}
 
@@ -164,7 +167,7 @@ export function RecognitionFeed({
 				return (
 					<div
 						key={card.id}
-						className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]"
+						className={`rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] ${cardMaxWidth ?? ""}`}
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
