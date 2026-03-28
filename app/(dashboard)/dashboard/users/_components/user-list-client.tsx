@@ -106,7 +106,7 @@ export function UserListClient() {
 						</div>
 						<input
 							type="text"
-							className="block w-full rounded-full border-transparent bg-background py-3.5 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/10 transition-all duration-200"
+							className="block w-full rounded-full border-transparent bg-background py-3.5 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/20 transition-all duration-200"
 							placeholder="Search staff members..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}

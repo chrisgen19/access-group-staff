@@ -84,7 +84,7 @@ export function LoginForm() {
 						type="button"
 						onClick={handleGoogleSignIn}
 						disabled={isGoogleLoading || isLoading}
-						className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 dark:border-white/10 bg-card px-4 py-3.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all duration-200 disabled:opacity-50"
+						className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-200 dark:border-white/10 bg-card px-4 py-3.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
 					>
 						{isGoogleLoading ? (
 							<Loader2 className="h-4 w-4 animate-spin" />
@@ -134,7 +134,7 @@ export function LoginForm() {
 								id="email"
 								type="email"
 								placeholder="name@accessgroup.com.au"
-								className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
+								className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200"
 								{...register("email")}
 							/>
 							{errors.email && (
@@ -153,7 +153,7 @@ export function LoginForm() {
 								id="password"
 								type="password"
 								placeholder="••••••••"
-								className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200"
+								className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200"
 								{...register("password")}
 							/>
 							{errors.password && (
