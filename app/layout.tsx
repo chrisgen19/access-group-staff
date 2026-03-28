@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto, Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/shared/providers";
+import { env } from "@/env";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+	metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
 	title: "Access Recognition",
 	description: "Internal employee recognition for Access Group",
 };

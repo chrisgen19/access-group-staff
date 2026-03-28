@@ -1,17 +1,10 @@
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
+import { VALUE_LABELS } from "@/lib/recognition";
 
 export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-
-const VALUE_LABELS: Record<string, string> = {
-	valuesPeople: "People",
-	valuesSafety: "Safety",
-	valuesRespect: "Respect",
-	valuesCommunication: "Communication",
-	valuesContinuousImprovement: "Continuous Improvement",
-};
 
 export default async function OGImage({
 	params,
@@ -58,11 +51,6 @@ export default async function OGImage({
 		card.message.length > 150
 			? `${card.message.slice(0, 150)}...`
 			: card.message;
-	const values = Object.entries(VALUE_LABELS)
-		.filter(
-			([key]) => card[key as keyof typeof card] === true,
-		)
-		.map(([, label]) => label);
 	const [year, month, day] = card.date.toISOString().split("T")[0].split("-");
 	const dateStr = new Date(
 		Number(year),

@@ -1,7 +1,9 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getServerSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
+import type { Role } from "@/app/generated/prisma/client";
 import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
 import {
 	AccessGroupLogo,
@@ -90,7 +92,7 @@ export default async function RecognitionDetailPage({
 
 	const isSender = card.sender.id === session.user.id;
 	const isRecipient = card.recipient.id === session.user.id;
-	const isAdmin = (session.user.role as string) === "ADMIN" || (session.user.role as string) === "SUPERADMIN";
+	const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
 
 	if (!isSender && !isRecipient && !isAdmin) notFound();
 
@@ -205,6 +207,7 @@ export default async function RecognitionDetailPage({
 			<div className="flex items-center gap-4">
 				<Link
 					href="/dashboard/recognition"
+					aria-label="Back to recognition inbox"
 					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
 				>
 					<ArrowLeft className="h-5 w-5" />

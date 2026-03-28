@@ -50,7 +50,7 @@ function CardActions({
 				type="button"
 				onClick={() => router.push(`/dashboard/recognition/${cardId}`)}
 				className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-				title="View"
+				aria-label="View card"
 			>
 				<Eye size={16} />
 			</button>
@@ -58,7 +58,7 @@ function CardActions({
 				type="button"
 				onClick={() => onShare(cardId)}
 				className="rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-				title="Share"
+				aria-label="Share card"
 			>
 				<Share2 size={16} />
 			</button>
@@ -67,7 +67,7 @@ function CardActions({
 					type="button"
 					onClick={() => router.push(`/dashboard/recognition/${cardId}/edit`)}
 					className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-					title="Edit"
+					aria-label="Edit card"
 				>
 					<Pencil size={16} />
 				</button>

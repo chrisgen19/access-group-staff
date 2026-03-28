@@ -1,7 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cache } from "react";
 import { prisma } from "@/lib/db";
+import { getServerSession } from "@/lib/auth-utils";
 import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
 import {
 	AccessGroupLogo,
@@ -12,7 +14,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FlipCard } from "./flip-card";
 
-async function getCard(id: string) {
+const getCard = cache(async function getCard(id: string) {
 	const card = await prisma.recognitionCard.findUnique({
 		where: { id },
 		include: {
@@ -35,7 +37,7 @@ async function getCard(id: string) {
 		},
 	});
 	return card;
-}
+});
 
 export async function generateMetadata({
 	params,
@@ -123,6 +125,9 @@ export default async function SharePage({
 }: {
 	params: Promise<{ id: string }>;
 }) {
+	const session = await getServerSession();
+	if (!session) redirect("/login");
+
 	const { id } = await params;
 	const card = await getCard(id);
 

@@ -57,7 +57,7 @@ export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: S
 						<Share2 size={28} className="text-primary" />
 					</div>
 					<DialogTitle className="text-center">
-						Recognition Card Sent!
+						{redirectOnClose ? "Recognition Card Sent!" : "Share Recognition Card"}
 					</DialogTitle>
 					<DialogDescription className="text-center">
 						Share this card with your team on Slack, Teams, email, or
@@ -66,7 +66,9 @@ export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: S
 				</DialogHeader>
 
 				<div className="flex items-center gap-2 mt-2">
+					<label className="sr-only" htmlFor="share-url">Share URL</label>
 					<input
+						id="share-url"
 						type="text"
 						readOnly
 						value={shareUrl}
@@ -75,6 +77,7 @@ export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: S
 					<button
 						type="button"
 						onClick={handleCopy}
+						aria-label="Copy share link"
 						className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
 					>
 						{copied ? (

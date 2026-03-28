@@ -658,14 +658,14 @@ export function RecognitionForm({
 							{/* Right Column (Text) */}
 							<div className="flex-1 flex flex-col justify-center pl-4 md:pl-8 z-10 min-w-0">
 								<h1
-									className={`font-sanstext-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap`}
+									className="font-sans font-black text-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap"
 								>
 									Thank you for your
 									<br />
 									contribution
 								</h1>
 								<h2
-									className={`font-sanstext-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap`}
+									className="font-sans font-black text-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap"
 								>
 									Access is proud
 									<br />
