@@ -2,22 +2,21 @@ import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { RecognitionFeed } from "./_components/recognition-feed";
+import { RecognitionInbox } from "./_components/recognition-inbox";
 
 export default async function RecognitionPage() {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
+		<div className="max-w-7xl mx-auto space-y-6 mt-2">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
 				<div>
 					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
 						Recognition Card
 					</h1>
 					<p className="mt-2 text-base text-muted-foreground">
-						Recognize your colleagues with digital thank-you cards
-						tied to company values.
+						Your personal recognition inbox.
 					</p>
 				</div>
 				<Link
@@ -28,7 +27,8 @@ export default async function RecognitionPage() {
 					Send Recognition Card
 				</Link>
 			</div>
-			<RecognitionFeed />
+
+			<RecognitionInbox />
 		</div>
 	);
 }

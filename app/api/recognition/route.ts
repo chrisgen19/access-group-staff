@@ -1,9 +1,12 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@/app/generated/prisma/client";
+import type { NextRequest } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+	let session: Awaited<ReturnType<typeof requireSession>>;
 	try {
-		await requireSession();
+		session = await requireSession();
 	} catch {
 		return Response.json(
 			{ success: false, error: "Unauthorized" },
@@ -12,7 +15,32 @@ export async function GET() {
 	}
 
 	try {
+		const filter = request.nextUrl.searchParams.get("filter");
+
+		let where: Prisma.RecognitionCardWhereInput | undefined;
+		if (filter === "received") {
+			where = { recipientId: session.user.id };
+		} else if (filter === "sent") {
+			where = { senderId: session.user.id };
+		} else if (filter === "department") {
+			const departmentId = session.user.departmentId as
+				| string
+				| null
+				| undefined;
+			if (departmentId) {
+				where = {
+					OR: [
+						{ sender: { departmentId } },
+						{ recipient: { departmentId } },
+					],
+				};
+			} else {
+				where = { id: "none" };
+			}
+		}
+
 		const cards = await prisma.recognitionCard.findMany({
+			where,
 			include: {
 				sender: {
 					select: {
@@ -34,6 +62,7 @@ export async function GET() {
 				},
 			},
 			orderBy: { createdAt: "desc" },
+			take: 50,
 		});
 
 		return Response.json({ success: true, data: cards });
