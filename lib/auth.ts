@@ -1,0 +1,75 @@
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { prisma } from "@/lib/db";
+import { env } from "@/env";
+
+export const auth = betterAuth({
+	database: prismaAdapter(prisma, { provider: "postgresql" }),
+	secret: env.BETTER_AUTH_SECRET,
+	baseURL: env.BETTER_AUTH_URL,
+	emailAndPassword: {
+		enabled: true,
+	},
+	socialProviders: {
+		google: {
+			clientId: env.GOOGLE_CLIENT_ID,
+			clientSecret: env.GOOGLE_CLIENT_SECRET,
+			mapProfileToUser: (profile) => ({
+				firstName: profile.given_name,
+				lastName: profile.family_name,
+				name: `${profile.given_name} ${profile.family_name}`,
+			}),
+		},
+	},
+	user: {
+		additionalFields: {
+			firstName: {
+				type: "string",
+				required: true,
+				input: true,
+			},
+			lastName: {
+				type: "string",
+				required: true,
+				input: true,
+			},
+			displayName: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			phone: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			position: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			avatar: {
+				type: "string",
+				required: false,
+				input: true,
+			},
+			role: {
+				type: "string",
+				defaultValue: "STAFF",
+				input: false,
+			},
+			isActive: {
+				type: "boolean",
+				defaultValue: true,
+				input: false,
+			},
+			departmentId: {
+				type: "string",
+				required: false,
+				input: false,
+			},
+		},
+	},
+});
+
+export type Session = typeof auth.$Infer.Session;
