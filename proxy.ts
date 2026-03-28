@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionCookie } from "better-auth/cookies";
+import { getSessionCookie, getCookies } from "better-auth/cookies";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+
+const { sessionToken } = getCookies(auth.options);
 
 export async function proxy(request: NextRequest) {
 	const sessionCookie = getSessionCookie(request);
@@ -23,8 +25,7 @@ export async function proxy(request: NextRequest) {
 			});
 			if (!user?.isActive) {
 				const response = NextResponse.redirect(new URL("/login", request.url));
-				response.cookies.delete("better-auth.session_token");
-				response.cookies.delete("__Secure-better-auth.session_token");
+				response.cookies.delete(sessionToken.name);
 				return response;
 			}
 		}
