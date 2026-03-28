@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Send, Inbox, Calendar, Trophy } from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 interface StatsData {
 	sent: number;
@@ -15,9 +16,6 @@ interface StatsData {
 	}[];
 }
 
-function getInitials(firstName: string, lastName: string) {
-	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
 
 function StatItem({
 	icon: Icon,
@@ -43,7 +41,7 @@ function StatItem({
 
 function StatsWidgetSkeleton() {
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6">
+		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6" aria-busy="true" aria-label="Loading recognition stats">
 			<div className="h-5 w-32 bg-gray-200 dark:bg-white/10 rounded" />
 			<div className="grid grid-cols-3 gap-4">
 				{[1, 2, 3].map((i) => (
@@ -79,6 +77,7 @@ export function StatsWidget() {
 			if (!res.ok) throw new Error("Failed to fetch stats");
 			return res.json();
 		},
+		staleTime: 30_000,
 	});
 
 	if (isPending) {
@@ -132,15 +131,12 @@ export function StatsWidget() {
 							Most Recognized
 						</h4>
 					</div>
-					<div className="space-y-3">
-						{stats.topRecipients.map((person, i) => (
-							<div
+					<ol className="space-y-3">
+						{stats.topRecipients.map((person) => (
+							<li
 								key={`${person.firstName}-${person.lastName}`}
 								className="flex items-center gap-3"
 							>
-								<span className="text-xs font-semibold text-muted-foreground w-4">
-									{i + 1}.
-								</span>
 								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
 									{getInitials(
 										person.firstName,
@@ -153,9 +149,9 @@ export function StatsWidget() {
 								<span className="text-sm font-semibold text-primary">
 									{person.count}
 								</span>
-							</div>
+							</li>
 						))}
-					</div>
+					</ol>
 				</div>
 			)}
 		</div>

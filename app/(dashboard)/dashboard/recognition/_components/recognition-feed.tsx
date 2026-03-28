@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Heart, ArrowRight } from "lucide-react";
+import { getInitials } from "@/lib/utils";
 
 interface RecognitionUser {
 	id: string;
@@ -32,10 +33,6 @@ const VALUE_LABELS: Record<string, string> = {
 	valuesCommunication: "Communication",
 	valuesContinuousImprovement: "Continuous Improvement",
 };
-
-function getInitials(firstName: string, lastName: string) {
-	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
 
 function getSelectedValues(card: RecognitionCard): string[] {
 	return Object.entries(VALUE_LABELS)
@@ -102,6 +99,7 @@ export function RecognitionFeed({
 			if (!res.ok) throw new Error("Failed to fetch recognition cards");
 			return res.json();
 		},
+		staleTime: 30_000,
 	});
 
 	const cards = data?.data ?? [];

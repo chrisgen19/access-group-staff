@@ -1,5 +1,3 @@
-"use client";
-
 import { RecognitionFeed } from "../recognition/_components/recognition-feed";
 
 export function RecognitionFeedWidget() {

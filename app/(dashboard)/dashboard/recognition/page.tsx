@@ -1,32 +1,12 @@
-"use client";
-
-import { useState } from "react";
+import { getServerSession } from "@/lib/auth-utils";
+import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, Inbox, Send } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { RecognitionFeed } from "./_components/recognition-feed";
+import { Plus } from "lucide-react";
+import { RecognitionInbox } from "./_components/recognition-inbox";
 
-const TABS = [
-	{
-		key: "received" as const,
-		label: "Received",
-		icon: Inbox,
-		emptyTitle: "No recognition cards received yet",
-		emptyDescription:
-			"When a colleague recognizes you, it will appear here.",
-	},
-	{
-		key: "sent" as const,
-		label: "Sent",
-		icon: Send,
-		emptyTitle: "You haven't sent any cards yet",
-		emptyDescription: "Recognize a colleague to get started!",
-	},
-];
-
-export default function RecognitionPage() {
-	const [activeTab, setActiveTab] = useState<"received" | "sent">("received");
-	const currentTab = TABS.find((t) => t.key === activeTab)!;
+export default async function RecognitionPage() {
+	const session = await getServerSession();
+	if (!session) redirect("/login");
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">
@@ -48,33 +28,7 @@ export default function RecognitionPage() {
 				</Link>
 			</div>
 
-			{/* Tabs */}
-			<div className="flex gap-1 rounded-full bg-gray-100 dark:bg-white/5 p-1 w-fit">
-				{TABS.map((tab) => (
-					<button
-						key={tab.key}
-						type="button"
-						onClick={() => setActiveTab(tab.key)}
-						className={cn(
-							"inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200",
-							activeTab === tab.key
-								? "bg-card text-foreground shadow-sm"
-								: "text-muted-foreground hover:text-foreground",
-						)}
-					>
-						<tab.icon size={16} />
-						{tab.label}
-					</button>
-				))}
-			</div>
-
-			{/* Feed */}
-			<RecognitionFeed
-				filter={activeTab}
-				showTitle={false}
-				emptyTitle={currentTab.emptyTitle}
-				emptyDescription={currentTab.emptyDescription}
-			/>
+			<RecognitionInbox />
 		</div>
 	);
 }
