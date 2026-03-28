@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MoreHorizontal, Plus, Eye, Pencil, UserX, UserCheck } from "lucide-react";
 import { toggleUserActiveAction } from "@/lib/actions/user-actions";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
 	Table,
@@ -134,7 +134,7 @@ export function UserListClient() {
 									<TableCell>
 										<DropdownMenu>
 											<DropdownMenuTrigger
-												render={<Button variant="ghost" size="icon" />}
+												className={buttonVariants({ variant: "ghost", size: "icon" })}
 											>
 												<MoreHorizontal className="h-4 w-4" />
 											</DropdownMenuTrigger>
