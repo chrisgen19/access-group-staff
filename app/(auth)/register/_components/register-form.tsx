@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2, Building2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
+import { AccessGroupLogo } from "@/components/shared/access-logos";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -54,8 +55,8 @@ export function RegisterForm() {
 	return (
 		<div className="w-full max-w-md">
 			<div className="flex flex-col items-center mb-8">
-				<div className="p-4 bg-card rounded-[1.5rem] shadow-sm border border-gray-100/50 dark:border-white/10">
-					<Building2 size={40} strokeWidth={1.5} className="text-primary" />
+				<div className="text-primary">
+					<AccessGroupLogo color="currentColor" className="h-10 w-auto" />
 				</div>
 				<h2 className="mt-8 text-center text-[2rem] leading-tight font-medium text-foreground tracking-tight">
 					Register new account

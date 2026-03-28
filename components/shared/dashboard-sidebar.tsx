@@ -16,10 +16,11 @@ import { toast } from "sonner";
 import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { AccessGroupLogo } from "@/components/shared/access-logos";
 
 const NAV_ITEMS = [
 	{
-		label: "Overview",
+		label: "Dashboard",
 		href: "/dashboard",
 		icon: LayoutDashboard,
 		adminOnly: false,
@@ -71,13 +72,8 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 	return (
 		<>
-			<div className="h-16 flex items-center px-4 mb-4">
-				<div className="p-2 bg-white dark:bg-card rounded-[1.5rem] shadow-sm border border-gray-100/50 dark:border-white/10 mr-3">
-					<Building2 className="text-primary" size={22} strokeWidth={1.5} />
-				</div>
-				<span className="text-xl font-medium text-foreground tracking-tight">
-					Access Group
-				</span>
+			<div className="h-16 flex items-center px-4 mb-4 text-primary">
+				<AccessGroupLogo color="currentColor" className="h-8 w-auto" />
 			</div>
 
 			<nav className="flex-1 space-y-1">
