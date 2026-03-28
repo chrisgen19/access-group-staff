@@ -14,18 +14,12 @@ import {
 	type CreateUserInput,
 	type UpdateUserInput,
 } from "@/lib/validations/user";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const inputClass =
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
+
+const selectClass =
+	"block w-full appearance-none rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
 interface Department {
 	id: string;
@@ -113,135 +107,153 @@ export function UserForm({
 	}
 
 	return (
-		<Card className="max-w-2xl">
-			<CardHeader>
-				<CardTitle>{isCreate ? "Create User" : "Edit User"}</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="firstName">First Name</Label>
-							<Input id="firstName" {...register("firstName")} />
-							{errors.firstName && (
-								<p className="text-sm text-destructive">{errors.firstName.message}</p>
-							)}
-						</div>
-						<div className="space-y-2">
-							<Label htmlFor="lastName">Last Name</Label>
-							<Input id="lastName" {...register("lastName")} />
-							{errors.lastName && (
-								<p className="text-sm text-destructive">{errors.lastName.message}</p>
-							)}
-						</div>
-					</div>
-
-					{isCreate && (
-						<>
-							<div className="space-y-2">
-								<Label htmlFor="email">Email</Label>
-								<Input id="email" type="email" {...register("email")} />
-								{errors.email && (
-									<p className="text-sm text-destructive">{errors.email.message}</p>
+		<div className="max-w-2xl">
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+				<div className="px-8 pt-8 pb-2">
+					<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
+						{isCreate ? "Add Staff Member" : "Edit Staff Details"}
+					</h3>
+				</div>
+				<form onSubmit={handleSubmit(onSubmit)}>
+					<div className="px-8 py-6 space-y-5">
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label htmlFor="firstName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									First Name
+								</label>
+								<input id="firstName" className={inputClass} {...register("firstName")} />
+								{errors.firstName && (
+									<p className="mt-1 text-sm text-destructive">{errors.firstName.message}</p>
 								)}
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="password">Password</Label>
-								<Input id="password" type="password" {...register("password")} />
-								{errors.password && (
-									<p className="text-sm text-destructive">{errors.password.message}</p>
+							<div>
+								<label htmlFor="lastName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Last Name
+								</label>
+								<input id="lastName" className={inputClass} {...register("lastName")} />
+								{errors.lastName && (
+									<p className="mt-1 text-sm text-destructive">{errors.lastName.message}</p>
 								)}
 							</div>
-						</>
-					)}
-
-					<div className="space-y-2">
-						<Label htmlFor="displayName">Display Name</Label>
-						<Input id="displayName" {...register("displayName")} />
-					</div>
-
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="phone">Phone</Label>
-							<Input id="phone" {...register("phone")} />
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="position">Position</Label>
-							<Input id="position" {...register("position")} />
-						</div>
-					</div>
 
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label>Role</Label>
-							<Select
-								value={roleValue}
-								onValueChange={(value) =>
-									setValue("role", value as CreateUserInput["role"])
-								}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="Select role" />
-								</SelectTrigger>
-								<SelectContent>
+						{isCreate && (
+							<>
+								<div>
+									<label htmlFor="email" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+										Email
+									</label>
+									<input id="email" type="email" className={inputClass} {...register("email")} />
+									{errors.email && (
+										<p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
+									)}
+								</div>
+								<div>
+									<label htmlFor="password" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+										Password
+									</label>
+									<input id="password" type="password" className={inputClass} {...register("password")} />
+									{errors.password && (
+										<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
+									)}
+								</div>
+							</>
+						)}
+
+						<div>
+							<label htmlFor="displayName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								Display Name
+							</label>
+							<input id="displayName" className={inputClass} {...register("displayName")} />
+						</div>
+
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label htmlFor="phone" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Phone
+								</label>
+								<input id="phone" className={inputClass} {...register("phone")} />
+							</div>
+							<div>
+								<label htmlFor="position" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Position
+								</label>
+								<input id="position" className={inputClass} {...register("position")} />
+							</div>
+						</div>
+
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Role
+								</label>
+								<select
+									value={roleValue}
+									onChange={(e) => setValue("role", e.target.value as CreateUserInput["role"])}
+									className={selectClass}
+								>
 									{availableRoles.map((role) => (
-										<SelectItem key={role} value={role}>
+										<option key={role} value={role}>
 											{role}
-										</SelectItem>
+										</option>
 									))}
-								</SelectContent>
-							</Select>
-							{errors.role && (
-								<p className="text-sm text-destructive">{errors.role.message}</p>
-							)}
-						</div>
-						<div className="space-y-2">
-							<Label>Department</Label>
-							<Select
-								value={watch("departmentId") ?? "none"}
-								onValueChange={(value) =>
-									setValue("departmentId", value === "none" ? null : value)
-								}
-							>
-								<SelectTrigger>
-									<SelectValue placeholder="Select department" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="none">No Department</SelectItem>
+								</select>
+								{errors.role && (
+									<p className="mt-1 text-sm text-destructive">{errors.role.message}</p>
+								)}
+							</div>
+							<div>
+								<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Department
+								</label>
+								<select
+									value={watch("departmentId") ?? "none"}
+									onChange={(e) => setValue("departmentId", e.target.value === "none" ? null : e.target.value)}
+									className={selectClass}
+								>
+									<option value="none">No Department</option>
 									{departments.map((dept) => (
-										<SelectItem key={dept.id} value={dept.id}>
+										<option key={dept.id} value={dept.id}>
 											{dept.name} ({dept.code})
-										</SelectItem>
+										</option>
 									))}
-								</SelectContent>
-							</Select>
+								</select>
+							</div>
+						</div>
+
+						<div className="flex items-center gap-2 px-1">
+							<input
+								id="isActive"
+								type="checkbox"
+								checked={isActiveValue}
+								onChange={(e) => setValue("isActive", e.target.checked)}
+								className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+							/>
+							<label htmlFor="isActive" className="text-sm font-medium text-foreground/70">
+								Active
+							</label>
 						</div>
 					</div>
 
-					<div className="flex items-center space-x-2">
-						<Checkbox
-							id="isActive"
-							checked={isActiveValue}
-							onCheckedChange={(checked) => setValue("isActive", checked === true)}
-						/>
-						<Label htmlFor="isActive">Active</Label>
-					</div>
-
-					<div className="flex gap-3">
-						<Button type="submit" disabled={isLoading}>
+					<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-200/60 dark:border-white/10 flex flex-row-reverse gap-3">
+						<button
+							type="submit"
+							disabled={isLoading}
+							className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50"
+						>
 							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-							{isCreate ? "Create User" : "Save Changes"}
-						</Button>
-						<Button
+							{isCreate ? "Create Record" : "Save Changes"}
+						</button>
+						<button
 							type="button"
-							variant="outline"
 							onClick={() => router.push("/dashboard/users")}
+							className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
 						>
 							Cancel
-						</Button>
+						</button>
 					</div>
 				</form>
-			</CardContent>
-		</Card>
+			</div>
+		</div>
 	);
 }

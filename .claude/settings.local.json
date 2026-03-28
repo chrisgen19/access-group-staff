@@ -23,7 +23,13 @@
       "Bash(ls /Users/chrisgen19/projects/access-group-staff/node_modules/better-auth/dist/cookies*)",
       "Bash(ls /Users/chrisgen19/projects/access-group-staff/node_modules/better-auth/cookies*)",
       "Bash(ls:*)",
-      "Bash(bun:*)"
+      "Bash(bun:*)",
+      "Bash(gh api:*)",
+      "Bash(gh pr:*)",
+      "Bash(node:*)",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_take_screenshot",
+      "mcp__plugin_playwright_playwright__browser_run_code"
     ]
   }
 }

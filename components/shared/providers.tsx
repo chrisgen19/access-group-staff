@@ -5,6 +5,7 @@ import { ThemeProvider } from "next-themes";
 import { useState, type ReactNode } from "react";
 import { Toaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BgProvider } from "@/components/shared/bg-provider";
 
 export function Providers({ children }: { children: ReactNode }) {
 	const [queryClient] = useState(
@@ -22,6 +23,7 @@ export function Providers({ children }: { children: ReactNode }) {
 		<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
 			<QueryClientProvider client={queryClient}>
 				<TooltipProvider>
+					<BgProvider />
 					{children}
 					<Toaster richColors position="top-right" />
 				</TooltipProvider>
