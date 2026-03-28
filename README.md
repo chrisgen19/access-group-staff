@@ -78,26 +78,30 @@ app/
 │       ├── page.tsx               # Dashboard home
 │       ├── users/                 # User management (CRUD)
 │       ├── departments/           # Department management (CRUD)
-│       ├── recognition/           # Recognition Card feed + send form
-│       │   └── create/            # Send Recognition Card page
+│       ├── recognition/           # Personal recognition inbox (received/sent tabs)
+│       │   └── create/            # Send Recognition Card (branded 2-step form)
+│       ├── admin-settings/        # Admin settings (ADMIN+)
+│       ├── super-admin/           # Super admin panel (SUPERADMIN only)
 │       └── profile/               # Profile + Preferences
-│           └── preferences/       # Background color customization
+│           └── preferences/       # Background color, card view, card size
 ├── api/
 │   ├── auth/[...all]/             # better-auth catch-all handler
-│   ├── recognition/               # Recognition Cards API (React Query)
+│   ├── recognition/               # Recognition Cards API (filter: all/received/sent/department)
+│   │   ├── stats/                 # Recognition stats (sent/received counts, leaderboard)
 │   │   └── users/                 # Active users for recipient picker
 │   └── users/                     # Users API (React Query)
 └── globals.css                    # Tailwind v4 theme (CSS variables)
 
 components/
 ├── ui/                            # shadcn/ui primitives (do not edit)
-└── shared/                        # Shared components (sidebar, header, etc.)
+└── shared/                        # Shared components (sidebar, header, logos, etc.)
 
 lib/
 ├── auth.ts                        # better-auth server config
 ├── auth-client.ts                 # better-auth client
 ├── auth-utils.ts                  # Session helpers (requireSession, requireRole)
 ├── permissions.ts                 # Role-based permission checks
+├── recognition.ts                 # Shared types, constants, and utils for recognition
 ├── actions/                       # Server Actions (user, department, profile, recognition)
 ├── validations/                   # Zod schemas (user, auth, department, recognition)
 └── db/index.ts                    # Prisma client singleton
@@ -116,16 +120,32 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 
 **Roles:** `SUPERADMIN` > `ADMIN` > `STAFF`
 
-- SUPERADMIN/ADMIN can manage users and departments
+- SUPERADMIN can access Super Admin panel and all admin features
+- ADMIN can manage users, departments, and access Admin Settings
 - All authenticated users can send and view recognition cards
-- STAFF can view dashboard and edit own profile
+- STAFF can view dashboard, recognition inbox, and edit own profile
 - Deactivated users (`isActive: false`) are blocked at proxy and session level
+
+### Dashboard
+
+- 2-column widget layout: Recognition Stats (left) + Public Recognition Feed (right)
+- Stats widget: cards sent/received, monthly total, top 3 most recognized leaderboard
+- Feed widget with Public / My Department tabs
+- Send Recognition Card button
 
 ### Recognition Cards
 
-- Any user can send a recognition card to a colleague (cannot send to self)
+- **Create**: Branded 2-step form (Fill Card → Review & Submit) using Access Group physical card design with both logos and company values
+- **Inbox** (`/dashboard/recognition`): Personal inbox with Received / Sent tabs
+- **Feed**: Mini branded card view replicating the physical card design, or simple list view (configurable in preferences)
 - Cards include a message, date, and one or more company values: People, Safety, Respect, Communication, Continuous Improvement
-- Public feed visible to all authenticated users
+- Card size preference: Compact / Normal / Expanded
+
+### Preferences
+
+- Background color: Light Gray, Warm White, Cool White, Pure White, Cream (default), Slate
+- Card view: Physical Card (branded mini card) or Simple (compact list)
+- Card size: Compact, Normal, Expanded
 
 ## Scripts
 
