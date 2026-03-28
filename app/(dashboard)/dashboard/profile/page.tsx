@@ -9,21 +9,14 @@ export default async function ProfilePage() {
 
 	const user = await prisma.user.findUniqueOrThrow({
 		where: { id: session.user.id },
-		include: { department: true },
+		select: {
+			firstName: true,
+			lastName: true,
+			displayName: true,
+			phone: true,
+			position: true,
+		},
 	});
 
-	return (
-		<ProfileForm
-			user={{
-				firstName: user.firstName,
-				lastName: user.lastName,
-				displayName: user.displayName,
-				email: user.email,
-				phone: user.phone,
-				position: user.position,
-				role: user.role,
-				department: user.department,
-			}}
-		/>
-	);
+	return <ProfileForm user={user} />;
 }
