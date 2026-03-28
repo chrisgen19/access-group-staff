@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export async function proxy(request: NextRequest) {
@@ -12,13 +13,12 @@ export async function proxy(request: NextRequest) {
 	}
 
 	if (pathname.startsWith("/dashboard") && sessionCookie) {
-		const session = await prisma.session.findUnique({
-			where: { token: sessionCookie },
-			select: { userId: true },
+		const session = await auth.api.getSession({
+			headers: request.headers,
 		});
 		if (session) {
 			const user = await prisma.user.findUnique({
-				where: { id: session.userId },
+				where: { id: session.user.id },
 				select: { isActive: true },
 			});
 			if (!user?.isActive) {
