@@ -1,6 +1,7 @@
 import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
-import { RecognitionForm } from "./_components/recognition-form";
+import Link from "next/link";
+import { Plus } from "lucide-react";
 import { RecognitionFeed } from "./_components/recognition-feed";
 
 export default async function RecognitionPage() {
@@ -18,8 +19,15 @@ export default async function RecognitionPage() {
 					to company values.
 				</p>
 			</div>
-			<RecognitionForm />
 			<RecognitionFeed />
+
+			<Link
+				href="/dashboard/recognition/create"
+				className="fixed bottom-8 right-8 z-50 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-lg hover:bg-primary/90 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
+			>
+				<Plus size={20} strokeWidth={2.5} />
+				Send Recognition Card
+			</Link>
 		</div>
 	);
 }

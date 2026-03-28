@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Search, ChevronDown, X } from "lucide-react";
@@ -35,6 +36,7 @@ const COMPANY_VALUES = [
 ];
 
 export function RecognitionForm() {
+	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { data: session } = useSession();
 	const [isLoading, setIsLoading] = useState(false);
@@ -125,12 +127,10 @@ export function RecognitionForm() {
 			}
 
 			toast.success("Recognition card sent!");
-			reset();
-			setSelectedUser(null);
-			setSearchQuery("");
 			await queryClient.invalidateQueries({
 				queryKey: ["recognition-cards"],
 			});
+			router.push("/dashboard/recognition");
 		} catch {
 			toast.error("Something went wrong");
 		} finally {
@@ -331,6 +331,13 @@ export function RecognitionForm() {
 							<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 						)}
 						Send Recognition
+					</button>
+					<button
+						type="button"
+						onClick={() => router.push("/dashboard/recognition")}
+						className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
+					>
+						Cancel
 					</button>
 				</div>
 			</form>
