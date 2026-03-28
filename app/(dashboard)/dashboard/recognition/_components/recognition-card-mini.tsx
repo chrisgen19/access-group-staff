@@ -56,7 +56,7 @@ function formatDate(dateString: string) {
 
 const SIZE_CONFIG = {
 	compact: {
-		outer: "p-2 md:p-3 gap-2 md:gap-3",
+		outer: "p-2 md:p-3 gap-2 md:gap-3 max-w-lg",
 		field: "p-1.5 md:p-2",
 		labelText: "text-[7px] md:text-[8px]",
 		valueText: "text-xs md:text-sm",
@@ -75,7 +75,7 @@ const SIZE_CONFIG = {
 		valuesPanel: "p-3 md:p-4",
 	},
 	normal: {
-		outer: "p-3 md:p-5 gap-3 md:gap-4",
+		outer: "p-3 md:p-5 gap-3 md:gap-4 max-w-2xl",
 		field: "p-2 md:p-3",
 		labelText: "text-[8px] md:text-[9px]",
 		valueText: "text-sm md:text-base",
@@ -94,7 +94,7 @@ const SIZE_CONFIG = {
 		valuesPanel: "p-4 md:p-5",
 	},
 	expanded: {
-		outer: "p-4 md:p-6 gap-4 md:gap-5",
+		outer: "p-4 md:p-6 gap-4 md:gap-5 max-w-4xl",
 		field: "p-2.5 md:p-3",
 		labelText: "text-[9px] md:text-[10px]",
 		valueText: "text-base md:text-lg",
