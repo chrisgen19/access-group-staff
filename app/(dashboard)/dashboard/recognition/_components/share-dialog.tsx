@@ -17,9 +17,10 @@ interface ShareDialogProps {
 	open: boolean;
 	cardId: string | null;
 	onClose: () => void;
+	redirectOnClose?: boolean;
 }
 
-export function ShareDialog({ open, cardId, onClose }: ShareDialogProps) {
+export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: ShareDialogProps) {
 	const router = useRouter();
 	const [copied, setCopied] = useState(false);
 
@@ -40,7 +41,9 @@ export function ShareDialog({ open, cardId, onClose }: ShareDialogProps) {
 
 	function handleDone() {
 		onClose();
-		router.push("/dashboard/recognition");
+		if (redirectOnClose) {
+			router.push("/dashboard/recognition");
+		}
 	}
 
 	return (

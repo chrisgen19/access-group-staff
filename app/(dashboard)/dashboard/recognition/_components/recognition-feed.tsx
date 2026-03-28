@@ -1,7 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Heart, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Heart, ArrowRight, Eye, Share2, Pencil } from "lucide-react";
 import { cn, getInitials } from "@/lib/utils";
 import {
 	type RecognitionCard,
@@ -32,20 +33,69 @@ function CardSkeleton() {
 	);
 }
 
+function CardActions({
+	cardId,
+	isSender,
+	onShare,
+}: {
+	cardId: string;
+	isSender: boolean;
+	onShare: (cardId: string) => void;
+}) {
+	const router = useRouter();
+
+	return (
+		<div className="flex gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100 focus-within:opacity-100">
+			<button
+				type="button"
+				onClick={() => router.push(`/dashboard/recognition/${cardId}`)}
+				className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
+				title="View"
+			>
+				<Eye size={16} />
+			</button>
+			<button
+				type="button"
+				onClick={() => onShare(cardId)}
+				className="rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+				title="Share"
+			>
+				<Share2 size={16} />
+			</button>
+			{isSender && (
+				<button
+					type="button"
+					onClick={() => router.push(`/dashboard/recognition/${cardId}/edit`)}
+					className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
+					title="Edit"
+				>
+					<Pencil size={16} />
+				</button>
+			)}
+		</div>
+	);
+}
+
 interface RecognitionFeedProps {
 	filter?: "all" | "received" | "sent" | "department";
 	showTitle?: boolean;
+	showActions?: boolean;
+	currentUserId?: string;
 	cardMaxWidth?: string;
 	emptyTitle?: string;
 	emptyDescription?: string;
+	onShare?: (cardId: string) => void;
 }
 
 export function RecognitionFeed({
 	filter = "all",
 	showTitle = true,
+	showActions = false,
+	currentUserId,
 	cardMaxWidth,
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
+	onShare,
 }: RecognitionFeedProps) {
 	const cardView = usePreferencesStore((s) => s.cardView);
 	const cardSize = usePreferencesStore((s) => s.cardSize);
@@ -65,6 +115,10 @@ export function RecognitionFeed({
 	});
 
 	const cards = data?.data ?? [];
+
+	const handleShare = (cardId: string) => {
+		onShare?.(cardId);
+	};
 
 	if (isPending) {
 		return (
@@ -108,13 +162,27 @@ export function RecognitionFeed({
 				</h3>
 			)}
 			{cards.map((card) => {
+				const isSender = currentUserId === card.sender.id;
+				const actions = showActions && onShare ? (
+					<CardActions
+						cardId={card.id}
+						isSender={isSender}
+						onShare={handleShare}
+					/>
+				) : null;
+
 				if (cardView === "physical") {
 					return (
-						<div key={card.id} className={cardMaxWidth}>
+						<div key={card.id} className={cn("group relative", cardMaxWidth)}>
 							<RecognitionCardMini
 								card={card}
 								size={cardSize}
 							/>
+							{actions && (
+								<div className="absolute top-3 right-3 z-10">
+									{actions}
+								</div>
+							)}
 						</div>
 					);
 				}
@@ -123,7 +191,7 @@ export function RecognitionFeed({
 				return (
 					<div
 						key={card.id}
-						className={cn("rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", cardMaxWidth)}
+						className={cn("group rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", cardMaxWidth)}
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
@@ -164,6 +232,9 @@ export function RecognitionFeed({
 									</p>
 								)}
 							</div>
+							{actions && (
+								<div className="ml-auto">{actions}</div>
+							)}
 						</div>
 
 						<p className="text-sm text-foreground/80 mb-3 leading-relaxed">
