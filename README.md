@@ -1,36 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Access Recognition
+
+Internal employee recognition app for Access Group. Team members publicly recognize colleagues via digital thank-you cards tied to company values.
+
+## Tech Stack
+
+| Category | Technology |
+|----------|-----------|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript 5 |
+| Runtime | Node.js 20+, Bun (package manager) |
+| Auth | better-auth (email/password + Google OAuth) |
+| Database | PostgreSQL + Prisma 7 |
+| Styling | Tailwind CSS v4 + shadcn/ui + Lucide React |
+| Forms | React Hook Form + Zod |
+| Client State | Zustand |
+| Server State | TanStack React Query |
+| Toasts | Sonner |
+| Linting | Biome |
+| Dark Mode | next-themes |
+| Env Validation | @t3-oss/env-nextjs |
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 20.9+
+- [Bun](https://bun.sh) (package manager)
+- PostgreSQL (local or Docker)
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone and install
+git clone https://github.com/chrisgen19/access-group-staff.git
+cd access-group-staff
+bun install
+
+# Environment variables
+cp .env.example .env
+# Edit .env with your database URL and auth secrets
+
+# Database
+bunx prisma db push
+bun prisma/seed.ts
+
+# Run dev server
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|----------|------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | Auth secret (min 32 chars) |
+| `BETTER_AUTH_URL` | App base URL (e.g. `http://localhost:3000`) |
+| `NEXT_PUBLIC_APP_URL` | Public app URL |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Seed Users
 
-## Learn More
+| Email | Password | Role |
+|-------|----------|------|
+| admin@accessgroup.com.au | Password123! | SUPERADMIN |
+| eng.admin@accessgroup.com.au | Password123! | ADMIN |
+| john.doe@accessgroup.com.au | Password123! | STAFF |
+| sarah.jones@accessgroup.com.au | Password123! | STAFF |
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/
+├── (auth)/                        # Auth pages (login, register)
+├── (dashboard)/                   # Dashboard layout + pages
+│   └── dashboard/
+│       ├── page.tsx               # Dashboard home
+│       ├── users/                 # User management (CRUD)
+│       ├── departments/           # Department management (CRUD)
+│       └── profile/               # Profile + Preferences
+│           └── preferences/       # Background color customization
+├── api/
+│   ├── auth/[...all]/             # better-auth catch-all handler
+│   └── users/                     # Users API (React Query)
+└── globals.css                    # Tailwind v4 theme (CSS variables)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+components/
+├── ui/                            # shadcn/ui primitives (do not edit)
+└── shared/                        # Shared components (sidebar, header, etc.)
 
-## Deploy on Vercel
+lib/
+├── auth.ts                        # better-auth server config
+├── auth-client.ts                 # better-auth client
+├── auth-utils.ts                  # Session helpers (requireSession, requireRole)
+├── permissions.ts                 # Role-based permission checks
+├── actions/                       # Server Actions (user, department, profile)
+├── validations/                   # Zod schemas
+└── db/index.ts                    # Prisma client singleton
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+stores/                            # Zustand stores
+prisma/
+├── schema.prisma                  # Database schema
+└── seed.ts                        # Seed data
+proxy.ts                           # Route protection (replaces middleware.ts)
+env.ts                             # Typed env via @t3-oss/env-nextjs
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database Schema
+
+**Models:** User, Session, Account, Verification, Department
+
+**Roles:** `SUPERADMIN` > `ADMIN` > `STAFF`
+
+- SUPERADMIN/ADMIN can manage users and departments
+- STAFF can view dashboard and edit own profile
+- Deactivated users (`isActive: false`) are blocked at proxy and session level
+
+## Scripts
+
+```bash
+bun run dev          # Start dev server (Turbopack)
+bun run build        # Production build
+bun run start        # Start production server
+bun run lint         # Biome check
+bun run lint:fix     # Biome auto-fix
+bun run format       # Biome format
+bun run db:push      # Push schema to database
+bun run db:seed      # Seed database
+bun run db:studio    # Open Prisma Studio
+```
+
+## Deployment
+
+- **Vercel:** Zero config, all Next.js 16 features supported
+- **Self-hosted (Coolify):** Uses `output: "standalone"` in next.config.ts
+
+All secrets must be configured in the deployment platform's environment variable settings.
