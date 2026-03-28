@@ -14,26 +14,28 @@ enum Role {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false) @map("email_verified")
+  email         String   @unique
+  emailVerified Boolean  @default(false) @map("email_verified")
   image         String?
-  firstName     String    @map("first_name")
-  lastName      String    @map("last_name")
-  displayName   String?   @map("display_name")
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  displayName   String?  @map("display_name")
   phone         String?
   position      String?
   avatar        String?
-  role          Role      @default(STAFF)
-  isActive      Boolean   @default(true) @map("is_active")
-  departmentId  String?   @map("department_id")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  role          Role     @default(STAFF)
+  isActive      Boolean  @default(true) @map("is_active")
+  departmentId  String?  @map("department_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  department Department? @relation(fields: [departmentId], references: [id])
-  sessions   Session[]
-  accounts   Account[]
+  department           Department?       @relation(fields: [departmentId], references: [id])
+  sessions             Session[]
+  accounts             Account[]
+  sentRecognitions     RecognitionCard[] @relation("sender")
+  receivedRecognitions RecognitionCard[] @relation("recipient")
 
   @@map("users")
 }
@@ -94,4 +96,25 @@ model Department {
   users User[]
 
   @@map("departments")
+}
+
+model RecognitionCard {
+  id        String   @id @default(uuid())
+  message   String
+  date      DateTime @db.Date
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  senderId    String @map("sender_id")
+  sender      User   @relation("sender", fields: [senderId], references: [id])
+  recipientId String @map("recipient_id")
+  recipient   User   @relation("recipient", fields: [recipientId], references: [id])
+
+  valuesPeople                Boolean @default(false) @map("values_people")
+  valuesSafety                Boolean @default(false) @map("values_safety")
+  valuesRespect               Boolean @default(false) @map("values_respect")
+  valuesCommunication         Boolean @default(false) @map("values_communication")
+  valuesContinuousImprovement Boolean @default(false) @map("values_continuous_improvement")
+
+  @@map("recognition_cards")
 }

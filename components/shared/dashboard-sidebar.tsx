@@ -7,6 +7,7 @@ import {
 	LayoutDashboard,
 	Users,
 	Building2,
+	Heart,
 	UserCircle,
 	LogOut,
 	Menu,
@@ -21,6 +22,12 @@ const NAV_ITEMS = [
 		label: "Overview",
 		href: "/dashboard",
 		icon: LayoutDashboard,
+		adminOnly: false,
+	},
+	{
+		label: "Recognition Card",
+		href: "/dashboard/recognition",
+		icon: Heart,
 		adminOnly: false,
 	},
 	{
