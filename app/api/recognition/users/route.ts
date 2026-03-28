@@ -4,7 +4,14 @@ import { prisma } from "@/lib/db";
 export async function GET() {
 	try {
 		await requireSession();
+	} catch {
+		return Response.json(
+			{ success: false, error: "Unauthorized" },
+			{ status: 401 },
+		);
+	}
 
+	try {
 		const users = await prisma.user.findMany({
 			where: { isActive: true },
 			select: {
@@ -12,6 +19,7 @@ export async function GET() {
 				firstName: true,
 				lastName: true,
 				position: true,
+				department: { select: { name: true } },
 			},
 			orderBy: { firstName: "asc" },
 		});
@@ -19,8 +27,8 @@ export async function GET() {
 		return Response.json({ success: true, data: users });
 	} catch {
 		return Response.json(
-			{ success: false, error: "Unauthorized" },
-			{ status: 401 },
+			{ success: false, error: "Internal server error" },
+			{ status: 500 },
 		);
 	}
 }
