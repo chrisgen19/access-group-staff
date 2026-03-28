@@ -10,6 +10,7 @@ import {
 } from "@/components/shared/access-logos";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FlipCard } from "./flip-card";
 
 async function getCard(id: string) {
 	const card = await prisma.recognitionCard.findUnique({
@@ -131,10 +132,8 @@ export default async function SharePage({
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
 	const department = card.recipient.department?.name ?? "";
 
-	return (
-		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center py-8 px-4">
-			{/* Card 1 — Front */}
-			<div className="w-full max-w-5xl bg-[#e6e7e8] relative shadow-2xl flex flex-col overflow-hidden">
+	const card1Front = (
+			<div className="w-full bg-[#e6e7e8] relative shadow-2xl flex flex-col overflow-hidden">
 				<div className="bg-[#e31837] h-28 flex items-center justify-between px-6 md:px-12 z-10">
 					<AccessGroupLogo color="#ffffff" />
 					<AccessBusinessLogo color="#ffffff" />
@@ -214,9 +213,10 @@ export default async function SharePage({
 					</div>
 				</div>
 			</div>
+	);
 
-			{/* Card 2 — Back */}
-			<div className="w-full max-w-5xl bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6 mt-8">
+	const card2Back = (
+			<div className="w-full bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6">
 				<div
 					className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400"
 					aria-hidden="true"
@@ -339,8 +339,12 @@ export default async function SharePage({
 					</div>
 				</div>
 			</div>
+	);
 
-			{/* Footer */}
+	return (
+		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center py-8 px-4">
+			<FlipCard front={card1Front} back={card2Back} />
+
 			<div className="mt-8 text-center">
 				<p className="text-sm text-gray-500">
 					Powered by{" "}
