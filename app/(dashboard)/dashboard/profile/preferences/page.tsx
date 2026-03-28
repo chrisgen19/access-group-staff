@@ -126,7 +126,7 @@ export default function PreferencesPage() {
 						</p>
 					</div>
 
-					<div className="grid grid-cols-2 gap-3 sm:grid-cols-2 max-w-xs">
+					<div className="grid grid-cols-2 gap-3 max-w-xs">
 						{CARD_VIEW_OPTIONS.map((option) => {
 							const isSelected = cardView === option.id;
 							const Icon = VIEW_ICONS[option.id];

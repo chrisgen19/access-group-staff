@@ -1,58 +1,18 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+	type RecognitionCard,
+	COMPANY_VALUES,
+	formatRecognitionDate,
+} from "@/lib/recognition";
 import {
 	AccessGroupLogo,
 	AccessBusinessLogo,
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
 import type { CardSize } from "@/stores/use-preferences-store";
-
-interface RecognitionUser {
-	id: string;
-	firstName: string;
-	lastName: string;
-	avatar: string | null;
-	position: string | null;
-}
-
-interface RecognitionCardData {
-	id: string;
-	message: string;
-	date: string;
-	sender: RecognitionUser;
-	recipient: RecognitionUser;
-	valuesPeople: boolean;
-	valuesSafety: boolean;
-	valuesRespect: boolean;
-	valuesCommunication: boolean;
-	valuesContinuousImprovement: boolean;
-}
-
-const COMPANY_VALUES = [
-	{ key: "valuesPeople" as const, label: "People", wrap: false },
-	{ key: "valuesSafety" as const, label: "Safety", wrap: false },
-	{ key: "valuesRespect" as const, label: "Respect", wrap: false },
-	{ key: "valuesCommunication" as const, label: "Communication", wrap: false },
-	{
-		key: "valuesContinuousImprovement" as const,
-		label: "Continuous Improvement",
-		wrap: true,
-	},
-];
-
-function formatDate(dateString: string) {
-	const [year, month, day] = dateString.split("T")[0].split("-");
-	return new Date(
-		Number(year),
-		Number(month) - 1,
-		Number(day),
-	).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-}
 
 const SIZE_CONFIG = {
 	compact: {
@@ -117,18 +77,49 @@ const SIZE_CONFIG = {
 	},
 };
 
+function ValueIndicator({
+	checked,
+	checkboxClass,
+	iconSize,
+	label,
+}: {
+	checked: boolean;
+	checkboxClass: string;
+	iconSize: number;
+	label: string;
+}) {
+	return (
+		<div
+			role="img"
+			aria-label={`${label}: ${checked ? "demonstrated" : "not demonstrated"}`}
+			className={cn(
+				"flex-shrink-0 flex items-center justify-center",
+				checkboxClass,
+				checked ? "bg-[#333]" : "bg-[#e5e7eb]",
+			)}
+		>
+			{checked && (
+				<Check size={iconSize} strokeWidth={3} className="text-white" />
+			)}
+		</div>
+	);
+}
+
 export function RecognitionCardMini({
 	card,
 	size = "normal",
 }: {
-	card: RecognitionCardData;
+	card: RecognitionCard;
 	size?: CardSize;
 }) {
 	const s = SIZE_CONFIG[size];
 
 	return (
 		<div
-			className={`bg-[#e6e7e8] ${s.outer} relative shadow-md flex flex-col md:flex-row`}
+			className={cn(
+				"bg-[#e6e7e8] relative shadow-md flex flex-col md:flex-row",
+				s.outer,
+			)}
 		>
 			{/* Crop Marks */}
 			<div
@@ -151,31 +142,27 @@ export function RecognitionCardMini({
 			{/* Left Column */}
 			<div className="flex-1 flex flex-col gap-2">
 				{/* TO */}
-				<div
-					className={`bg-white ${s.field} rounded-sm flex flex-col shadow-sm`}
-				>
-					<span
-						className={`${s.labelText} font-black text-black mb-0.5`}
-					>
+				<div className={cn("bg-white rounded-sm flex flex-col shadow-sm", s.field)}>
+					<span className={cn("font-black text-black mb-0.5", s.labelText)}>
 						TO
 					</span>
-					<span className={`${s.valueText} text-[#222]`}>
+					<span className={cn("text-[#222]", s.valueText)}>
 						{card.recipient.firstName} {card.recipient.lastName}
 					</span>
 				</div>
 
 				{/* WHAT YOU DID */}
 				<div
-					className={`bg-white ${s.field} rounded-sm flex flex-col shadow-sm ${s.messageMin} flex-grow relative`}
+					className={cn(
+						"bg-white rounded-sm flex flex-col shadow-sm flex-grow relative",
+						s.field,
+						s.messageMin,
+					)}
 				>
-					<span
-						className={`${s.labelText} font-black text-black mb-0.5`}
-					>
+					<span className={cn("font-black text-black mb-0.5", s.labelText)}>
 						WHAT YOU DID
 					</span>
-					<p
-						className={`${s.messageText} text-[#222] leading-relaxed mb-8`}
-					>
+					<p className={cn("text-[#222] leading-relaxed mb-8", s.messageText)}>
 						{card.message}
 					</p>
 
@@ -184,46 +171,27 @@ export function RecognitionCardMini({
 						<div className="flex justify-between items-center w-full gap-0.5">
 							{COMPANY_VALUES.map((v) => {
 								const checked =
-									card[
-										v.key as keyof RecognitionCardData
-									] === true;
+									card[v.key as keyof RecognitionCard] === true;
 								return (
-									<div
-										key={v.key}
-										className="flex items-center gap-0.5"
-									>
-										<div
-											className={`${s.smCheckbox} flex-shrink-0 flex items-center justify-center ${
-												checked
-													? "bg-[#333]"
-													: "bg-[#e5e7eb]"
-											}`}
-										>
-											{checked && (
-												<Check
-													size={s.smCheckIcon}
-													strokeWidth={3}
-													className="text-white"
-												/>
-											)}
-										</div>
+									<div key={v.key} className="flex items-center gap-0.5">
+										<ValueIndicator
+											checked={checked}
+											checkboxClass={s.smCheckbox}
+											iconSize={s.smCheckIcon}
+											label={v.label}
+										/>
 										<span
-											className={`${s.smLabel} font-black text-[#222] uppercase ${
-												v.wrap
-													? "leading-[1.1]"
-													: ""
-											}`}
+											className={cn(
+												"font-black text-[#222] uppercase",
+												s.smLabel,
+												v.wrap && "leading-[1.1]",
+											)}
 										>
 											{v.wrap ? (
 												<>
-													{v.label
-														.split(" ")
-														.slice(0, -1)
-														.join(" ")}
+													{v.label.split(" ").slice(0, -1).join(" ")}
 													<br />
-													{v.label
-														.split(" ")
-														.at(-1)}
+													{v.label.split(" ").at(-1)}
 												</>
 											) : (
 												v.label
@@ -239,27 +207,31 @@ export function RecognitionCardMini({
 				{/* FROM + DATE */}
 				<div className="flex gap-2">
 					<div
-						className={`bg-white ${s.field} rounded-sm flex flex-col flex-1 ${s.fromDateH} shadow-sm`}
+						className={cn(
+							"bg-white rounded-sm flex flex-col flex-1 shadow-sm",
+							s.field,
+							s.fromDateH,
+						)}
 					>
-						<span
-							className={`${s.labelText} font-black text-black mb-0.5`}
-						>
+						<span className={cn("font-black text-black mb-0.5", s.labelText)}>
 							FROM
 						</span>
-						<span className={`${s.valueText} text-[#222]`}>
+						<span className={cn("text-[#222]", s.valueText)}>
 							{card.sender.firstName} {card.sender.lastName}
 						</span>
 					</div>
 					<div
-						className={`bg-white ${s.field} rounded-sm flex flex-col flex-1 ${s.fromDateH} shadow-sm`}
+						className={cn(
+							"bg-white rounded-sm flex flex-col flex-1 shadow-sm",
+							s.field,
+							s.fromDateH,
+						)}
 					>
-						<span
-							className={`${s.labelText} font-black text-black mb-0.5`}
-						>
+						<span className={cn("font-black text-black mb-0.5", s.labelText)}>
 							DATE
 						</span>
-						<span className={`${s.valueText} text-[#222]`}>
-							{formatDate(card.date)}
+						<span className={cn("text-[#222]", s.valueText)}>
+							{formatRecognitionDate(card.date)}
 						</span>
 					</div>
 				</div>
@@ -268,19 +240,17 @@ export function RecognitionCardMini({
 			{/* Right Column */}
 			<div className="flex-1 flex flex-col gap-2">
 				{/* Logos */}
-				<div
-					className={`${s.logoH} flex items-center justify-between px-1`}
-				>
-					<AccessGroupLogo
-						color="#e31837"
-						className={s.logoSize}
-					/>
+				<div className={cn("flex items-center justify-between px-1", s.logoH)}>
+					<AccessGroupLogo color="#e31837" className={s.logoSize} />
 					<AccessBusinessLogo color="#e31837" className={s.businessLogoSize} />
 				</div>
 
 				{/* Large Value Checkboxes */}
 				<div
-					className={`bg-white ${s.valuesPanel} rounded-sm flex flex-col flex-grow shadow-sm relative overflow-hidden`}
+					className={cn(
+						"bg-white rounded-sm flex flex-col flex-grow shadow-sm relative overflow-hidden",
+						s.valuesPanel,
+					)}
 				>
 					<div
 						className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]"
@@ -292,39 +262,27 @@ export function RecognitionCardMini({
 						/>
 					</div>
 
-					<h2
-						className={`text-[#e31837] ${s.valuesTitle} font-bold mb-3 relative z-10`}
-					>
+					<h2 className={cn("text-[#e31837] font-bold mb-3 relative z-10", s.valuesTitle)}>
 						WHICH ACCESS VALUES WERE DEMONSTRATED?
 					</h2>
 
 					<div className="flex flex-col gap-2 relative z-10">
 						{COMPANY_VALUES.map((v) => {
 							const checked =
-								card[v.key as keyof RecognitionCardData] ===
-								true;
+								card[v.key as keyof RecognitionCard] === true;
 							return (
-								<div
-									key={v.key}
-									className="flex items-center gap-1.5"
-								>
-									<div
-										className={`${s.lgCheckbox} flex-shrink-0 flex items-center justify-center ${
-											checked
-												? "bg-[#333]"
-												: "bg-[#e5e7eb]"
-										}`}
-									>
-										{checked && (
-											<Check
-												size={s.lgCheckIcon}
-												strokeWidth={3}
-												className="text-white"
-											/>
-										)}
-									</div>
+								<div key={v.key} className="flex items-center gap-1.5">
+									<ValueIndicator
+										checked={checked}
+										checkboxClass={s.lgCheckbox}
+										iconSize={s.lgCheckIcon}
+										label={v.label}
+									/>
 									<span
-										className={`font-black text-[#222] uppercase ${s.lgLabel} tracking-tight`}
+										className={cn(
+											"font-black text-[#222] uppercase tracking-tight",
+											s.lgLabel,
+										)}
 									>
 										{v.label}
 									</span>
