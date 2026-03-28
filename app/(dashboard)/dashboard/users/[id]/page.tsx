@@ -5,9 +5,6 @@ import { canViewUsers } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import type { Role } from "@/app/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Pencil } from "lucide-react";
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,46 +22,48 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 	if (!user) notFound();
 
 	return (
-		<div className="space-y-6">
+		<div className="max-w-5xl mx-auto space-y-8 mt-2">
 			<div className="flex items-center gap-4">
-				<Link href="/dashboard/users">
-					<Button variant="ghost" size="icon">
-						<ArrowLeft className="h-4 w-4" />
-					</Button>
+				<Link
+					href="/dashboard/users"
+					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
+				>
+					<ArrowLeft className="h-5 w-5" />
 				</Link>
 				<div className="flex-1">
-					<h2 className="text-3xl font-bold tracking-tight">
+					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
 						{user.firstName} {user.lastName}
-					</h2>
-					<p className="text-muted-foreground">{user.email}</p>
+					</h1>
+					<p className="mt-1 text-base text-muted-foreground">{user.email}</p>
 				</div>
-				<Link href={`/dashboard/users/${user.id}/edit`}>
-					<Button>
-						<Pencil className="mr-2 h-4 w-4" />
-						Edit User
-					</Button>
+				<Link
+					href={`/dashboard/users/${user.id}/edit`}
+					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200"
+				>
+					<Pencil className="h-4 w-4" />
+					Edit User
 				</Link>
 			</div>
 
 			<div className="grid gap-6 md:grid-cols-2">
-				<Card>
-					<CardHeader>
-						<CardTitle>Personal Info</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
+				<div className="rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+					<div className="px-8 pt-8 pb-2">
+						<h3 className="text-[1.25rem] font-medium text-foreground">Personal Info</h3>
+					</div>
+					<div className="px-8 py-6 space-y-4">
 						<InfoRow label="First Name" value={user.firstName} />
 						<InfoRow label="Last Name" value={user.lastName} />
 						<InfoRow label="Display Name" value={user.displayName} />
 						<InfoRow label="Email" value={user.email} />
 						<InfoRow label="Phone" value={user.phone} />
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 
-				<Card>
-					<CardHeader>
-						<CardTitle>Work Info</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
+				<div className="rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+					<div className="px-8 pt-8 pb-2">
+						<h3 className="text-[1.25rem] font-medium text-foreground">Work Info</h3>
+					</div>
+					<div className="px-8 py-6 space-y-4">
 						<InfoRow label="Position" value={user.position} />
 						<InfoRow label="Department" value={user.department?.name} />
 						<div className="flex justify-between py-1">
@@ -81,7 +80,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 								{user.role}
 							</Badge>
 						</div>
-						<Separator />
+						<div className="h-px bg-gray-100 dark:bg-white/5" />
 						<div className="flex justify-between py-1">
 							<span className="text-sm text-muted-foreground">Status</span>
 							<Badge variant={user.isActive ? "outline" : "destructive"}>
@@ -89,8 +88,8 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 							</Badge>
 						</div>
 						<InfoRow label="Joined" value={user.createdAt.toLocaleDateString()} />
-					</CardContent>
-				</Card>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
@@ -100,7 +99,7 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 	return (
 		<div className="flex justify-between py-1">
 			<span className="text-sm text-muted-foreground">{label}</span>
-			<span className="text-sm font-medium">{value ?? "—"}</span>
+			<span className="text-sm font-medium text-foreground">{value ?? "—"}</span>
 		</div>
 	);
 }

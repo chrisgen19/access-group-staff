@@ -1,5 +1,6 @@
 import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
+import { LayoutDashboard } from "lucide-react";
 
 export default async function DashboardPage() {
 	const session = await getServerSession();
@@ -8,18 +9,23 @@ export default async function DashboardPage() {
 	const user = session.user;
 
 	return (
-		<div className="space-y-6">
+		<div className="max-w-7xl mx-auto space-y-8 mt-2">
 			<div>
-				<h2 className="text-3xl font-bold tracking-tight">
+				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
 					Welcome back, {user.firstName as string ?? user.name}!
-				</h2>
-				<p className="text-muted-foreground">
+				</h1>
+				<p className="mt-2 text-base text-muted-foreground">
 					Here&apos;s what&apos;s happening at Access Group today.
 				</p>
 			</div>
-			<div className="rounded-lg border bg-card p-8 text-center text-muted-foreground">
-				<p className="text-lg">Recognition feed coming in Phase 2</p>
-				<p className="text-sm mt-1">
+			<div className="flex flex-col items-center justify-center rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card p-16 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<div className="mb-6 rounded-full bg-background p-6">
+					<LayoutDashboard size={48} className="text-muted-foreground opacity-40" />
+				</div>
+				<p className="text-[1.5rem] font-medium text-foreground">
+					Recognition feed coming in Phase 2
+				</p>
+				<p className="mt-2 text-base text-muted-foreground">
 					This is where you&apos;ll see recognition cards from your colleagues.
 				</p>
 			</div>

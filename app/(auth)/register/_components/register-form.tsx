@@ -6,20 +6,12 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Loader2, Building2 } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+
+const inputClass =
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200";
 
 export function RegisterForm() {
 	const router = useRouter();
@@ -60,73 +52,96 @@ export function RegisterForm() {
 	}
 
 	return (
-		<Card className="w-full max-w-md">
-			<CardHeader className="text-center">
-				<CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-				<CardDescription>Join Access Recognition</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-					<div className="grid grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label htmlFor="firstName">First Name</Label>
-							<Input id="firstName" placeholder="John" {...register("firstName")} />
+		<div className="w-full max-w-md">
+			<div className="flex flex-col items-center mb-8">
+				<div className="p-4 bg-card rounded-[1.5rem] shadow-sm border border-gray-100/50 dark:border-white/10">
+					<Building2 size={40} strokeWidth={1.5} className="text-primary" />
+				</div>
+				<h2 className="mt-8 text-center text-[2rem] leading-tight font-medium text-foreground tracking-tight">
+					Register new account
+				</h2>
+				<p className="mt-2 text-center text-sm text-muted-foreground font-medium">
+					Already have access?{" "}
+					<Link
+						href="/login"
+						className="text-primary hover:text-primary/80 transition-colors hover:underline underline-offset-4"
+					>
+						Sign in here
+					</Link>
+				</p>
+			</div>
+
+			<div className="bg-card py-10 px-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] sm:px-12 border border-gray-50 dark:border-white/5">
+				<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+					<div className="grid grid-cols-2 gap-5">
+						<div>
+							<label htmlFor="firstName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								First Name
+							</label>
+							<input id="firstName" type="text" className={inputClass} {...register("firstName")} />
 							{errors.firstName && (
-								<p className="text-sm text-destructive">{errors.firstName.message}</p>
+								<p className="mt-1 text-sm text-destructive">{errors.firstName.message}</p>
 							)}
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="lastName">Last Name</Label>
-							<Input id="lastName" placeholder="Doe" {...register("lastName")} />
+						<div>
+							<label htmlFor="lastName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								Last Name
+							</label>
+							<input id="lastName" type="text" className={inputClass} {...register("lastName")} />
 							{errors.lastName && (
-								<p className="text-sm text-destructive">{errors.lastName.message}</p>
+								<p className="mt-1 text-sm text-destructive">{errors.lastName.message}</p>
 							)}
 						</div>
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="email">Email</Label>
-						<Input
+					<div>
+						<label htmlFor="email" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							Corporate Email
+						</label>
+						<input
 							id="email"
 							type="email"
 							placeholder="name@accessgroup.com.au"
+							className={inputClass}
 							{...register("email")}
 						/>
 						{errors.email && (
-							<p className="text-sm text-destructive">{errors.email.message}</p>
+							<p className="mt-1 text-sm text-destructive">{errors.email.message}</p>
 						)}
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="password">Password</Label>
-						<Input id="password" type="password" {...register("password")} />
+					<div>
+						<label htmlFor="password" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							Password
+						</label>
+						<input id="password" type="password" placeholder="••••••••" className={inputClass} {...register("password")} />
 						{errors.password && (
-							<p className="text-sm text-destructive">{errors.password.message}</p>
+							<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
 						)}
 					</div>
 
-					<div className="space-y-2">
-						<Label htmlFor="confirmPassword">Confirm Password</Label>
-						<Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+					<div>
+						<label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							Confirm Password
+						</label>
+						<input id="confirmPassword" type="password" placeholder="••••••••" className={inputClass} {...register("confirmPassword")} />
 						{errors.confirmPassword && (
-							<p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+							<p className="mt-1 text-sm text-destructive">{errors.confirmPassword.message}</p>
 						)}
 					</div>
 
-					<Button type="submit" className="w-full" disabled={isLoading}>
-						{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-						Create Account
-					</Button>
+					<div className="pt-2">
+						<button
+							type="submit"
+							disabled={isLoading}
+							className="flex w-full justify-center rounded-full bg-primary px-4 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
+						>
+							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+							Register Account
+						</button>
+					</div>
 				</form>
-			</CardContent>
-			<CardFooter className="justify-center">
-				<p className="text-sm text-muted-foreground">
-					Already have an account?{" "}
-					<Link href="/login" className="text-primary hover:underline font-medium">
-						Sign in
-					</Link>
-				</p>
-			</CardFooter>
-		</Card>
+			</div>
+		</div>
 	);
 }

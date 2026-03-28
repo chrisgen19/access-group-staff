@@ -6,11 +6,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { updateProfileAction } from "@/lib/actions/profile-actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+const inputClass =
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all duration-200";
 
 interface ProfileFormProps {
 	user: {
@@ -59,11 +58,13 @@ export function ProfileForm({ user }: ProfileFormProps) {
 	}
 
 	return (
-		<div className="space-y-6 max-w-2xl">
+		<div className="max-w-2xl mx-auto space-y-8 mt-2">
 			<div>
-				<h2 className="text-3xl font-bold tracking-tight">My Profile</h2>
-				<div className="flex items-center gap-2 mt-1">
-					<p className="text-muted-foreground">{user.email}</p>
+				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
+					My Profile
+				</h1>
+				<div className="mt-2 flex items-center gap-2">
+					<p className="text-base text-muted-foreground">{user.email}</p>
 					<Badge variant="outline">{user.role}</Badge>
 					{user.department && (
 						<Badge variant="secondary">{user.department.name}</Badge>
@@ -71,46 +72,65 @@ export function ProfileForm({ user }: ProfileFormProps) {
 				</div>
 			</div>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Edit Profile</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-						<div className="grid grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<Label htmlFor="firstName">First Name</Label>
-								<Input id="firstName" {...register("firstName")} />
+			<div className="rounded-[2rem] border border-gray-50 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+				<div className="px-8 pt-8 pb-2">
+					<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
+						Edit Profile
+					</h3>
+				</div>
+
+				<form onSubmit={handleSubmit(onSubmit)}>
+					<div className="px-8 py-6 space-y-5">
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label htmlFor="firstName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									First Name
+								</label>
+								<input id="firstName" className={inputClass} {...register("firstName")} />
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="lastName">Last Name</Label>
-								<Input id="lastName" {...register("lastName")} />
+							<div>
+								<label htmlFor="lastName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Last Name
+								</label>
+								<input id="lastName" className={inputClass} {...register("lastName")} />
 							</div>
 						</div>
 
-						<div className="space-y-2">
-							<Label htmlFor="displayName">Display Name</Label>
-							<Input id="displayName" {...register("displayName")} />
+						<div>
+							<label htmlFor="displayName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								Display Name
+							</label>
+							<input id="displayName" className={inputClass} {...register("displayName")} />
 						</div>
 
-						<div className="grid grid-cols-2 gap-4">
-							<div className="space-y-2">
-								<Label htmlFor="phone">Phone</Label>
-								<Input id="phone" {...register("phone")} />
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label htmlFor="phone" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Phone
+								</label>
+								<input id="phone" className={inputClass} {...register("phone")} />
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="position">Position</Label>
-								<Input id="position" {...register("position")} />
+							<div>
+								<label htmlFor="position" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									Position
+								</label>
+								<input id="position" className={inputClass} {...register("position")} />
 							</div>
 						</div>
+					</div>
 
-						<Button type="submit" disabled={isLoading}>
+					<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-50 dark:border-white/5 flex justify-end">
+						<button
+							type="submit"
+							disabled={isLoading}
+							className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
+						>
 							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 							Save Changes
-						</Button>
-					</form>
-				</CardContent>
-			</Card>
+						</button>
+					</div>
+				</form>
+			</div>
 		</div>
 	);
 }

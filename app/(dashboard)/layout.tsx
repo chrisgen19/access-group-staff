@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "@/components/shared/dashboard-sidebar";
 import { DashboardHeader } from "@/components/shared/dashboard-header";
 
@@ -9,12 +8,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
 	if (!session) redirect("/login");
 
 	return (
-		<SidebarProvider>
+		<div className="flex h-screen overflow-hidden bg-background">
 			<DashboardSidebar />
-			<SidebarInset>
+			<div className="flex flex-1 flex-col overflow-hidden bg-card sm:my-2 sm:mr-2 sm:rounded-l-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
 				<DashboardHeader />
-				<main className="flex-1 p-6">{children}</main>
-			</SidebarInset>
-		</SidebarProvider>
+				<main className="flex-1 overflow-y-auto px-4 pb-8 sm:px-8">
+					{children}
+				</main>
+			</div>
+		</div>
 	);
 }
