@@ -567,6 +567,11 @@ export function RecognitionForm() {
 										className="w-full flex-grow outline-none resize-none text-base bg-transparent text-[#222] placeholder:text-gray-400"
 										spellCheck="false"
 									/>
+									{errors.message && (
+										<p className="text-xs text-red-600 mt-1">
+											{errors.message.message}
+										</p>
+									)}
 								</div>
 
 								<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
@@ -596,6 +601,11 @@ export function RecognitionForm() {
 										{...register("date")}
 										className="w-full outline-none text-lg bg-transparent text-[#222]"
 									/>
+									{errors.date && (
+										<p className="text-xs text-red-600 mt-1">
+											{errors.date.message}
+										</p>
+									)}
 								</div>
 							</div>
 
