@@ -15,12 +15,26 @@ export async function GET(request: NextRequest) {
 
 	try {
 		const filter = request.nextUrl.searchParams.get("filter");
-		const where =
-			filter === "received"
-				? { recipientId: session.user.id }
-				: filter === "sent"
-					? { senderId: session.user.id }
-					: undefined;
+
+		let where: object | undefined;
+		if (filter === "received") {
+			where = { recipientId: session.user.id };
+		} else if (filter === "sent") {
+			where = { senderId: session.user.id };
+		} else if (filter === "department") {
+			const user = await prisma.user.findUnique({
+				where: { id: session.user.id },
+				select: { departmentId: true },
+			});
+			if (user?.departmentId) {
+				where = {
+					OR: [
+						{ sender: { departmentId: user.departmentId } },
+						{ recipient: { departmentId: user.departmentId } },
+					],
+				};
+			}
+		}
 
 		const cards = await prisma.recognitionCard.findMany({
 			where,

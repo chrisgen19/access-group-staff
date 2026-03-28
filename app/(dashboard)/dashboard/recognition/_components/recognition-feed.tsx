@@ -75,7 +75,7 @@ function CardSkeleton() {
 }
 
 interface RecognitionFeedProps {
-	filter?: "all" | "received" | "sent";
+	filter?: "all" | "received" | "sent" | "department";
 	showTitle?: boolean;
 	emptyTitle?: string;
 	emptyDescription?: string;
