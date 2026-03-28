@@ -65,6 +65,7 @@ const SIZE_CONFIG = {
 		fromDateH: "h-10 md:h-12",
 		logoH: "h-12 md:h-14",
 		logoSize: "h-4 md:h-5 w-auto",
+		businessLogoSize: "h-6 md:h-8 w-auto",
 		valuesTitle: "text-[8px] md:text-[9px]",
 		lgCheckbox: "w-4 h-4 md:w-5 md:h-5",
 		lgCheckIcon: 8,
@@ -84,6 +85,7 @@ const SIZE_CONFIG = {
 		fromDateH: "h-12 md:h-14",
 		logoH: "h-14 md:h-16",
 		logoSize: "h-5 md:h-7 w-auto",
+		businessLogoSize: "h-8 md:h-10 w-auto",
 		valuesTitle: "text-[9px] md:text-[11px]",
 		lgCheckbox: "w-5 h-5 md:w-6 md:h-6",
 		lgCheckIcon: 10,
@@ -103,6 +105,7 @@ const SIZE_CONFIG = {
 		fromDateH: "h-14 md:h-16",
 		logoH: "h-16 md:h-20",
 		logoSize: "h-7 md:h-9 w-auto",
+		businessLogoSize: "h-12 md:h-16 w-auto",
 		valuesTitle: "text-[10px] md:text-[12px]",
 		lgCheckbox: "w-6 h-6 md:w-7 md:h-7",
 		lgCheckIcon: 14,
@@ -272,7 +275,7 @@ export function RecognitionCardMini({
 						color="#e31837"
 						className={s.logoSize}
 					/>
-					<AccessBusinessLogo color="#e31837" />
+					<AccessBusinessLogo color="#e31837" className={s.businessLogoSize} />
 				</div>
 
 				{/* Large Value Checkboxes */}
