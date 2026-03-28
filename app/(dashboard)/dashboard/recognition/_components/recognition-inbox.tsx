@@ -54,7 +54,7 @@ export function RecognitionInbox() {
 				))}
 			</div>
 
-			<div role="tabpanel">
+			<div role="tabpanel" className="max-w-3xl">
 				<RecognitionFeed
 					filter={activeTab}
 					showTitle={false}
