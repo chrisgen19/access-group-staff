@@ -10,11 +10,19 @@ export async function proxy(request: NextRequest) {
 	const sessionCookie = request.cookies.get(sessionToken.name)?.value ?? null;
 	const { pathname } = request.nextUrl;
 
-	if (pathname.startsWith("/dashboard") && !sessionCookie) {
-		return NextResponse.redirect(new URL("/login", request.url));
+	const isProtected =
+		pathname.startsWith("/dashboard") ||
+		(pathname.startsWith("/recognition/") && !pathname.endsWith("/opengraph-image"));
+
+	if (isProtected && !sessionCookie) {
+		const loginUrl = new URL("/login", request.url);
+		if (!pathname.startsWith("/dashboard")) {
+			loginUrl.searchParams.set("callbackUrl", pathname);
+		}
+		return NextResponse.redirect(loginUrl);
 	}
 
-	if (pathname.startsWith("/dashboard") && sessionCookie) {
+	if (isProtected && sessionCookie) {
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
@@ -32,12 +40,14 @@ export async function proxy(request: NextRequest) {
 	}
 
 	if ((pathname === "/login" || pathname === "/register") && sessionCookie) {
-		return NextResponse.redirect(new URL("/dashboard", request.url));
+		const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
+		const safeCallback = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
+		return NextResponse.redirect(new URL(safeCallback, request.url));
 	}
 
 	return NextResponse.next();
 }
 
 export const config = {
-	matcher: ["/dashboard/:path*", "/login", "/register"],
+	matcher: ["/dashboard/:path*", "/login", "/register", "/recognition/:path*"],
 };

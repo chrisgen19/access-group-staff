@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -13,6 +13,8 @@ import { AccessGroupLogo } from "@/components/shared/access-logos";
 
 export function LoginForm() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
@@ -37,7 +39,7 @@ export function LoginForm() {
 				return;
 			}
 
-			router.push("/dashboard");
+			router.push(callbackUrl);
 			router.refresh();
 		} catch {
 			toast.error("Something went wrong. Please try again.");
@@ -51,7 +53,7 @@ export function LoginForm() {
 		try {
 			await signIn.social({
 				provider: "google",
-				callbackURL: "/dashboard",
+				callbackURL: callbackUrl,
 			});
 		} catch {
 			toast.error("Failed to sign in with Google");

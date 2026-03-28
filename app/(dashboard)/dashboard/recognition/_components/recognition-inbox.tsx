@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { Inbox, Send } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { RecognitionFeed } from "./recognition-feed";
+import { ShareDialog } from "./share-dialog";
 
 const TABS = [
 	{
@@ -24,7 +26,9 @@ const TABS = [
 ];
 
 export function RecognitionInbox() {
+	const { data: session } = useSession();
 	const [activeTab, setActiveTab] = useState<"received" | "sent">("received");
+	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const currentTab = TABS.find((t) => t.key === activeTab)!;
 
 	return (
@@ -59,10 +63,20 @@ export function RecognitionInbox() {
 					cardMaxWidth="max-w-3xl"
 					filter={activeTab}
 					showTitle={false}
+					showActions
+					currentUserId={session?.user?.id}
 					emptyTitle={currentTab.emptyTitle}
 					emptyDescription={currentTab.emptyDescription}
+					onShare={setShareCardId}
 				/>
 			</div>
+
+			<ShareDialog
+				open={!!shareCardId}
+				cardId={shareCardId}
+				onClose={() => setShareCardId(null)}
+				redirectOnClose={false}
+			/>
 		</>
 	);
 }

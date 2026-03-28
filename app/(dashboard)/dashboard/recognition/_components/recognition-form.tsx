@@ -8,7 +8,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Search, ChevronDown, X, Check } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { createRecognitionCardAction } from "@/lib/actions/recognition-actions";
+import {
+	createRecognitionCardAction,
+	updateRecognitionCardAction,
+} from "@/lib/actions/recognition-actions";
+import { ShareDialog } from "./share-dialog";
 import {
 	createRecognitionCardSchema,
 	type CreateRecognitionCardInput,
@@ -255,15 +259,29 @@ function RecipientCombobox({
 	);
 }
 
-export function RecognitionForm() {
+interface RecognitionFormProps {
+	mode?: "create" | "edit";
+	cardId?: string;
+	defaultValues?: Partial<CreateRecognitionCardInput>;
+	defaultRecipient?: ActiveUser | null;
+}
+
+export function RecognitionForm({
+	mode = "create",
+	cardId,
+	defaultValues: editDefaults,
+	defaultRecipient,
+}: RecognitionFormProps) {
+	const isEdit = mode === "edit";
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { data: session } = useSession();
 	const [step, setStep] = useState<1 | 2>(1);
 	const [isLoading, setIsLoading] = useState(false);
+	const [sharedCardId, setSharedCardId] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-	const [selectedUser, setSelectedUser] = useState<ActiveUser | null>(null);
+	const [selectedUser, setSelectedUser] = useState<ActiveUser | null>(defaultRecipient ?? null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -281,18 +299,18 @@ export function RecognitionForm() {
 	} = useForm<CreateRecognitionCardInput>({
 		resolver: zodResolver(createRecognitionCardSchema),
 		defaultValues: {
-			recipientId: "",
-			message: "",
-			date: new Date(
+			recipientId: editDefaults?.recipientId ?? "",
+			message: editDefaults?.message ?? "",
+			date: editDefaults?.date ?? new Date(
 				Date.now() - new Date().getTimezoneOffset() * 60_000,
 			)
 				.toISOString()
 				.split("T")[0],
-			valuesPeople: false,
-			valuesSafety: false,
-			valuesRespect: false,
-			valuesCommunication: false,
-			valuesContinuousImprovement: false,
+			valuesPeople: editDefaults?.valuesPeople ?? false,
+			valuesSafety: editDefaults?.valuesSafety ?? false,
+			valuesRespect: editDefaults?.valuesRespect ?? false,
+			valuesCommunication: editDefaults?.valuesCommunication ?? false,
+			valuesContinuousImprovement: editDefaults?.valuesContinuousImprovement ?? false,
 		},
 	});
 
@@ -360,7 +378,9 @@ export function RecognitionForm() {
 	async function onSubmit(data: CreateRecognitionCardInput) {
 		setIsLoading(true);
 		try {
-			const result = await createRecognitionCardAction(data);
+			const result = isEdit
+				? await updateRecognitionCardAction(cardId!, data)
+				: await createRecognitionCardAction(data);
 
 			if (!result.success) {
 				const errorMsg =
@@ -371,7 +391,6 @@ export function RecognitionForm() {
 				return;
 			}
 
-			toast.success("Recognition card sent!");
 			await Promise.all([
 				queryClient.invalidateQueries({
 					queryKey: ["recognition-cards"],
@@ -380,7 +399,13 @@ export function RecognitionForm() {
 					queryKey: ["recognition-stats"],
 				}),
 			]);
-			router.push("/dashboard/recognition");
+
+			if (isEdit) {
+				toast.success("Recognition card updated");
+				router.push("/dashboard/recognition");
+			} else {
+				setSharedCardId(result.data.id);
+			}
 		} catch {
 			toast.error("Something went wrong");
 		} finally {
@@ -402,6 +427,7 @@ export function RecognitionForm() {
 	};
 
 	return (
+	<>
 		<form
 			onSubmit={handleSubmit(onSubmit)}
 			className="flex flex-col items-center gap-8"
@@ -539,7 +565,7 @@ export function RecognitionForm() {
 							onClick={handleReview}
 							className="inline-flex justify-center rounded-full bg-[#e31837] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#c41430] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#e31837]/30 transition-all duration-200"
 						>
-							Review Before Submit
+							{isEdit ? "Review Changes" : "Review Before Submit"}
 						</button>
 						<button
 							type="button"
@@ -632,14 +658,14 @@ export function RecognitionForm() {
 							{/* Right Column (Text) */}
 							<div className="flex-1 flex flex-col justify-center pl-4 md:pl-8 z-10 min-w-0">
 								<h1
-									className={`font-sanstext-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap`}
+									className="font-sans font-black text-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap"
 								>
 									Thank you for your
 									<br />
 									contribution
 								</h1>
 								<h2
-									className={`font-sanstext-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap`}
+									className="font-sans font-black text-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap"
 								>
 									Access is proud
 									<br />
@@ -669,7 +695,7 @@ export function RecognitionForm() {
 							{isLoading && (
 								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 							)}
-							Send Recognition
+							{isEdit ? "Save Changes" : "Send Recognition"}
 						</button>
 						<button
 							type="button"
@@ -685,5 +711,12 @@ export function RecognitionForm() {
 				</>
 			)}
 		</form>
+
+		<ShareDialog
+			open={!!sharedCardId}
+			cardId={sharedCardId}
+			onClose={() => setSharedCardId(null)}
+		/>
+	</>
 	);
 }
