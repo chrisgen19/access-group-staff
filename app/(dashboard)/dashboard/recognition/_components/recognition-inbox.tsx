@@ -56,6 +56,7 @@ export function RecognitionInbox() {
 
 			<div role="tabpanel">
 				<RecognitionFeed
+					cardMaxWidth="max-w-3xl"
 					filter={activeTab}
 					showTitle={false}
 					emptyTitle={currentTab.emptyTitle}

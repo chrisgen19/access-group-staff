@@ -2,56 +2,14 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Heart, ArrowRight } from "lucide-react";
-import { getInitials } from "@/lib/utils";
-
-interface RecognitionUser {
-	id: string;
-	firstName: string;
-	lastName: string;
-	avatar: string | null;
-	position: string | null;
-}
-
-interface RecognitionCard {
-	id: string;
-	message: string;
-	date: string;
-	createdAt: string;
-	sender: RecognitionUser;
-	recipient: RecognitionUser;
-	valuesPeople: boolean;
-	valuesSafety: boolean;
-	valuesRespect: boolean;
-	valuesCommunication: boolean;
-	valuesContinuousImprovement: boolean;
-}
-
-const VALUE_LABELS: Record<string, string> = {
-	valuesPeople: "People",
-	valuesSafety: "Safety",
-	valuesRespect: "Respect",
-	valuesCommunication: "Communication",
-	valuesContinuousImprovement: "Continuous Improvement",
-};
-
-function getSelectedValues(card: RecognitionCard): string[] {
-	return Object.entries(VALUE_LABELS)
-		.filter(([key]) => card[key as keyof RecognitionCard] === true)
-		.map(([, label]) => label);
-}
-
-function formatDate(dateString: string) {
-	const [year, month, day] = dateString.split("T")[0].split("-");
-	return new Date(
-		Number(year),
-		Number(month) - 1,
-		Number(day),
-	).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-}
+import { cn, getInitials } from "@/lib/utils";
+import {
+	type RecognitionCard,
+	getSelectedValues,
+	formatRecognitionDate,
+} from "@/lib/recognition";
+import { usePreferencesStore } from "@/stores/use-preferences-store";
+import { RecognitionCardMini } from "./recognition-card-mini";
 
 function CardSkeleton() {
 	return (
@@ -77,6 +35,7 @@ function CardSkeleton() {
 interface RecognitionFeedProps {
 	filter?: "all" | "received" | "sent" | "department";
 	showTitle?: boolean;
+	cardMaxWidth?: string;
 	emptyTitle?: string;
 	emptyDescription?: string;
 }
@@ -84,9 +43,12 @@ interface RecognitionFeedProps {
 export function RecognitionFeed({
 	filter = "all",
 	showTitle = true,
+	cardMaxWidth,
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
 }: RecognitionFeedProps) {
+	const cardView = usePreferencesStore((s) => s.cardView);
+	const cardSize = usePreferencesStore((s) => s.cardSize);
 	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
 
 	const { data, isPending } = useQuery<{
@@ -146,11 +108,22 @@ export function RecognitionFeed({
 				</h3>
 			)}
 			{cards.map((card) => {
+				if (cardView === "physical") {
+					return (
+						<div key={card.id} className={cardMaxWidth}>
+							<RecognitionCardMini
+								card={card}
+								size={cardSize}
+							/>
+						</div>
+					);
+				}
+
 				const values = getSelectedValues(card);
 				return (
 					<div
 						key={card.id}
-						className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]"
+						className={cn("rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", cardMaxWidth)}
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
@@ -207,7 +180,7 @@ export function RecognitionFeed({
 								</span>
 							))}
 							<span className="ml-auto text-xs text-muted-foreground">
-								{formatDate(card.date)}
+								{formatRecognitionDate(card.date)}
 							</span>
 						</div>
 					</div>
