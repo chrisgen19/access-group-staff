@@ -25,6 +25,12 @@ const NAV_ITEMS = [
 		adminOnly: false,
 	},
 	{
+		label: "Recognition Card",
+		href: "/dashboard/recognition",
+		icon: Heart,
+		adminOnly: false,
+	},
+	{
 		label: "Staff",
 		href: "/dashboard/users",
 		icon: Users,
@@ -35,12 +41,6 @@ const NAV_ITEMS = [
 		href: "/dashboard/departments",
 		icon: Building2,
 		adminOnly: true,
-	},
-	{
-		label: "Recognition Card",
-		href: "/dashboard/recognition",
-		icon: Heart,
-		adminOnly: false,
 	},
 	{
 		label: "My Profile",
