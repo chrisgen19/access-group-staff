@@ -20,7 +20,7 @@ interface PreferencesState {
 const usePreferencesStore = create<PreferencesState>()(
 	persist(
 		(set) => ({
-			bgColorId: "default",
+			bgColorId: "cream",
 			setBgColor: (id) => set({ bgColorId: id }),
 		}),
 		{ name: "user-preferences" },
