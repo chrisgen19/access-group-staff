@@ -24,6 +24,7 @@ export async function proxy(request: NextRequest) {
 			if (!user?.isActive) {
 				const response = NextResponse.redirect(new URL("/login", request.url));
 				response.cookies.delete("better-auth.session_token");
+				response.cookies.delete("__Secure-better-auth.session_token");
 				return response;
 			}
 		}
