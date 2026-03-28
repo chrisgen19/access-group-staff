@@ -176,7 +176,7 @@ export function UserListClient() {
 											</div>
 										</td>
 										<td className="whitespace-nowrap px-8 py-5 text-right text-sm font-medium">
-											<div className="flex justify-end gap-1 sm:opacity-0 sm:transition-opacity sm:group-hover:opacity-100 sm:focus-within:opacity-100">
+											<div className="flex justify-end gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100 focus-within:opacity-100">
 												<button
 													type="button"
 													onClick={() => router.push(`/dashboard/users/${user.id}`)}
