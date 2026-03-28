@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Roboto } from "next/font/google";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Search, ChevronDown, X, Check } from "lucide-react";
@@ -20,8 +19,6 @@ import {
 	BackgroundGraphic,
 } from "./card-assets";
 
-const roboto = Roboto({ subsets: ["latin"], weight: ["900"] });
-
 interface ActiveUser {
 	id: string;
 	firstName: string;
@@ -31,13 +28,14 @@ interface ActiveUser {
 }
 
 const COMPANY_VALUES = [
-	{ key: "valuesPeople" as const, label: "People" },
-	{ key: "valuesSafety" as const, label: "Safety" },
-	{ key: "valuesRespect" as const, label: "Respect" },
-	{ key: "valuesCommunication" as const, label: "Communication" },
+	{ key: "valuesPeople" as const, label: "People", wrap: false },
+	{ key: "valuesSafety" as const, label: "Safety", wrap: false },
+	{ key: "valuesRespect" as const, label: "Respect", wrap: false },
+	{ key: "valuesCommunication" as const, label: "Communication", wrap: false },
 	{
 		key: "valuesContinuousImprovement" as const,
 		label: "Continuous Improvement",
+		wrap: true,
 	},
 ];
 
@@ -48,20 +46,22 @@ const STEPS = [
 
 function ProgressBar({ currentStep }: { currentStep: 1 | 2 }) {
 	return (
-		<div className="w-full max-w-5xl flex items-center gap-0">
+		<ol className="w-full max-w-5xl flex items-center gap-0" aria-label="Form steps">
 			{STEPS.map((s, i) => {
 				const isCompleted = s.number < currentStep;
 				const isActive = s.number === currentStep;
 				return (
-					<div key={s.number} className="flex items-center flex-1 last:flex-none">
+					<li
+						key={s.number}
+						className="flex items-center flex-1 last:flex-none"
+						aria-current={isActive ? "step" : undefined}
+					>
 						<div className="flex items-center gap-2">
 							<div
 								className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors duration-300 ${
-									isCompleted
+									isCompleted || isActive
 										? "bg-[#e31837] text-white"
-										: isActive
-											? "bg-[#e31837] text-white"
-											: "bg-[#e5e7eb] text-[#999]"
+										: "bg-[#e5e7eb] text-[#999]"
 								}`}
 							>
 								{isCompleted ? <Check size={16} strokeWidth={3} /> : s.number}
@@ -85,10 +85,10 @@ function ProgressBar({ currentStep }: { currentStep: 1 | 2 }) {
 								</div>
 							</div>
 						)}
-					</div>
+					</li>
 				);
 			})}
-		</div>
+		</ol>
 	);
 }
 
@@ -97,11 +97,13 @@ function ValueCheckbox({
 	onChange,
 	label,
 	isLarge,
+	wrap,
 }: {
 	checked: boolean;
 	onChange: () => void;
 	label: string;
 	isLarge?: boolean;
+	wrap?: boolean;
 }) {
 	return (
 		<label
@@ -115,25 +117,31 @@ function ValueCheckbox({
 					onChange={onChange}
 				/>
 				<div
-					className={`transition-colors duration-200 flex-shrink-0 ${
+					className={`transition-colors duration-200 flex-shrink-0 flex items-center justify-center ${
 						isLarge ? "w-8 h-8" : "w-3.5 h-3.5 md:w-4 md:h-4"
 					} ${checked ? "bg-[#333]" : "bg-[#e5e7eb] group-hover:bg-[#d1d5db]"}`}
-				/>
+				>
+					{checked && (
+						<Check
+							size={isLarge ? 18 : 10}
+							strokeWidth={3}
+							className="text-white"
+						/>
+					)}
+				</div>
 			</div>
 			<span
 				className={`font-black text-[#222] uppercase ${
 					isLarge
 						? "text-2xl tracking-tight"
 						: "text-[8.5px] md:text-[10px]"
-				} ${label === "Continuous Improvement" && !isLarge ? "leading-[1.1]" : ""}`}
+				} ${wrap && !isLarge ? "leading-[1.1]" : ""}`}
 			>
-				{isLarge ? (
-					label
-				) : label === "Continuous Improvement" ? (
+				{!isLarge && wrap ? (
 					<>
-						Continuous
+						{label.split(" ").slice(0, -1).join(" ")}
 						<br />
-						Improvement
+						{label.split(" ").at(-1)}
 					</>
 				) : (
 					label
@@ -169,7 +177,7 @@ function RecipientCombobox({
 	error?: string;
 }) {
 	return (
-		<div className="relative flex-1" ref={dropdownRef}>
+		<div className="relative flex-1" ref={dropdownRef} role="combobox" aria-expanded={isDropdownOpen && !selectedUser} aria-haspopup="listbox">
 			{selectedUser ? (
 				<div className="flex items-center justify-between h-full">
 					<span className="text-lg text-[#222]">
@@ -178,9 +186,10 @@ function RecipientCombobox({
 					<button
 						type="button"
 						onClick={handleClearSelection}
+						aria-label="Clear recipient selection"
 						className="text-gray-400 hover:text-[#222] transition-colors"
 					>
-						<X size={16} />
+						<X size={16} aria-hidden="true" />
 					</button>
 				</div>
 			) : (
@@ -206,7 +215,7 @@ function RecipientCombobox({
 						/>
 					</div>
 					{isDropdownOpen && (
-						<div className="absolute top-full left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg rounded-sm">
+						<div role="listbox" className="absolute top-full left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg rounded-sm">
 							{filteredUsers.length === 0 ? (
 								<div className="px-4 py-3 text-sm text-gray-400">
 									No users found
@@ -402,10 +411,10 @@ export function RecognitionForm() {
 				<>
 					<div className="w-full max-w-5xl bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6">
 						{/* Crop Marks */}
-						<div className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400" />
-						<div className="absolute top-2 right-2 w-4 h-4 border-t border-r border-gray-400" />
-						<div className="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-gray-400" />
-						<div className="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-gray-400" />
+						<div className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400" aria-hidden="true" />
+						<div className="absolute top-2 right-2 w-4 h-4 border-t border-r border-gray-400" aria-hidden="true" />
+						<div className="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-gray-400" aria-hidden="true" />
+						<div className="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-gray-400" aria-hidden="true" />
 
 						{/* Left Column */}
 						<div className="flex-1 flex flex-col gap-4">
@@ -447,6 +456,7 @@ export function RecognitionForm() {
 												checked={watch(v.key)}
 												onChange={() => toggleValue(v.key)}
 												label={v.label}
+												wrap={v.wrap}
 											/>
 										))}
 									</div>
@@ -486,7 +496,7 @@ export function RecognitionForm() {
 							</div>
 
 							<div className="bg-white p-6 md:p-8 rounded-sm flex flex-col flex-grow shadow-sm relative overflow-hidden">
-								<div className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]">
+								<div className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]" aria-hidden="true">
 									<BackgroundGraphic
 										preserveAspectRatio="xMinYMin meet"
 										className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
@@ -504,6 +514,7 @@ export function RecognitionForm() {
 											checked={watch(v.key)}
 											onChange={() => toggleValue(v.key)}
 											label={v.label}
+											wrap={v.wrap}
 											isLarge
 										/>
 									))}
@@ -612,14 +623,14 @@ export function RecognitionForm() {
 							{/* Right Column (Text) */}
 							<div className="flex-1 flex flex-col justify-center pl-4 md:pl-8 z-10 min-w-0">
 								<h1
-									className={`${roboto.className} text-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap`}
+									className={`font-sanstext-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap`}
 								>
 									Thank you for your
 									<br />
 									contribution
 								</h1>
 								<h2
-									className={`${roboto.className} text-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap`}
+									className={`font-sanstext-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap`}
 								>
 									Access is proud
 									<br />
@@ -630,7 +641,7 @@ export function RecognitionForm() {
 							</div>
 
 							{/* Background Watermark */}
-							<div className="absolute left-[45%] top-[10%] w-[60%] h-[90%] pointer-events-none text-white opacity-60">
+							<div className="absolute left-[45%] top-[10%] w-[60%] h-[90%] pointer-events-none text-white opacity-60" aria-hidden="true">
 								<BackgroundGraphic
 									preserveAspectRatio="xMinYMin meet"
 									className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
