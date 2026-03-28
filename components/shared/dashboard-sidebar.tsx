@@ -9,6 +9,8 @@ import {
 	Building2,
 	Heart,
 	UserCircle,
+	Settings,
+	ShieldCheck,
 	LogOut,
 	Menu,
 } from "lucide-react";
@@ -18,36 +20,55 @@ import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 
-const NAV_ITEMS = [
+type MinRole = "STAFF" | "ADMIN" | "SUPERADMIN";
+
+const NAV_ITEMS: {
+	label: string;
+	href: string;
+	icon: React.ComponentType<{ size?: number }>;
+	minRole: MinRole;
+}[] = [
 	{
 		label: "Dashboard",
 		href: "/dashboard",
 		icon: LayoutDashboard,
-		adminOnly: false,
+		minRole: "STAFF",
 	},
 	{
 		label: "Recognition Card",
 		href: "/dashboard/recognition",
 		icon: Heart,
-		adminOnly: false,
+		minRole: "STAFF",
 	},
 	{
 		label: "Staff",
 		href: "/dashboard/users",
 		icon: Users,
-		adminOnly: true,
+		minRole: "ADMIN",
 	},
 	{
 		label: "Departments",
 		href: "/dashboard/departments",
 		icon: Building2,
-		adminOnly: true,
+		minRole: "ADMIN",
 	},
 	{
 		label: "My Profile",
 		href: "/dashboard/profile",
 		icon: UserCircle,
-		adminOnly: false,
+		minRole: "STAFF",
+	},
+	{
+		label: "Admin Settings",
+		href: "/dashboard/admin-settings",
+		icon: Settings,
+		minRole: "ADMIN",
+	},
+	{
+		label: "Super Admin",
+		href: "/dashboard/super-admin",
+		icon: ShieldCheck,
+		minRole: "SUPERADMIN",
 	},
 ];
 
@@ -55,10 +76,17 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { data: session } = useSession();
-	const userRole = (session?.user?.role as string) ?? "STAFF";
-	const isAdmin = userRole === "ADMIN" || userRole === "SUPERADMIN";
+	const userRole = ((session?.user?.role as string) ?? "STAFF") as MinRole;
 
-	const filteredItems = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin);
+	const roleLevel: Record<MinRole, number> = {
+		STAFF: 0,
+		ADMIN: 1,
+		SUPERADMIN: 2,
+	};
+
+	const filteredItems = NAV_ITEMS.filter(
+		(item) => roleLevel[userRole] >= roleLevel[item.minRole],
+	);
 
 	async function handleSignOut() {
 		try {
