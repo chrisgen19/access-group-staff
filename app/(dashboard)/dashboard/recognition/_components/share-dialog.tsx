@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Copy, Share2 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,10 +23,13 @@ interface ShareDialogProps {
 export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: ShareDialogProps) {
 	const router = useRouter();
 	const [copied, setCopied] = useState(false);
+	const [shareUrl, setShareUrl] = useState("");
 
-	const shareUrl = cardId
-		? `${window.location.origin}/recognition/${cardId}`
-		: "";
+	useEffect(() => {
+		if (cardId) {
+			setShareUrl(`${window.location.origin}/recognition/${cardId}`);
+		}
+	}, [cardId]);
 
 	async function handleCopy() {
 		try {

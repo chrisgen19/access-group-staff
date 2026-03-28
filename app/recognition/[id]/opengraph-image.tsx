@@ -63,7 +63,12 @@ export default async function OGImage({
 			([key]) => card[key as keyof typeof card] === true,
 		)
 		.map(([, label]) => label);
-	const dateStr = card.date.toLocaleDateString("en-US", {
+	const [year, month, day] = card.date.toISOString().split("T")[0].split("-");
+	const dateStr = new Date(
+		Number(year),
+		Number(month) - 1,
+		Number(day),
+	).toLocaleDateString("en-US", {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
