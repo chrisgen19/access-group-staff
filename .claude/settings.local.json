@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init:*)",
+      "Bash(git remote:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebSearch",
+      "WebFetch(domain:better-auth.com)",
+      "WebFetch(domain:www.answeroverflow.com)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:env.t3.gg)",
+      "WebFetch(domain:github.com)",
+      "Bash(bunx:*)",
+      "Bash(mkdir -p /tmp/access-backup)",
+      "Bash(mv /Users/chrisgen19/projects/access-group-staff/CLAUDE.md /Users/chrisgen19/projects/access-group-staff/SAMPLE.CLAUDE.md /Users/chrisgen19/projects/access-group-staff/SAMPLE.INIT-PROMPT.md /tmp/access-backup/)",
+      "Read(//tmp/**)",
+      "Bash(bun add:*)",
+      "Bash(bun remove:*)"
+    ]
+  }
+}
