@@ -12,6 +12,7 @@ export async function GET() {
 				firstName: true,
 				lastName: true,
 				position: true,
+				department: { select: { name: true } },
 			},
 			orderBy: { firstName: "asc" },
 		});

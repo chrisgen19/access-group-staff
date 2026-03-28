@@ -7,15 +7,7 @@ export default async function CreateRecognitionPage() {
 	if (!session) redirect("/login");
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<div>
-				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-					Send Recognition Card
-				</h1>
-				<p className="mt-2 text-base text-muted-foreground">
-					Recognize a colleague for demonstrating company values.
-				</p>
-			</div>
+		<div className="max-w-5xl mx-auto py-4">
 			<RecognitionForm />
 		</div>
 	);
