@@ -44,7 +44,8 @@ function getSelectedValues(card: RecognitionCard): string[] {
 }
 
 function formatDate(dateString: string) {
-	return new Date(dateString).toLocaleDateString("en-US", {
+	const [year, month, day] = dateString.split("T")[0].split("-");
+	return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString("en-US", {
 		month: "short",
 		day: "numeric",
 		year: "numeric",

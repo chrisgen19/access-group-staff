@@ -58,7 +58,11 @@ export function RecognitionForm() {
 		defaultValues: {
 			recipientId: "",
 			message: "",
-			date: new Date().toISOString().split("T")[0],
+			date: new Date(
+				Date.now() - new Date().getTimezoneOffset() * 60_000,
+			)
+				.toISOString()
+				.split("T")[0],
 			valuesPeople: false,
 			valuesSafety: false,
 			valuesRespect: false,
