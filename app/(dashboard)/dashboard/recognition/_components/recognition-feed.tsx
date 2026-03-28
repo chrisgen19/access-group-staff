@@ -3,6 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Heart, ArrowRight } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { usePreferencesStore } from "@/stores/use-preferences-store";
+import { RecognitionCardMini } from "./recognition-card-mini";
 
 interface RecognitionUser {
 	id: string;
@@ -87,6 +89,8 @@ export function RecognitionFeed({
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
 }: RecognitionFeedProps) {
+	const cardView = usePreferencesStore((s) => s.cardView);
+	const cardSize = usePreferencesStore((s) => s.cardSize);
 	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
 
 	const { data, isPending } = useQuery<{
@@ -146,6 +150,16 @@ export function RecognitionFeed({
 				</h3>
 			)}
 			{cards.map((card) => {
+				if (cardView === "physical") {
+					return (
+						<RecognitionCardMini
+							key={card.id}
+							card={card}
+							size={cardSize}
+						/>
+					);
+				}
+
 				const values = getSelectedValues(card);
 				return (
 					<div
