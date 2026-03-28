@@ -59,7 +59,7 @@ export function DashboardHeader() {
 						<DropdownMenuContent align="end" sideOffset={8}>
 							<DropdownMenuItem
 								className="cursor-pointer"
-								onSelect={() =>
+								onClick={() =>
 									router.push("/dashboard/profile")
 								}
 							>
@@ -69,7 +69,7 @@ export function DashboardHeader() {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem
 								className="cursor-pointer"
-								onSelect={handleSignOut}
+								onClick={handleSignOut}
 							>
 								<LogOut size={16} />
 								Sign Out
