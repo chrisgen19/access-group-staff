@@ -372,9 +372,14 @@ export function RecognitionForm() {
 			}
 
 			toast.success("Recognition card sent!");
-			await queryClient.invalidateQueries({
-				queryKey: ["recognition-cards"],
-			});
+			await Promise.all([
+				queryClient.invalidateQueries({
+					queryKey: ["recognition-cards"],
+				}),
+				queryClient.invalidateQueries({
+					queryKey: ["recognition-stats"],
+				}),
+			]);
 			router.push("/dashboard/recognition");
 		} catch {
 			toast.error("Something went wrong");

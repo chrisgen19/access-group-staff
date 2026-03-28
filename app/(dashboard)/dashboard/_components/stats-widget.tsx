@@ -69,7 +69,7 @@ function StatsWidgetSkeleton() {
 }
 
 export function StatsWidget() {
-	const { data, isPending } = useQuery<{
+	const { data, isPending, isError } = useQuery<{
 		success: boolean;
 		data: StatsData;
 	}>({
@@ -85,7 +85,20 @@ export function StatsWidget() {
 		return <StatsWidgetSkeleton />;
 	}
 
-	const stats = data?.data;
+	if (isError || !data?.data) {
+		return (
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight mb-2">
+					Recognition Stats
+				</h3>
+				<p className="text-sm text-muted-foreground">
+					Unable to load stats. Please try again later.
+				</p>
+			</div>
+		);
+	}
+
+	const stats = data.data;
 
 	return (
 		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] space-y-6">
