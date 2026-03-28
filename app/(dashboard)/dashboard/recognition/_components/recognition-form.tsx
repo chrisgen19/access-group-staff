@@ -434,18 +434,27 @@ export function RecognitionForm() {
 								</span>
 								<textarea
 									{...register("message")}
-									className="w-full flex-grow outline-none resize-none text-base bg-transparent mb-12 text-[#222] placeholder:text-gray-400"
+									className="w-full flex-grow outline-none resize-none text-base bg-transparent mb-16 text-[#222] placeholder:text-gray-400"
 									placeholder="Describe what this team member did..."
 									spellCheck="false"
 								/>
-								{errors.message && (
-									<p className="text-xs text-red-600 mb-2">
-										{errors.message.message}
-									</p>
-								)}
 
-								{/* Small Value Checkboxes */}
+								{/* Small Value Checkboxes + Errors */}
 								<div className="absolute bottom-4 left-4 right-4">
+									{(errors.message || errors.valuesPeople) && (
+										<div className="mb-2 space-y-1">
+											{errors.message && (
+												<p className="text-xs text-red-600">
+													{errors.message.message}
+												</p>
+											)}
+											{errors.valuesPeople && (
+												<p className="text-xs text-red-600">
+													{errors.valuesPeople.message}
+												</p>
+											)}
+										</div>
+									)}
 									<span className="text-[10px] font-black text-black mb-2 block uppercase">
 										Which values were demonstrated?
 									</span>
@@ -460,11 +469,6 @@ export function RecognitionForm() {
 											/>
 										))}
 									</div>
-									{errors.valuesPeople && (
-										<p className="text-xs text-red-600 mt-1">
-											{errors.valuesPeople.message}
-										</p>
-									)}
 								</div>
 							</div>
 
