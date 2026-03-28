@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 
 const inputClass =
-	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200";
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
 interface DepartmentFormDialogProps {
 	mode: "create" | "edit";
@@ -122,7 +122,7 @@ export function DepartmentFormDialog({
 						</div>
 					</div>
 
-					<div className="flex flex-col-reverse gap-2 border-t border-gray-50 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] px-8 py-6 rounded-b-[2rem] sm:flex-row sm:justify-end">
+					<div className="flex flex-col-reverse gap-2 border-t border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] px-8 py-6 rounded-b-[2rem] sm:flex-row sm:justify-end">
 						<button
 							type="button"
 							onClick={onClose}
@@ -133,7 +133,7 @@ export function DepartmentFormDialog({
 						<button
 							type="submit"
 							disabled={isLoading}
-							className="inline-flex w-full justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50 sm:w-auto"
+							className="inline-flex w-full justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50 sm:w-auto"
 						>
 							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 							{mode === "create" ? "Create" : "Save"}

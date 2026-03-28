@@ -38,7 +38,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 				</div>
 				<Link
 					href={`/dashboard/users/${user.id}/edit`}
-					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200"
+					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
 				>
 					<Pencil className="h-4 w-4" />
 					Edit User
@@ -46,7 +46,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 			</div>
 
 			<div className="grid gap-6 md:grid-cols-2">
-				<div className="rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
 					<div className="px-8 pt-8 pb-2">
 						<h3 className="text-[1.25rem] font-medium text-foreground">Personal Info</h3>
 					</div>
@@ -59,7 +59,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 					</div>
 				</div>
 
-				<div className="rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
 					<div className="px-8 pt-8 pb-2">
 						<h3 className="text-[1.25rem] font-medium text-foreground">Work Info</h3>
 					</div>

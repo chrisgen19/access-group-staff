@@ -43,9 +43,9 @@ export function DepartmentTable({
 
 	return (
 		<>
-			<div className="overflow-hidden rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="overflow-hidden rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-100 dark:divide-white/5">
+					<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
 						<thead>
 							<tr>
 								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
@@ -62,7 +62,7 @@ export function DepartmentTable({
 								</th>
 							</tr>
 						</thead>
-						<tbody className="divide-y divide-gray-50 dark:divide-white/5">
+						<tbody className="divide-y divide-gray-200/60 dark:divide-white/10">
 							{departments.length === 0 ? (
 								<tr>
 									<td colSpan={4} className="px-8 py-16 text-center">
@@ -141,7 +141,7 @@ export function DepartmentTable({
 							</div>
 						</div>
 					</div>
-					<div className="flex flex-col-reverse gap-2 border-t border-gray-50 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] px-8 py-6 rounded-b-[2rem] sm:flex-row sm:justify-end">
+					<div className="flex flex-col-reverse gap-2 border-t border-gray-200/60 dark:border-white/10 bg-gray-50/50 dark:bg-white/[0.02] px-8 py-6 rounded-b-[2rem] sm:flex-row sm:justify-end">
 						<button
 							type="button"
 							onClick={() => setDeleteTarget(null)}
@@ -153,7 +153,7 @@ export function DepartmentTable({
 							type="button"
 							onClick={handleDelete}
 							disabled={isDeleting}
-							className="inline-flex w-full justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50 sm:w-auto"
+							className="inline-flex w-full justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50 sm:w-auto"
 						>
 							{isDeleting ? "Deleting..." : "Confirm Removal"}
 						</button>

@@ -62,7 +62,7 @@ export default function DepartmentsPage() {
 				<button
 					type="button"
 					onClick={() => setShowCreate(true)}
-					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200"
+					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
 				>
 					<Plus className="-ml-1 h-5 w-5" />
 					Add Department

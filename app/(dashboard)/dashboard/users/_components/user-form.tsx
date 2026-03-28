@@ -16,10 +16,10 @@ import {
 } from "@/lib/validations/user";
 
 const inputClass =
-	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200";
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
 const selectClass =
-	"block w-full appearance-none rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200";
+	"block w-full appearance-none rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
 interface Department {
 	id: string;
@@ -108,7 +108,7 @@ export function UserForm({
 
 	return (
 		<div className="max-w-2xl">
-			<div className="rounded-[2rem] border border-gray-50 dark:border-white/5 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
 				<div className="px-8 pt-8 pb-2">
 					<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 						{isCreate ? "Add Staff Member" : "Edit Staff Details"}
@@ -235,11 +235,11 @@ export function UserForm({
 						</div>
 					</div>
 
-					<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-50 dark:border-white/5 flex flex-row-reverse gap-3">
+					<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-200/60 dark:border-white/10 flex flex-row-reverse gap-3">
 						<button
 							type="submit"
 							disabled={isLoading}
-							className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
+							className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50"
 						>
 							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 							{isCreate ? "Create Record" : "Save Changes"}

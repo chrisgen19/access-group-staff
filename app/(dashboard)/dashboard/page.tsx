@@ -18,7 +18,7 @@ export default async function DashboardPage() {
 					Here&apos;s what&apos;s happening at Access Group today.
 				</p>
 			</div>
-			<div className="flex flex-col items-center justify-center rounded-[2rem] border border-gray-100/80 dark:border-white/5 bg-card p-16 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="flex flex-col items-center justify-center rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card p-16 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 				<div className="mb-6 rounded-full bg-background p-6">
 					<LayoutDashboard size={48} className="text-muted-foreground opacity-40" />
 				</div>

@@ -11,7 +11,7 @@ import { signUp } from "@/lib/auth-client";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 
 const inputClass =
-	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/20 focus:border-primary transition-all duration-200";
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
 export function RegisterForm() {
 	const router = useRouter();
@@ -64,14 +64,14 @@ export function RegisterForm() {
 					Already have access?{" "}
 					<Link
 						href="/login"
-						className="text-primary hover:text-primary/80 transition-colors hover:underline underline-offset-4"
+						className="text-primary hover:text-primary/80 transition-colors underline underline-offset-4"
 					>
 						Sign in here
 					</Link>
 				</p>
 			</div>
 
-			<div className="bg-card py-10 px-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] sm:px-12 border border-gray-50 dark:border-white/5">
+			<div className="bg-card py-10 px-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] sm:px-12 border border-gray-200/60 dark:border-white/10">
 				<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 					<div className="grid grid-cols-2 gap-5">
 						<div>
@@ -134,7 +134,7 @@ export function RegisterForm() {
 						<button
 							type="submit"
 							disabled={isLoading}
-							className="flex w-full justify-center rounded-full bg-primary px-4 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
+							className="flex w-full justify-center rounded-full bg-primary px-4 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50"
 						>
 							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 							Register Account
