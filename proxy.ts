@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSessionCookie, getCookies } from "better-auth/cookies";
+import { getCookies } from "better-auth/cookies";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
 
 export async function proxy(request: NextRequest) {
-	const sessionCookie = getSessionCookie(request);
+	const sessionCookie = request.cookies.get(sessionToken.name)?.value ?? null;
 	const { pathname } = request.nextUrl;
 
 	if (pathname.startsWith("/dashboard") && !sessionCookie) {
