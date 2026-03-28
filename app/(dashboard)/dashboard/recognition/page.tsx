@@ -1,23 +1,42 @@
-import { getServerSession } from "@/lib/auth-utils";
-import { redirect } from "next/navigation";
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Inbox, Send } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { RecognitionFeed } from "./_components/recognition-feed";
 
-export default async function RecognitionPage() {
-	const session = await getServerSession();
-	if (!session) redirect("/login");
+const TABS = [
+	{
+		key: "received" as const,
+		label: "Received",
+		icon: Inbox,
+		emptyTitle: "No recognition cards received yet",
+		emptyDescription:
+			"When a colleague recognizes you, it will appear here.",
+	},
+	{
+		key: "sent" as const,
+		label: "Sent",
+		icon: Send,
+		emptyTitle: "You haven't sent any cards yet",
+		emptyDescription: "Recognize a colleague to get started!",
+	},
+];
+
+export default function RecognitionPage() {
+	const [activeTab, setActiveTab] = useState<"received" | "sent">("received");
+	const currentTab = TABS.find((t) => t.key === activeTab)!;
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
+		<div className="max-w-7xl mx-auto space-y-6 mt-2">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
 				<div>
 					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
 						Recognition Card
 					</h1>
 					<p className="mt-2 text-base text-muted-foreground">
-						Recognize your colleagues with digital thank-you cards
-						tied to company values.
+						Your personal recognition inbox.
 					</p>
 				</div>
 				<Link
@@ -28,7 +47,34 @@ export default async function RecognitionPage() {
 					Send Recognition Card
 				</Link>
 			</div>
-			<RecognitionFeed />
+
+			{/* Tabs */}
+			<div className="flex gap-1 rounded-full bg-gray-100 dark:bg-white/5 p-1 w-fit">
+				{TABS.map((tab) => (
+					<button
+						key={tab.key}
+						type="button"
+						onClick={() => setActiveTab(tab.key)}
+						className={cn(
+							"inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200",
+							activeTab === tab.key
+								? "bg-card text-foreground shadow-sm"
+								: "text-muted-foreground hover:text-foreground",
+						)}
+					>
+						<tab.icon size={16} />
+						{tab.label}
+					</button>
+				))}
+			</div>
+
+			{/* Feed */}
+			<RecognitionFeed
+				filter={activeTab}
+				showTitle={false}
+				emptyTitle={currentTab.emptyTitle}
+				emptyDescription={currentTab.emptyDescription}
+			/>
 		</div>
 	);
 }

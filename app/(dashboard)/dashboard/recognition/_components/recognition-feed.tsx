@@ -45,7 +45,11 @@ function getSelectedValues(card: RecognitionCard): string[] {
 
 function formatDate(dateString: string) {
 	const [year, month, day] = dateString.split("T")[0].split("-");
-	return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString("en-US", {
+	return new Date(
+		Number(year),
+		Number(month) - 1,
+		Number(day),
+	).toLocaleDateString("en-US", {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
@@ -73,14 +77,28 @@ function CardSkeleton() {
 	);
 }
 
-export function RecognitionFeed() {
+interface RecognitionFeedProps {
+	filter?: "all" | "received" | "sent";
+	showTitle?: boolean;
+	emptyTitle?: string;
+	emptyDescription?: string;
+}
+
+export function RecognitionFeed({
+	filter = "all",
+	showTitle = true,
+	emptyTitle = "No recognition cards yet",
+	emptyDescription = "Be the first to recognize a colleague!",
+}: RecognitionFeedProps) {
+	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
+
 	const { data, isPending } = useQuery<{
 		success: boolean;
 		data: RecognitionCard[];
 	}>({
-		queryKey: ["recognition-cards"],
+		queryKey: ["recognition-cards", filter],
 		queryFn: async () => {
-			const res = await fetch("/api/recognition");
+			const res = await fetch(`/api/recognition${queryParam}`);
 			if (!res.ok) throw new Error("Failed to fetch recognition cards");
 			return res.json();
 		},
@@ -91,9 +109,11 @@ export function RecognitionFeed() {
 	if (isPending) {
 		return (
 			<div className="space-y-4">
-				<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight">
-					Recent Recognitions
-				</h3>
+				{showTitle && (
+					<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight">
+						Recent Recognitions
+					</h3>
+				)}
 				<CardSkeleton />
 				<CardSkeleton />
 				<CardSkeleton />
@@ -111,10 +131,10 @@ export function RecognitionFeed() {
 					/>
 				</div>
 				<p className="text-[1.5rem] font-medium text-foreground">
-					No recognition cards yet
+					{emptyTitle}
 				</p>
 				<p className="mt-2 text-base text-muted-foreground">
-					Be the first to recognize a colleague!
+					{emptyDescription}
 				</p>
 			</div>
 		);
@@ -122,9 +142,11 @@ export function RecognitionFeed() {
 
 	return (
 		<div className="space-y-4">
-			<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight">
-				Recent Recognitions
-			</h3>
+			{showTitle && (
+				<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight">
+					Recent Recognitions
+				</h3>
+			)}
 			{cards.map((card) => {
 				const values = getSelectedValues(card);
 				return (
@@ -132,7 +154,6 @@ export function RecognitionFeed() {
 						key={card.id}
 						className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]"
 					>
-						{/* Header: Sender → Recipient */}
 						<div className="flex items-center gap-3 mb-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
 								{getInitials(
@@ -142,7 +163,8 @@ export function RecognitionFeed() {
 							</div>
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
-									{card.sender.firstName} {card.sender.lastName}
+									{card.sender.firstName}{" "}
+									{card.sender.lastName}
 								</span>
 								{card.sender.position && (
 									<p className="text-muted-foreground text-xs">
@@ -173,12 +195,10 @@ export function RecognitionFeed() {
 							</div>
 						</div>
 
-						{/* Message */}
 						<p className="text-sm text-foreground/80 mb-3 leading-relaxed">
 							{card.message}
 						</p>
 
-						{/* Footer: Values + Date */}
 						<div className="flex flex-wrap items-center gap-2">
 							{values.map((value) => (
 								<span

@@ -1,9 +1,11 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
+import type { NextRequest } from "next/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+	let session: Awaited<ReturnType<typeof requireSession>>;
 	try {
-		await requireSession();
+		session = await requireSession();
 	} catch {
 		return Response.json(
 			{ success: false, error: "Unauthorized" },
@@ -12,7 +14,16 @@ export async function GET() {
 	}
 
 	try {
+		const filter = request.nextUrl.searchParams.get("filter");
+		const where =
+			filter === "received"
+				? { recipientId: session.user.id }
+				: filter === "sent"
+					? { senderId: session.user.id }
+					: undefined;
+
 		const cards = await prisma.recognitionCard.findMany({
+			where,
 			include: {
 				sender: {
 					select: {
