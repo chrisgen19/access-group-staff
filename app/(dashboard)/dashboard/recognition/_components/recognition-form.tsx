@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Search, ChevronDown, X, Check } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { createRecognitionCardAction } from "@/lib/actions/recognition-actions";
+import { ShareDialog } from "./share-dialog";
 import {
 	createRecognitionCardSchema,
 	type CreateRecognitionCardInput,
@@ -261,6 +262,7 @@ export function RecognitionForm() {
 	const { data: session } = useSession();
 	const [step, setStep] = useState<1 | 2>(1);
 	const [isLoading, setIsLoading] = useState(false);
+	const [sharedCardId, setSharedCardId] = useState<string | null>(null);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [selectedUser, setSelectedUser] = useState<ActiveUser | null>(null);
@@ -371,7 +373,6 @@ export function RecognitionForm() {
 				return;
 			}
 
-			toast.success("Recognition card sent!");
 			await Promise.all([
 				queryClient.invalidateQueries({
 					queryKey: ["recognition-cards"],
@@ -380,7 +381,7 @@ export function RecognitionForm() {
 					queryKey: ["recognition-stats"],
 				}),
 			]);
-			router.push("/dashboard/recognition");
+			setSharedCardId(result.data.id);
 		} catch {
 			toast.error("Something went wrong");
 		} finally {
@@ -402,6 +403,7 @@ export function RecognitionForm() {
 	};
 
 	return (
+	<>
 		<form
 			onSubmit={handleSubmit(onSubmit)}
 			className="flex flex-col items-center gap-8"
@@ -685,5 +687,12 @@ export function RecognitionForm() {
 				</>
 			)}
 		</form>
+
+		<ShareDialog
+			open={!!sharedCardId}
+			cardId={sharedCardId}
+			onClose={() => setSharedCardId(null)}
+		/>
+	</>
 	);
 }
