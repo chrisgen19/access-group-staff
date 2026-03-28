@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { requireRole, requireSession } from "@/lib/auth-utils";
 import { canAssignRole } from "@/lib/permissions";
 import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
-import type { Role } from "@/app/generated/prisma";
+import type { Role } from "@/app/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 
 export async function createUserAction(formData: unknown) {

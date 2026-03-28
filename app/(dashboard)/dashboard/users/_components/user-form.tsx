@@ -51,7 +51,6 @@ export function UserForm({
 	const [isLoading, setIsLoading] = useState(false);
 	const isCreate = mode === "create";
 
-	const schema = isCreate ? createUserSchema : updateUserSchema;
 	const {
 		register,
 		handleSubmit,
@@ -59,7 +58,8 @@ export function UserForm({
 		watch,
 		formState: { errors },
 	} = useForm<CreateUserInput>({
-		resolver: zodResolver(schema),
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		resolver: zodResolver(isCreate ? createUserSchema : (updateUserSchema as any)),
 		defaultValues: {
 			role: "STAFF",
 			isActive: true,

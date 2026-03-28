@@ -74,13 +74,11 @@ export function DashboardSidebar() {
 								return (
 									<SidebarMenuItem key={item.href}>
 										<SidebarMenuButton
-											asChild
-											className={cn(isActive && "bg-sidebar-accent")}
+											isActive={isActive}
+											render={<Link href={item.href} />}
 										>
-											<Link href={item.href}>
-												<item.icon className="h-4 w-4" />
-												<span>{item.label}</span>
-											</Link>
+											<item.icon className="h-4 w-4" />
+											<span>{item.label}</span>
 										</SidebarMenuButton>
 									</SidebarMenuItem>
 								);

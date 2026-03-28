@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { canManageUsers } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
-import type { Role } from "@/app/generated/prisma";
+import type { Role } from "@/app/generated/prisma/client";
 import { UserForm } from "../_components/user-form";
 
 export default async function NewUserPage() {

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "@/lib/auth-utils";
 import { canViewUsers } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
-import type { Role } from "@/app/generated/prisma";
+import type { Role } from "@/app/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,23 +27,23 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center gap-4">
-				<Button variant="ghost" size="icon" asChild>
-					<Link href="/dashboard/users">
+				<Link href="/dashboard/users">
+					<Button variant="ghost" size="icon">
 						<ArrowLeft className="h-4 w-4" />
-					</Link>
-				</Button>
+					</Button>
+				</Link>
 				<div className="flex-1">
 					<h2 className="text-3xl font-bold tracking-tight">
 						{user.firstName} {user.lastName}
 					</h2>
 					<p className="text-muted-foreground">{user.email}</p>
 				</div>
-				<Button asChild>
-					<Link href={`/dashboard/users/${user.id}/edit`}>
+				<Link href={`/dashboard/users/${user.id}/edit`}>
+					<Button>
 						<Pencil className="mr-2 h-4 w-4" />
 						Edit User
-					</Link>
-				</Button>
+					</Button>
+				</Link>
 			</div>
 
 			<div className="grid gap-6 md:grid-cols-2">

@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
 import { hasMinRole } from "@/lib/permissions";
-import type { Role } from "@/app/generated/prisma";
+import type { Role } from "@/app/generated/prisma/client";
 import { headers } from "next/headers";
 
 export async function getServerSession() {

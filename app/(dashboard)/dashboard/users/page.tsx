@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { canViewUsers } from "@/lib/permissions";
-import type { Role } from "@/app/generated/prisma";
+import type { Role } from "@/app/generated/prisma/client";
 import { UserListClient } from "./_components/user-list-client";
 
 export default async function UsersPage() {

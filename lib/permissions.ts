@@ -1,4 +1,4 @@
-import type { Role } from "@/app/generated/prisma";
+import type { Role } from "@/app/generated/prisma/client";
 
 const ROLE_HIERARCHY: Record<Role, number> = {
 	STAFF: 0,
