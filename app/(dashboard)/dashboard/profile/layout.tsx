@@ -14,7 +14,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
 	});
 
 	return (
-		<div className="max-w-5xl mx-auto space-y-8 mt-2">
+		<div className="max-w-7xl mx-auto space-y-8 mt-2">
 			<div>
 				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
 					My Profile
