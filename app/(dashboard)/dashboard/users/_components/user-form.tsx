@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
@@ -48,6 +49,7 @@ export function UserForm({
 	defaultValues,
 }: UserFormProps) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const [isLoading, setIsLoading] = useState(false);
 	const isCreate = mode === "create";
 
@@ -72,7 +74,7 @@ export function UserForm({
 
 	const availableRoles =
 		currentUserRole === "SUPERADMIN"
-			? (["STAFF", "ADMIN", "SUPERADMIN"] as const)
+			? (["STAFF", "ADMIN"] as const)
 			: (["STAFF"] as const);
 
 	useEffect(() => {
@@ -101,8 +103,8 @@ export function UserForm({
 			}
 
 			toast.success(isCreate ? "User created successfully" : "User updated successfully");
+			await queryClient.invalidateQueries({ queryKey: ["users"] });
 			router.push("/dashboard/users");
-			router.refresh();
 		} catch {
 			toast.error("Something went wrong");
 		} finally {

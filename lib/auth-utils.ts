@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
 import type { Role } from "@/app/generated/prisma/client";
 import { headers } from "next/headers";
@@ -14,6 +15,13 @@ export async function requireSession() {
 	const session = await getServerSession();
 	if (!session) {
 		throw new Error("Unauthorized");
+	}
+	const user = await prisma.user.findUnique({
+		where: { id: session.user.id },
+		select: { isActive: true },
+	});
+	if (!user?.isActive) {
+		throw new Error("Account deactivated");
 	}
 	return session;
 }

@@ -2,7 +2,6 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -26,6 +25,7 @@ interface DepartmentFormDialogProps {
 	department?: { id: string; name: string; code: string };
 	open: boolean;
 	onClose: () => void;
+	onSuccess?: () => void;
 }
 
 export function DepartmentFormDialog({
@@ -33,8 +33,8 @@ export function DepartmentFormDialog({
 	department,
 	open,
 	onClose,
+	onSuccess,
 }: DepartmentFormDialogProps) {
-	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 
 	const {
@@ -70,7 +70,7 @@ export function DepartmentFormDialog({
 			);
 			reset();
 			onClose();
-			router.refresh();
+			onSuccess?.();
 		} catch {
 			toast.error("Something went wrong");
 		} finally {

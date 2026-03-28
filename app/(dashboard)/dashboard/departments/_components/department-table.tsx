@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 import { deleteDepartmentAction } from "@/lib/actions/department-actions";
 import { Button } from "@/components/ui/button";
@@ -31,8 +30,10 @@ interface Department {
 	_count: { users: number };
 }
 
-export function DepartmentTable({ departments }: { departments: Department[] }) {
-	const router = useRouter();
+export function DepartmentTable({
+	departments,
+	onMutate,
+}: { departments: Department[]; onMutate?: () => void }) {
 	const [deleteTarget, setDeleteTarget] = useState<Department | null>(null);
 	const [editTarget, setEditTarget] = useState<Department | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -44,7 +45,7 @@ export function DepartmentTable({ departments }: { departments: Department[] }) 
 			const result = await deleteDepartmentAction(deleteTarget.id);
 			if (result.success) {
 				toast.success("Department deleted");
-				router.refresh();
+				onMutate?.();
 			} else {
 				toast.error(typeof result.error === "string" ? result.error : "Delete failed");
 			}
@@ -132,6 +133,7 @@ export function DepartmentTable({ departments }: { departments: Department[] }) 
 					department={editTarget}
 					open={!!editTarget}
 					onClose={() => setEditTarget(null)}
+					onSuccess={onMutate}
 				/>
 			)}
 		</>

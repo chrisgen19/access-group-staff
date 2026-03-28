@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { getDepartmentsAction } from "@/lib/actions/department-actions";
@@ -19,7 +19,7 @@ interface Department {
 
 export default function DepartmentsPage() {
 	const router = useRouter();
-	const { data: session } = useSession();
+	const { data: session, isPending: isSessionPending } = useSession();
 	const [departments, setDepartments] = useState<Department[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [showCreate, setShowCreate] = useState(false);
@@ -27,23 +27,27 @@ export default function DepartmentsPage() {
 	const userRole = (session?.user?.role as string) ?? "STAFF";
 	const isAdmin = userRole === "ADMIN" || userRole === "SUPERADMIN";
 
+	const loadDepartments = useCallback(async () => {
+		setIsLoading(true);
+		const result = await getDepartmentsAction();
+		if (result.success) {
+			setDepartments(result.data);
+		}
+		setIsLoading(false);
+	}, []);
+
 	useEffect(() => {
+		if (isSessionPending) return;
+
 		if (!isAdmin) {
 			router.replace("/dashboard");
 			return;
 		}
 
-		async function load() {
-			const result = await getDepartmentsAction();
-			if (result.success) {
-				setDepartments(result.data);
-			}
-			setIsLoading(false);
-		}
-		load();
-	}, [isAdmin, router]);
+		loadDepartments();
+	}, [isSessionPending, isAdmin, router, loadDepartments]);
 
-	if (!isAdmin) return null;
+	if (isSessionPending || !isAdmin) return null;
 
 	return (
 		<div className="space-y-4">
@@ -62,13 +66,14 @@ export default function DepartmentsPage() {
 					<Skeleton className="h-10 w-full" />
 				</div>
 			) : (
-				<DepartmentTable departments={departments} />
+				<DepartmentTable departments={departments} onMutate={loadDepartments} />
 			)}
 
 			<DepartmentFormDialog
 				mode="create"
 				open={showCreate}
 				onClose={() => setShowCreate(false)}
+				onSuccess={loadDepartments}
 			/>
 		</div>
 	);
