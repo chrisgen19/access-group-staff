@@ -78,10 +78,14 @@ app/
 │       ├── page.tsx               # Dashboard home
 │       ├── users/                 # User management (CRUD)
 │       ├── departments/           # Department management (CRUD)
+│       ├── recognition/           # Recognition Card feed + send form
+│       │   └── create/            # Send Recognition Card page
 │       └── profile/               # Profile + Preferences
 │           └── preferences/       # Background color customization
 ├── api/
 │   ├── auth/[...all]/             # better-auth catch-all handler
+│   ├── recognition/               # Recognition Cards API (React Query)
+│   │   └── users/                 # Active users for recipient picker
 │   └── users/                     # Users API (React Query)
 └── globals.css                    # Tailwind v4 theme (CSS variables)
 
@@ -94,8 +98,8 @@ lib/
 ├── auth-client.ts                 # better-auth client
 ├── auth-utils.ts                  # Session helpers (requireSession, requireRole)
 ├── permissions.ts                 # Role-based permission checks
-├── actions/                       # Server Actions (user, department, profile)
-├── validations/                   # Zod schemas
+├── actions/                       # Server Actions (user, department, profile, recognition)
+├── validations/                   # Zod schemas (user, auth, department, recognition)
 └── db/index.ts                    # Prisma client singleton
 
 stores/                            # Zustand stores
@@ -108,13 +112,20 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 
 ## Database Schema
 
-**Models:** User, Session, Account, Verification, Department
+**Models:** User, Session, Account, Verification, Department, RecognitionCard
 
 **Roles:** `SUPERADMIN` > `ADMIN` > `STAFF`
 
 - SUPERADMIN/ADMIN can manage users and departments
+- All authenticated users can send and view recognition cards
 - STAFF can view dashboard and edit own profile
 - Deactivated users (`isActive: false`) are blocked at proxy and session level
+
+### Recognition Cards
+
+- Any user can send a recognition card to a colleague (cannot send to self)
+- Cards include a message, date, and one or more company values: People, Safety, Respect, Communication, Continuous Improvement
+- Public feed visible to all authenticated users
 
 ## Scripts
 
