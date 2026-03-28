@@ -41,7 +41,8 @@ export async function proxy(request: NextRequest) {
 
 	if ((pathname === "/login" || pathname === "/register") && sessionCookie) {
 		const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
-		return NextResponse.redirect(new URL(callbackUrl ?? "/dashboard", request.url));
+		const safeCallback = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
+		return NextResponse.redirect(new URL(safeCallback, request.url));
 	}
 
 	return NextResponse.next();
