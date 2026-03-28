@@ -17,7 +17,11 @@
       "Bash(mv /Users/chrisgen19/projects/access-group-staff/CLAUDE.md /Users/chrisgen19/projects/access-group-staff/SAMPLE.CLAUDE.md /Users/chrisgen19/projects/access-group-staff/SAMPLE.INIT-PROMPT.md /tmp/access-backup/)",
       "Read(//tmp/**)",
       "Bash(bun add:*)",
-      "Bash(bun remove:*)"
+      "Bash(bun remove:*)",
+      "Bash(openssl rand:*)",
+      "Bash(psql:*)",
+      "Bash(ls /Users/chrisgen19/projects/access-group-staff/node_modules/better-auth/dist/cookies*)",
+      "Bash(ls /Users/chrisgen19/projects/access-group-staff/node_modules/better-auth/cookies*)"
     ]
   }
 }
