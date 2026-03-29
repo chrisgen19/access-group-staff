@@ -116,11 +116,8 @@ export function RecognitionTable() {
 	}
 
 	function getDateRange() {
-		const year = selectedYear
-			? Number(selectedYear)
-			: new Date().getFullYear();
-
 		if (selectedMonth && selectedYear) {
+			const year = Number(selectedYear);
 			const month = Number(selectedMonth);
 			const from = `${year}-${String(month).padStart(2, "0")}-01`;
 			const lastDay = new Date(year, month, 0).getDate();
@@ -129,15 +126,8 @@ export function RecognitionTable() {
 		}
 
 		if (selectedYear) {
+			const year = Number(selectedYear);
 			return { dateFrom: `${year}-01-01`, dateTo: `${year}-12-31` };
-		}
-
-		if (selectedMonth) {
-			const month = Number(selectedMonth);
-			const from = `${year}-${String(month).padStart(2, "0")}-01`;
-			const lastDay = new Date(year, month, 0).getDate();
-			const to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-			return { dateFrom: from, dateTo: to };
 		}
 
 		return { dateFrom: "", dateTo: "" };
@@ -147,7 +137,7 @@ export function RecognitionTable() {
 		setIsExporting(true);
 		try {
 			const params = new URLSearchParams({ export: "true" });
-			if (debouncedSearch) params.set("search", debouncedSearch);
+			if (search) params.set("search", search);
 			if (selectedValues.length > 0) params.set("values", selectedValues.join(","));
 			const { dateFrom, dateTo } = getDateRange();
 			if (dateFrom) params.set("dateFrom", dateFrom);
