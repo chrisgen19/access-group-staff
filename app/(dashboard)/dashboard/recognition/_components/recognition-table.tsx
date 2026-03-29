@@ -32,6 +32,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ShareDialog } from "./share-dialog";
 
 function TableSkeleton() {
 	return (
@@ -55,13 +56,10 @@ function TableSkeleton() {
 	);
 }
 
-interface RecognitionTableProps {
-	onShare: (cardId: string) => void;
-}
-
-export function RecognitionTable({ onShare }: RecognitionTableProps) {
+export function RecognitionTable() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
+	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
@@ -206,7 +204,7 @@ export function RecognitionTable({ onShare }: RecognitionTableProps) {
 											</button>
 											<button
 												type="button"
-												onClick={() => onShare(card.id)}
+												onClick={() => setShareCardId(card.id)}
 												className="rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
 												aria-label="Share card"
 											>
@@ -249,6 +247,13 @@ export function RecognitionTable({ onShare }: RecognitionTableProps) {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+
+			<ShareDialog
+				open={!!shareCardId}
+				cardId={shareCardId}
+				onClose={() => setShareCardId(null)}
+				redirectOnClose={false}
+			/>
 		</>
 	);
 }

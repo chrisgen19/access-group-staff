@@ -1,13 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { RecognitionFeed } from "./recognition-feed";
+import { ShareDialog } from "./share-dialog";
 
 interface RecognitionFeedClientProps {
 	filter: "received" | "sent";
 	currentUserId: string;
 	emptyTitle: string;
 	emptyDescription: string;
-	onShare: (cardId: string) => void;
 }
 
 export function RecognitionFeedClient({
@@ -15,18 +16,27 @@ export function RecognitionFeedClient({
 	currentUserId,
 	emptyTitle,
 	emptyDescription,
-	onShare,
 }: RecognitionFeedClientProps) {
+	const [shareCardId, setShareCardId] = useState<string | null>(null);
+
 	return (
-		<RecognitionFeed
-			cardMaxWidth="max-w-3xl"
-			filter={filter}
-			showTitle={false}
-			showActions
-			currentUserId={currentUserId}
-			emptyTitle={emptyTitle}
-			emptyDescription={emptyDescription}
-			onShare={onShare}
-		/>
+		<>
+			<RecognitionFeed
+				cardMaxWidth="max-w-3xl"
+				filter={filter}
+				showTitle={false}
+				showActions
+				currentUserId={currentUserId}
+				emptyTitle={emptyTitle}
+				emptyDescription={emptyDescription}
+				onShare={setShareCardId}
+			/>
+			<ShareDialog
+				open={!!shareCardId}
+				cardId={shareCardId}
+				onClose={() => setShareCardId(null)}
+				redirectOnClose={false}
+			/>
+		</>
 	);
 }

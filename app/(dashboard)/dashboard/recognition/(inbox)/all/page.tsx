@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { requireSession } from "@/lib/auth-utils";
 import { hasMinRole } from "@/lib/permissions";
 import type { Role } from "@/app/generated/prisma/client";
-import { RecognitionTabShell } from "../../_components/recognition-tab-shell";
 import { RecognitionTable } from "../../_components/recognition-table";
 
 export default async function RecognitionAllPage() {
@@ -18,9 +17,5 @@ export default async function RecognitionAllPage() {
 		redirect("/dashboard/recognition/received");
 	}
 
-	return (
-		<RecognitionTabShell>
-			{(onShare) => <RecognitionTable onShare={onShare} />}
-		</RecognitionTabShell>
-	);
+	return <RecognitionTable />;
 }
