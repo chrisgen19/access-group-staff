@@ -46,28 +46,28 @@ async function seed() {
 		departmentId: string | null;
 	}> = [
 		{
-			email: "admin@accessgroup.com.au",
-			firstName: "Super",
-			lastName: "Admin",
+			email: "christian.diomampo@accessgroup.net.au",
+			firstName: "Christian",
+			lastName: "Diomampo",
 			role: "SUPERADMIN",
 			departmentId: null,
 		},
 		{
-			email: "eng.admin@accessgroup.com.au",
+			email: "jane.smith@accessgroup.net.au",
 			firstName: "Jane",
 			lastName: "Smith",
 			role: "ADMIN",
 			departmentId: departments[0].id,
 		},
 		{
-			email: "john.doe@accessgroup.com.au",
+			email: "john.doe@accessgroup.net.au",
 			firstName: "John",
 			lastName: "Doe",
 			role: "STAFF",
 			departmentId: departments[2].id,
 		},
 		{
-			email: "sarah.jones@accessgroup.com.au",
+			email: "sarah.jones@accessgroup.net.au",
 			firstName: "Sarah",
 			lastName: "Jones",
 			role: "STAFF",
