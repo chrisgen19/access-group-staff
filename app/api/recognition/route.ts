@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import type { Prisma } from "@/app/generated/prisma/client";
+import { hasMinRole } from "@/lib/permissions";
+import type { Prisma, Role } from "@/app/generated/prisma/client";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -18,6 +19,15 @@ export async function GET(request: NextRequest) {
 		const filter = request.nextUrl.searchParams.get("filter");
 
 		let where: Prisma.RecognitionCardWhereInput | undefined;
+		const isAdmin = hasMinRole((session.user.role as Role) ?? "STAFF", "ADMIN");
+
+		if (!filter && !isAdmin) {
+			return Response.json(
+				{ success: false, error: "Forbidden" },
+				{ status: 403 },
+			);
+		}
+
 		if (filter === "received") {
 			where = { recipientId: session.user.id };
 		} else if (filter === "sent") {
