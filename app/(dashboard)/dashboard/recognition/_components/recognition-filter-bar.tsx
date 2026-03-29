@@ -145,17 +145,18 @@ export function RecognitionFilterBar({
 				</div>
 
 				{/* Clear */}
-				{hasActiveFilters && (
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={onClear}
-						className="shrink-0 gap-1 text-muted-foreground"
-					>
-						<X size={14} />
-						Clear
-					</Button>
-				)}
+				<Button
+					variant="ghost"
+					size="sm"
+					onClick={onClear}
+					className={cn(
+						"shrink-0 gap-1 text-muted-foreground",
+						!hasActiveFilters && "invisible",
+					)}
+				>
+					<X size={14} />
+					Clear
+				</Button>
 			</div>
 		</div>
 	);
