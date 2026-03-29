@@ -76,7 +76,7 @@ app/
 ├── (dashboard)/                   # Dashboard layout + pages
 │   └── dashboard/
 │       ├── page.tsx               # Dashboard home
-│       ├── users/                 # User management (CRUD)
+│       ├── users/                 # User management (CRUD, branch assignment)
 │       ├── departments/           # Department management (CRUD)
 │       ├── recognition/           # Personal recognition inbox (received/sent tabs)
 │       │   └── create/            # Send Recognition Card (branded 2-step form)
@@ -86,7 +86,7 @@ app/
 │           └── preferences/       # Background color, card view, card size
 ├── api/
 │   ├── auth/[...all]/             # better-auth catch-all handler
-│   ├── recognition/               # Recognition Cards API (filter: all/received/sent/department)
+│   ├── recognition/               # Recognition Cards API (filter, search, export CSV)
 │   │   ├── stats/                 # Recognition stats (sent/received counts, leaderboard)
 │   │   └── users/                 # Active users for recipient picker
 │   └── users/                     # Users API (React Query)
@@ -120,6 +120,8 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 
 **Roles:** `SUPERADMIN` > `ADMIN` > `STAFF`
 
+**Branch:** `ISO` | `PERTH` (optional field on User)
+
 - SUPERADMIN can access Super Admin panel and all admin features
 - ADMIN can manage users, departments, and access Admin Settings
 - All authenticated users can send and view recognition cards
@@ -140,6 +142,8 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 - **Feed**: Mini branded card view replicating the physical card design, or simple list view (configurable in preferences)
 - Cards include a message, date, and one or more company values: People, Safety, Respect, Communication, Continuous Improvement
 - Card size preference: Compact / Normal / Expanded
+- **Admin All Table**: Filter bar with search by name, company values toggle (AND logic), and month/year dropdowns
+- **CSV Export**: Export filtered recognition cards as CSV matching `export-sample.csv` structure — columns: Department, Team Member, Role, Date Received, Receivers/Givers Branch, Given By, Message, Values (x/blank), Quarter Received
 
 ### Preferences
 

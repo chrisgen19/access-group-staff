@@ -44,6 +44,7 @@ export async function createUserAction(formData: unknown) {
 				displayName: rest.displayName,
 				phone: rest.phone,
 				position: rest.position,
+				branch: rest.branch ?? null,
 				departmentId: rest.departmentId ?? null,
 				isActive: rest.isActive,
 			},
