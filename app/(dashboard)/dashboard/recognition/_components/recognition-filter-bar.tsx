@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { Download, Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { COMPANY_VALUES } from "@/lib/recognition";
 import { cn } from "@/lib/utils";
@@ -39,6 +39,8 @@ interface RecognitionFilterBarProps {
 	selectedYear: string;
 	onYearChange: (value: string) => void;
 	onClear: () => void;
+	onExport: () => void;
+	isExporting: boolean;
 }
 
 export function RecognitionFilterBar({
@@ -51,6 +53,8 @@ export function RecognitionFilterBar({
 	selectedYear,
 	onYearChange,
 	onClear,
+	onExport,
+	isExporting,
 }: RecognitionFilterBarProps) {
 	const hasActiveFilters =
 		search.length > 0 ||
@@ -144,19 +148,35 @@ export function RecognitionFilterBar({
 					</select>
 				</div>
 
-				{/* Clear */}
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={onClear}
-					className={cn(
-						"shrink-0 gap-1 text-muted-foreground",
-						!hasActiveFilters && "invisible",
-					)}
-				>
-					<X size={14} />
-					Clear
-				</Button>
+				{/* Actions */}
+				<div className="flex items-center gap-1 shrink-0">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={onClear}
+						className={cn(
+							"gap-1 text-muted-foreground",
+							!hasActiveFilters && "invisible",
+						)}
+					>
+						<X size={14} />
+						Clear
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onExport}
+						disabled={isExporting}
+						className="gap-1"
+					>
+						{isExporting ? (
+							<Loader2 size={14} className="animate-spin" />
+						) : (
+							<Download size={14} />
+						)}
+						{isExporting ? "Exporting..." : "Export"}
+					</Button>
+				</div>
 			</div>
 		</div>
 	);

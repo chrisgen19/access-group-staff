@@ -68,10 +68,9 @@ export async function GET(request: NextRequest) {
 			},
 		};
 
-		if (paginated && !filter && isAdmin) {
-			const page = Math.max(1, Number(request.nextUrl.searchParams.get("page")) || 1);
-			const pageSize = Math.min(100, Math.max(1, Number(request.nextUrl.searchParams.get("pageSize")) || 20));
+		const isExport = request.nextUrl.searchParams.get("export") === "true";
 
+		if ((paginated || isExport) && !filter && isAdmin) {
 			const search = request.nextUrl.searchParams.get("search")?.trim();
 			const valuesParam = request.nextUrl.searchParams.get("values");
 			const dateFrom = request.nextUrl.searchParams.get("dateFrom");
@@ -108,6 +107,42 @@ export async function GET(request: NextRequest) {
 			const filteredWhere: Prisma.RecognitionCardWhereInput = conditions.length > 0
 				? { AND: conditions }
 				: {};
+
+			if (isExport) {
+				const exportInclude = {
+					sender: {
+						select: {
+							id: true,
+							firstName: true,
+							lastName: true,
+							position: true,
+							branch: true,
+							department: { select: { name: true } },
+						},
+					},
+					recipient: {
+						select: {
+							id: true,
+							firstName: true,
+							lastName: true,
+							position: true,
+							branch: true,
+							department: { select: { name: true } },
+						},
+					},
+				};
+
+				const cards = await prisma.recognitionCard.findMany({
+					where: filteredWhere,
+					include: exportInclude,
+					orderBy: { createdAt: "desc" },
+				});
+
+				return Response.json({ success: true, data: cards });
+			}
+
+			const page = Math.max(1, Number(request.nextUrl.searchParams.get("page")) || 1);
+			const pageSize = Math.min(100, Math.max(1, Number(request.nextUrl.searchParams.get("pageSize")) || 20));
 
 			const [cards, total] = await Promise.all([
 				prisma.recognitionCard.findMany({

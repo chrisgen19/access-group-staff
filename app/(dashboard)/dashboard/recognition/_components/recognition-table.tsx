@@ -9,8 +9,10 @@ import { useSession } from "@/lib/auth-client";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import {
 	type RecognitionCard,
+	type ExportRecognitionCard,
 	getSelectedValues,
 	formatRecognitionDate,
+	generateRecognitionCsv,
 } from "@/lib/recognition";
 import { deleteRecognitionCardAction } from "@/lib/actions/recognition-actions";
 import {
@@ -85,6 +87,7 @@ export function RecognitionTable() {
 	const [selectedValues, setSelectedValues] = useState<string[]>([]);
 	const [selectedMonth, setSelectedMonth] = useState("");
 	const [selectedYear, setSelectedYear] = useState("");
+	const [isExporting, setIsExporting] = useState(false);
 	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -138,6 +141,38 @@ export function RecognitionTable() {
 		}
 
 		return { dateFrom: "", dateTo: "" };
+	}
+
+	async function exportCards() {
+		setIsExporting(true);
+		try {
+			const params = new URLSearchParams({ export: "true" });
+			if (debouncedSearch) params.set("search", debouncedSearch);
+			if (selectedValues.length > 0) params.set("values", selectedValues.join(","));
+			const { dateFrom, dateTo } = getDateRange();
+			if (dateFrom) params.set("dateFrom", dateFrom);
+			if (dateTo) params.set("dateTo", dateTo);
+
+			const res = await fetch(`/api/recognition?${params}`);
+			if (!res.ok) throw new Error("Failed to fetch recognition cards");
+
+			const json = await res.json() as { success: boolean; data: ExportRecognitionCard[] };
+			if (!json.success) throw new Error("Export failed");
+
+			const csv = generateRecognitionCsv(json.data);
+			const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `recognition-export-${new Date().toISOString().split("T")[0]}.csv`;
+			link.click();
+			URL.revokeObjectURL(url);
+			toast.success(`Exported ${json.data.length} recognition cards`);
+		} catch {
+			toast.error("Failed to export recognition cards");
+		} finally {
+			setIsExporting(false);
+		}
 	}
 
 	const { data, isPending, isError } = useQuery<PaginatedResponse>({
@@ -228,6 +263,8 @@ export function RecognitionTable() {
 				selectedYear={selectedYear}
 				onYearChange={setSelectedYear}
 				onClear={clearFilters}
+				onExport={exportCards}
+				isExporting={isExporting}
 			/>
 
 			{cards.length === 0 && hasActiveFilters ? (

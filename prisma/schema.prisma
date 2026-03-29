@@ -13,6 +13,11 @@ enum Role {
   STAFF
 }
 
+enum Branch {
+  ISO
+  PERTH
+}
+
 model User {
   id            String   @id @default(cuid())
   name          String?
@@ -26,6 +31,7 @@ model User {
   position      String?
   avatar        String?
   role          Role     @default(STAFF)
+  branch        Branch?  @map("branch")
   isActive      Boolean  @default(true) @map("is_active")
   departmentId  String?  @map("department_id")
   createdAt     DateTime @default(now()) @map("created_at")
