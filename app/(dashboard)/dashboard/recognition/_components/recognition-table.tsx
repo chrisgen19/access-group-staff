@@ -6,8 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, Share2, Heart, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
-import { hasMinRole } from "@/lib/permissions";
-import type { Role } from "@/app/generated/prisma/client";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
 import {
 	type RecognitionCard,
 	getSelectedValues,
@@ -77,14 +76,14 @@ export function RecognitionTable() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { data: session } = useSession();
-	const userRole = (session?.user?.role as Role) ?? "STAFF";
+	const userRole = getUserRole(session);
 	const canDelete = hasMinRole(userRole, "ADMIN");
 	const [page, setPage] = useState(1);
 	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
-	const { data, isPending } = useQuery<PaginatedResponse>({
+	const { data, isPending, isError } = useQuery<PaginatedResponse>({
 		queryKey: ["recognition-cards", "all", page],
 		queryFn: async () => {
 			const res = await fetch(
@@ -120,6 +119,19 @@ export function RecognitionTable() {
 
 	if (isPending) {
 		return <TableSkeleton />;
+	}
+
+	if (isError) {
+		return (
+			<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
+				<p className="text-[1.5rem] font-medium text-foreground">
+					Something went wrong
+				</p>
+				<p className="mt-2 text-base text-muted-foreground">
+					Failed to load recognition cards. Please try again later.
+				</p>
+			</div>
+		);
 	}
 
 	if (cards.length === 0 && page === 1) {

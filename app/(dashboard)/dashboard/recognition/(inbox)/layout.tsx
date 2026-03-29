@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { getServerSession } from "@/lib/auth-utils";
-import { hasMinRole } from "@/lib/permissions";
-import type { Role } from "@/app/generated/prisma/client";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionTabs, type TabItem } from "../_components/recognition-tabs";
 
 export default async function RecognitionInboxLayout({
@@ -14,8 +13,7 @@ export default async function RecognitionInboxLayout({
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 
-	const userRole = (session.user.role as Role) ?? "STAFF";
-	const isAdmin = hasMinRole(userRole, "ADMIN");
+	const isAdmin = hasMinRole(getUserRole(session), "ADMIN");
 
 	const tabs: TabItem[] = [];
 

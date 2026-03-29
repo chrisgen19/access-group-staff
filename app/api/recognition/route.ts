@@ -1,7 +1,7 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { hasMinRole } from "@/lib/permissions";
-import type { Prisma, Role } from "@/app/generated/prisma/client";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
+import type { Prisma } from "@/app/generated/prisma/client";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -17,7 +17,8 @@ export async function GET(request: NextRequest) {
 
 	try {
 		const filter = request.nextUrl.searchParams.get("filter");
-		const isAdmin = hasMinRole((session.user.role as Role) ?? "STAFF", "ADMIN");
+		const userRole = getUserRole(session);
+		const isAdmin = hasMinRole(userRole, "ADMIN");
 		const paginated = request.nextUrl.searchParams.get("paginated") === "true";
 
 		let where: Prisma.RecognitionCardWhereInput | undefined;
@@ -41,6 +42,8 @@ export async function GET(request: NextRequest) {
 			} else {
 				where = { id: "none" };
 			}
+		} else if (!isAdmin) {
+			where = { recipientId: session.user.id };
 		}
 
 		const include = {

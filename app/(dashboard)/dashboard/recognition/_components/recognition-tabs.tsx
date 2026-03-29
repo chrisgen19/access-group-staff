@@ -16,7 +16,7 @@ export interface TabItem {
 	key: string;
 	label: string;
 	href: string;
-	icon: string;
+	icon: keyof typeof ICON_MAP;
 }
 
 interface RecognitionTabsProps {
