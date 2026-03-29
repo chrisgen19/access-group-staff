@@ -1,0 +1,180 @@
+"use client";
+
+import { Download, Loader2, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { COMPANY_VALUES, VALUE_KEY_MAP } from "@/lib/recognition";
+import { cn } from "@/lib/utils";
+
+const MONTHS = [
+	{ value: "1", label: "January" },
+	{ value: "2", label: "February" },
+	{ value: "3", label: "March" },
+	{ value: "4", label: "April" },
+	{ value: "5", label: "May" },
+	{ value: "6", label: "June" },
+	{ value: "7", label: "July" },
+	{ value: "8", label: "August" },
+	{ value: "9", label: "September" },
+	{ value: "10", label: "October" },
+	{ value: "11", label: "November" },
+	{ value: "12", label: "December" },
+];
+
+function getYearOptions() {
+	const currentYear = new Date().getFullYear();
+	const years: string[] = [];
+	for (let y = currentYear; y >= currentYear - 5; y--) {
+		years.push(String(y));
+	}
+	return years;
+}
+
+interface RecognitionFilterBarProps {
+	search: string;
+	onSearchChange: (value: string) => void;
+	selectedValues: string[];
+	onSelectedValuesChange: (values: string[]) => void;
+	selectedMonth: string;
+	onMonthChange: (value: string) => void;
+	selectedYear: string;
+	onYearChange: (value: string) => void;
+	hasActiveFilters: boolean;
+	onClear: () => void;
+	onExport: () => void;
+	isExporting: boolean;
+}
+
+export function RecognitionFilterBar({
+	search,
+	onSearchChange,
+	selectedValues,
+	onSelectedValuesChange,
+	selectedMonth,
+	onMonthChange,
+	selectedYear,
+	onYearChange,
+	hasActiveFilters,
+	onClear,
+	onExport,
+	isExporting,
+}: RecognitionFilterBarProps) {
+
+	function toggleValue(key: string) {
+		if (selectedValues.includes(key)) {
+			onSelectedValuesChange(selectedValues.filter((v) => v !== key));
+		} else {
+			onSelectedValuesChange([...selectedValues, key]);
+		}
+	}
+
+	return (
+		<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card p-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+				{/* Search */}
+				<div className="relative min-w-0 lg:w-64">
+					<Search
+						size={16}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+					/>
+					<input
+						type="text"
+						placeholder="Search by name..."
+						value={search}
+						onChange={(e) => onSearchChange(e.target.value)}
+						className="h-9 w-full rounded-full border border-input bg-transparent pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+					/>
+				</div>
+
+				{/* Value toggles */}
+				<div className="flex flex-wrap items-center gap-1.5">
+					{COMPANY_VALUES.map((value) => {
+						const urlKey = Object.entries(VALUE_KEY_MAP).find(
+							([, v]) => v === value.key,
+						)?.[0] ?? value.key;
+						const isActive = selectedValues.includes(urlKey);
+
+						return (
+							<button
+								key={value.key}
+								type="button"
+								onClick={() => toggleValue(urlKey)}
+								className={cn(
+									"inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+									isActive
+										? "border-primary/20 bg-primary/5 text-primary dark:bg-primary/10"
+										: "border-gray-200 dark:border-white/10 bg-transparent text-muted-foreground hover:border-gray-300 dark:hover:border-white/20",
+								)}
+							>
+								{value.label}
+							</button>
+						);
+					})}
+				</div>
+
+				{/* Month / Year */}
+				<div className="flex items-center gap-2 lg:ml-auto">
+					<select
+						value={selectedMonth}
+						onChange={(e) => onMonthChange(e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!selectedMonth && "text-muted-foreground",
+						)}
+					>
+						<option value="">Month</option>
+						{MONTHS.map((m) => (
+							<option key={m.value} value={m.value}>
+								{m.label}
+							</option>
+						))}
+					</select>
+					<select
+						value={selectedYear}
+						onChange={(e) => onYearChange(e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!selectedYear && "text-muted-foreground",
+						)}
+					>
+						<option value="">Year</option>
+						{getYearOptions().map((y) => (
+							<option key={y} value={y}>
+								{y}
+							</option>
+						))}
+					</select>
+				</div>
+
+				{/* Actions */}
+				<div className="flex items-center gap-1 shrink-0">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={onClear}
+						className={cn(
+							"gap-1 text-muted-foreground",
+							!hasActiveFilters && "invisible",
+						)}
+					>
+						<X size={14} />
+						Clear
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={onExport}
+						disabled={isExporting}
+						className="gap-1"
+					>
+						{isExporting ? (
+							<Loader2 size={14} className="animate-spin" />
+						) : (
+							<Download size={14} />
+						)}
+						{isExporting ? "Exporting..." : "Export"}
+					</Button>
+				</div>
+			</div>
+		</div>
+	);
+}

@@ -18,6 +18,7 @@ interface User {
 	role: string;
 	isActive: boolean;
 	position: string | null;
+	branch: string | null;
 	department: { id: string; name: string; code: string } | null;
 }
 
@@ -125,6 +126,9 @@ export function UserListClient() {
 									Position / Dept
 								</th>
 								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
+									Branch
+								</th>
+								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
 									Status
 								</th>
 								<th className="relative px-8 py-4">
@@ -162,6 +166,11 @@ export function UserListClient() {
 											<div className="mt-0.5 text-sm text-muted-foreground">
 												{user.department?.name ?? "—"}
 											</div>
+										</td>
+										<td className="whitespace-nowrap px-8 py-5">
+											<span className="text-sm text-foreground">
+												{user.branch ?? "—"}
+											</span>
 										</td>
 										<td className="whitespace-nowrap px-8 py-5">
 											<div className="flex flex-col gap-1.5">
@@ -211,7 +220,7 @@ export function UserListClient() {
 								))
 							) : (
 								<tr>
-									<td colSpan={4} className="px-8 py-16 text-center">
+									<td colSpan={5} className="px-8 py-16 text-center">
 										<div className="flex flex-col items-center justify-center text-muted-foreground">
 											<Users size={40} className="mb-3 opacity-20" />
 											<p className="text-base font-medium text-foreground">

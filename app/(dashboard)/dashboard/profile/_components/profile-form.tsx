@@ -10,6 +10,9 @@ import { updateProfileAction } from "@/lib/actions/profile-actions";
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
+const selectClass =
+	"block w-full appearance-none rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
+
 interface ProfileFormProps {
 	user: {
 		firstName: string;
@@ -17,6 +20,7 @@ interface ProfileFormProps {
 		displayName: string | null;
 		phone: string | null;
 		position: string | null;
+		branch: string | null;
 	};
 }
 
@@ -24,17 +28,20 @@ export function ProfileForm({ user }: ProfileFormProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 
-	const { register, handleSubmit } = useForm({
-		defaultValues: {
-			firstName: user.firstName,
-			lastName: user.lastName,
-			displayName: user.displayName ?? "",
-			phone: user.phone ?? "",
-			position: user.position ?? "",
-		},
+	const defaultValues = {
+		firstName: user.firstName,
+		lastName: user.lastName,
+		displayName: user.displayName ?? "",
+		phone: user.phone ?? "",
+		position: user.position ?? "",
+		branch: user.branch ?? null,
+	};
+
+	const { register, handleSubmit, watch, setValue } = useForm({
+		defaultValues,
 	});
 
-	async function onSubmit(data: Record<string, string>) {
+	async function onSubmit(data: typeof defaultValues) {
 		setIsLoading(true);
 		try {
 			const result = await updateProfileAction(data);
@@ -98,6 +105,21 @@ export function ProfileForm({ user }: ProfileFormProps) {
 							</label>
 							<input id="position" className={inputClass} {...register("position")} />
 						</div>
+					</div>
+
+					<div>
+						<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							Branch
+						</label>
+						<select
+							value={watch("branch") ?? "none"}
+							onChange={(e) => setValue("branch", e.target.value === "none" ? null : e.target.value)}
+							className={selectClass}
+						>
+							<option value="none">No Branch</option>
+							<option value="ISO">ISO</option>
+							<option value="PERTH">Perth</option>
+						</select>
 					</div>
 				</div>
 
