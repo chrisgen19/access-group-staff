@@ -31,6 +31,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 				displayName: user.displayName ?? undefined,
 				phone: user.phone ?? undefined,
 				position: user.position ?? undefined,
+				branch: user.branch ?? null,
 				role: user.role,
 				departmentId: user.departmentId,
 				isActive: user.isActive,
