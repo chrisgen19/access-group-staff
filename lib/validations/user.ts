@@ -10,6 +10,7 @@ export const createUserSchema = z.object({
 	position: z.string().optional(),
 	branch: z.enum(["ISO", "PERTH"]).nullable().optional(),
 	role: z.enum(["STAFF", "ADMIN", "SUPERADMIN"]),
+	branch: z.enum(["ISO", "PERTH"]).nullable().optional(),
 	departmentId: z.string().nullable().optional(),
 	isActive: z.boolean().default(true),
 });

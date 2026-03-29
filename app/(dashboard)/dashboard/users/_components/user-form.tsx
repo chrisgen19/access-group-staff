@@ -221,6 +221,21 @@ export function UserForm({
 							</div>
 						</div>
 
+						<div>
+							<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								Branch
+							</label>
+							<select
+								value={watch("branch") ?? "none"}
+								onChange={(e) => setValue("branch", e.target.value === "none" ? null : e.target.value as "ISO" | "PERTH")}
+								className={selectClass}
+							>
+								<option value="none">No Branch</option>
+								<option value="ISO">ISO</option>
+								<option value="PERTH">Perth</option>
+							</select>
+						</div>
+
 						<div className="flex items-center gap-2 px-1">
 							<input
 								id="isActive"

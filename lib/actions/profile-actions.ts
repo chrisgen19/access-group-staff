@@ -9,6 +9,7 @@ const updateProfileSchema = z.object({
 	displayName: z.string().optional(),
 	phone: z.string().optional(),
 	position: z.string().optional(),
+	branch: z.enum(["ISO", "PERTH"]).nullable().optional(),
 	firstName: z.string().min(1, "First name is required").optional(),
 	lastName: z.string().min(1, "Last name is required").optional(),
 });
