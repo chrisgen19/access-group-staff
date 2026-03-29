@@ -1,14 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Eye, Share2, Heart } from "lucide-react";
+import { Eye, Share2, Heart, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { getInitials } from "@/lib/utils";
 import {
 	type RecognitionCard,
 	getSelectedValues,
 	formatRecognitionDate,
 } from "@/lib/recognition";
+import { deleteRecognitionCardAction } from "@/lib/actions/recognition-actions";
 import {
 	Table,
 	TableBody,
@@ -17,6 +20,16 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function TableSkeleton() {
 	return (
@@ -46,6 +59,9 @@ interface RecognitionTableProps {
 
 export function RecognitionTable({ onShare }: RecognitionTableProps) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
+	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
 
 	const { data, isPending } = useQuery<{
 		success: boolean;
@@ -61,6 +77,25 @@ export function RecognitionTable({ onShare }: RecognitionTableProps) {
 	});
 
 	const cards = data?.data ?? [];
+
+	async function handleDelete() {
+		if (!deleteCardId) return;
+		setIsDeleting(true);
+		try {
+			const result = await deleteRecognitionCardAction(deleteCardId);
+			if (result.success) {
+				toast.success("Recognition card deleted");
+				queryClient.invalidateQueries({ queryKey: ["recognition-cards"] });
+			} else {
+				toast.error(result.error);
+			}
+		} catch {
+			toast.error("Failed to delete recognition card");
+		} finally {
+			setIsDeleting(false);
+			setDeleteCardId(null);
+		}
+	}
 
 	if (isPending) {
 		return <TableSkeleton />;
@@ -83,104 +118,135 @@ export function RecognitionTable({ onShare }: RecognitionTableProps) {
 	}
 
 	return (
-		<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
-			<Table>
-				<TableHeader>
-					<TableRow className="bg-muted/30 hover:bg-muted/30">
-						<TableHead>From</TableHead>
-						<TableHead>To</TableHead>
-						<TableHead>Message</TableHead>
-						<TableHead>Values</TableHead>
-						<TableHead>Date</TableHead>
-						<TableHead className="text-right">Actions</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{cards.map((card) => {
-						const values = getSelectedValues(card);
-						return (
-							<TableRow key={card.id}>
-								<TableCell>
-									<div className="flex items-center gap-2">
-										<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-											{getInitials(card.sender.firstName, card.sender.lastName)}
-										</div>
-										<div className="min-w-0">
-											<p className="text-sm font-medium text-foreground truncate">
-												{card.sender.firstName} {card.sender.lastName}
-											</p>
-											{card.sender.position && (
-												<p className="text-xs text-muted-foreground truncate">
-													{card.sender.position}
+		<>
+			<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<Table>
+					<TableHeader>
+						<TableRow className="bg-muted/30 hover:bg-muted/30">
+							<TableHead>From</TableHead>
+							<TableHead>To</TableHead>
+							<TableHead>Message</TableHead>
+							<TableHead>Values</TableHead>
+							<TableHead>Date</TableHead>
+							<TableHead className="text-right">Actions</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{cards.map((card) => {
+							const values = getSelectedValues(card);
+							return (
+								<TableRow key={card.id}>
+									<TableCell>
+										<div className="flex items-center gap-2">
+											<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+												{getInitials(card.sender.firstName, card.sender.lastName)}
+											</div>
+											<div className="min-w-0">
+												<p className="text-sm font-medium text-foreground truncate">
+													{card.sender.firstName} {card.sender.lastName}
 												</p>
-											)}
+												{card.sender.position && (
+													<p className="text-xs text-muted-foreground truncate">
+														{card.sender.position}
+													</p>
+												)}
+											</div>
 										</div>
-									</div>
-								</TableCell>
-								<TableCell>
-									<div className="flex items-center gap-2">
-										<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-											{getInitials(card.recipient.firstName, card.recipient.lastName)}
-										</div>
-										<div className="min-w-0">
-											<p className="text-sm font-medium text-foreground truncate">
-												{card.recipient.firstName} {card.recipient.lastName}
-											</p>
-											{card.recipient.position && (
-												<p className="text-xs text-muted-foreground truncate">
-													{card.recipient.position}
+									</TableCell>
+									<TableCell>
+										<div className="flex items-center gap-2">
+											<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+												{getInitials(card.recipient.firstName, card.recipient.lastName)}
+											</div>
+											<div className="min-w-0">
+												<p className="text-sm font-medium text-foreground truncate">
+													{card.recipient.firstName} {card.recipient.lastName}
 												</p>
-											)}
+												{card.recipient.position && (
+													<p className="text-xs text-muted-foreground truncate">
+														{card.recipient.position}
+													</p>
+												)}
+											</div>
 										</div>
-									</div>
-								</TableCell>
-								<TableCell className="max-w-xs">
-									<p className="text-sm text-foreground/80 truncate">
-										{card.message}
-									</p>
-								</TableCell>
-								<TableCell>
-									<div className="flex flex-wrap gap-1">
-										{values.map((value) => (
-											<span
-												key={value}
-												className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/10"
+									</TableCell>
+									<TableCell className="max-w-xs">
+										<p className="text-sm text-foreground/80 truncate">
+											{card.message}
+										</p>
+									</TableCell>
+									<TableCell>
+										<div className="flex flex-wrap gap-1">
+											{values.map((value) => (
+												<span
+													key={value}
+													className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/10"
+												>
+													{value}
+												</span>
+											))}
+										</div>
+									</TableCell>
+									<TableCell>
+										<span className="text-sm text-muted-foreground">
+											{formatRecognitionDate(card.date)}
+										</span>
+									</TableCell>
+									<TableCell className="text-right">
+										<div className="flex justify-end gap-1">
+											<button
+												type="button"
+												onClick={() => router.push(`/dashboard/recognition/${card.id}`)}
+												className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
+												aria-label="View card"
 											>
-												{value}
-											</span>
-										))}
-									</div>
-								</TableCell>
-								<TableCell>
-									<span className="text-sm text-muted-foreground">
-										{formatRecognitionDate(card.date)}
-									</span>
-								</TableCell>
-								<TableCell className="text-right">
-									<div className="flex justify-end gap-1">
-										<button
-											type="button"
-											onClick={() => router.push(`/dashboard/recognition/${card.id}`)}
-											className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-											aria-label="View card"
-										>
-											<Eye size={16} />
-										</button>
-										<button
-											type="button"
-											onClick={() => onShare(card.id)}
-											className="rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
-											aria-label="Share card"
-										>
-											<Share2 size={16} />
-										</button>
-									</div>
-								</TableCell>
-							</TableRow>
-						);
-					})}
-				</TableBody>
-			</Table>
-		</div>
+												<Eye size={16} />
+											</button>
+											<button
+												type="button"
+												onClick={() => onShare(card.id)}
+												className="rounded-full p-2 text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+												aria-label="Share card"
+											>
+												<Share2 size={16} />
+											</button>
+											<button
+												type="button"
+												onClick={() => setDeleteCardId(card.id)}
+												className="rounded-full p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 transition-colors"
+												aria-label="Delete card"
+											>
+												<Trash2 size={16} />
+											</button>
+										</div>
+									</TableCell>
+								</TableRow>
+							);
+						})}
+					</TableBody>
+				</Table>
+			</div>
+
+			<AlertDialog open={!!deleteCardId} onOpenChange={(open) => !open && setDeleteCardId(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete recognition card?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently delete the recognition card.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDelete}
+							disabled={isDeleting}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{isDeleting ? "Deleting..." : "Delete"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 }
