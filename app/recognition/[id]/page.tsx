@@ -1,9 +1,8 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "@/lib/auth-utils";
 import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
 import {
 	AccessGroupLogo,
@@ -125,9 +124,6 @@ export default async function SharePage({
 }: {
 	params: Promise<{ id: string }>;
 }) {
-	const session = await getServerSession();
-	if (!session) redirect("/login");
-
 	const { id } = await params;
 	const card = await getCard(id);
 
