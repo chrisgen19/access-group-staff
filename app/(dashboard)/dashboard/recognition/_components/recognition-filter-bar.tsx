@@ -5,15 +5,39 @@ import { Button } from "@/components/ui/button";
 import { COMPANY_VALUES } from "@/lib/recognition";
 import { cn } from "@/lib/utils";
 
+const MONTHS = [
+	{ value: "1", label: "January" },
+	{ value: "2", label: "February" },
+	{ value: "3", label: "March" },
+	{ value: "4", label: "April" },
+	{ value: "5", label: "May" },
+	{ value: "6", label: "June" },
+	{ value: "7", label: "July" },
+	{ value: "8", label: "August" },
+	{ value: "9", label: "September" },
+	{ value: "10", label: "October" },
+	{ value: "11", label: "November" },
+	{ value: "12", label: "December" },
+];
+
+function getYearOptions() {
+	const currentYear = new Date().getFullYear();
+	const years: string[] = [];
+	for (let y = currentYear; y >= currentYear - 5; y--) {
+		years.push(String(y));
+	}
+	return years;
+}
+
 interface RecognitionFilterBarProps {
 	search: string;
 	onSearchChange: (value: string) => void;
 	selectedValues: string[];
 	onSelectedValuesChange: (values: string[]) => void;
-	dateFrom: string;
-	onDateFromChange: (value: string) => void;
-	dateTo: string;
-	onDateToChange: (value: string) => void;
+	selectedMonth: string;
+	onMonthChange: (value: string) => void;
+	selectedYear: string;
+	onYearChange: (value: string) => void;
 	onClear: () => void;
 }
 
@@ -22,17 +46,17 @@ export function RecognitionFilterBar({
 	onSearchChange,
 	selectedValues,
 	onSelectedValuesChange,
-	dateFrom,
-	onDateFromChange,
-	dateTo,
-	onDateToChange,
+	selectedMonth,
+	onMonthChange,
+	selectedYear,
+	onYearChange,
 	onClear,
 }: RecognitionFilterBarProps) {
 	const hasActiveFilters =
 		search.length > 0 ||
 		selectedValues.length > 0 ||
-		dateFrom.length > 0 ||
-		dateTo.length > 0;
+		selectedMonth.length > 0 ||
+		selectedYear.length > 0;
 
 	function toggleValue(key: string) {
 		if (selectedValues.includes(key)) {
@@ -86,26 +110,38 @@ export function RecognitionFilterBar({
 					})}
 				</div>
 
-				{/* Date range */}
+				{/* Month / Year */}
 				<div className="flex items-center gap-2 lg:ml-auto">
-					<label className="text-xs text-muted-foreground shrink-0">
-						From
-					</label>
-					<input
-						type="date"
-						value={dateFrom}
-						onChange={(e) => onDateFromChange(e.target.value)}
-						className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-					/>
-					<label className="text-xs text-muted-foreground shrink-0">
-						To
-					</label>
-					<input
-						type="date"
-						value={dateTo}
-						onChange={(e) => onDateToChange(e.target.value)}
-						className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-					/>
+					<select
+						value={selectedMonth}
+						onChange={(e) => onMonthChange(e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!selectedMonth && "text-muted-foreground",
+						)}
+					>
+						<option value="">Month</option>
+						{MONTHS.map((m) => (
+							<option key={m.value} value={m.value}>
+								{m.label}
+							</option>
+						))}
+					</select>
+					<select
+						value={selectedYear}
+						onChange={(e) => onYearChange(e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!selectedYear && "text-muted-foreground",
+						)}
+					>
+						<option value="">Year</option>
+						{getYearOptions().map((y) => (
+							<option key={y} value={y}>
+								{y}
+							</option>
+						))}
+					</select>
 				</div>
 
 				{/* Clear */}

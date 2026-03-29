@@ -83,8 +83,8 @@ export function RecognitionTable() {
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [selectedValues, setSelectedValues] = useState<string[]>([]);
-	const [dateFrom, setDateFrom] = useState("");
-	const [dateTo, setDateTo] = useState("");
+	const [selectedMonth, setSelectedMonth] = useState("");
+	const [selectedYear, setSelectedYear] = useState("");
 	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -96,24 +96,52 @@ export function RecognitionTable() {
 
 	useEffect(() => {
 		setPage(1);
-	}, [debouncedSearch, selectedValues, dateFrom, dateTo]);
+	}, [debouncedSearch, selectedValues, selectedMonth, selectedYear]);
 
 	const hasActiveFilters =
 		search.length > 0 ||
 		selectedValues.length > 0 ||
-		dateFrom.length > 0 ||
-		dateTo.length > 0;
+		selectedMonth.length > 0 ||
+		selectedYear.length > 0;
 
 	function clearFilters() {
 		setSearch("");
 		setDebouncedSearch("");
 		setSelectedValues([]);
-		setDateFrom("");
-		setDateTo("");
+		setSelectedMonth("");
+		setSelectedYear("");
+	}
+
+	function getDateRange() {
+		const year = selectedYear
+			? Number(selectedYear)
+			: new Date().getFullYear();
+
+		if (selectedMonth && selectedYear) {
+			const month = Number(selectedMonth);
+			const from = `${year}-${String(month).padStart(2, "0")}-01`;
+			const lastDay = new Date(year, month, 0).getDate();
+			const to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+			return { dateFrom: from, dateTo: to };
+		}
+
+		if (selectedYear) {
+			return { dateFrom: `${year}-01-01`, dateTo: `${year}-12-31` };
+		}
+
+		if (selectedMonth) {
+			const month = Number(selectedMonth);
+			const from = `${year}-${String(month).padStart(2, "0")}-01`;
+			const lastDay = new Date(year, month, 0).getDate();
+			const to = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+			return { dateFrom: from, dateTo: to };
+		}
+
+		return { dateFrom: "", dateTo: "" };
 	}
 
 	const { data, isPending, isError } = useQuery<PaginatedResponse>({
-		queryKey: ["recognition-cards", "all", page, debouncedSearch, selectedValues, dateFrom, dateTo],
+		queryKey: ["recognition-cards", "all", page, debouncedSearch, selectedValues, selectedMonth, selectedYear],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				paginated: "true",
@@ -122,6 +150,7 @@ export function RecognitionTable() {
 			});
 			if (debouncedSearch) params.set("search", debouncedSearch);
 			if (selectedValues.length > 0) params.set("values", selectedValues.join(","));
+			const { dateFrom, dateTo } = getDateRange();
 			if (dateFrom) params.set("dateFrom", dateFrom);
 			if (dateTo) params.set("dateTo", dateTo);
 
@@ -194,10 +223,10 @@ export function RecognitionTable() {
 				onSearchChange={setSearch}
 				selectedValues={selectedValues}
 				onSelectedValuesChange={setSelectedValues}
-				dateFrom={dateFrom}
-				onDateFromChange={setDateFrom}
-				dateTo={dateTo}
-				onDateToChange={setDateTo}
+				selectedMonth={selectedMonth}
+				onMonthChange={setSelectedMonth}
+				selectedYear={selectedYear}
+				onYearChange={setSelectedYear}
 				onClear={clearFilters}
 			/>
 
