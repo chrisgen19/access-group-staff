@@ -10,9 +10,7 @@ export async function proxy(request: NextRequest) {
 	const sessionCookie = request.cookies.get(sessionToken.name)?.value ?? null;
 	const { pathname } = request.nextUrl;
 
-	const isProtected =
-		pathname.startsWith("/dashboard") ||
-		(pathname.startsWith("/recognition/") && !pathname.endsWith("/opengraph-image"));
+	const isProtected = pathname.startsWith("/dashboard");
 
 	if (isProtected && !sessionCookie) {
 		const loginUrl = new URL("/login", request.url);
@@ -49,5 +47,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-	matcher: ["/dashboard/:path*", "/login", "/register", "/recognition/:path*"],
+	matcher: ["/dashboard/:path*", "/login", "/register"],
 };

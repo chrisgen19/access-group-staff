@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
 import type { Prisma } from "@/app/generated/prisma/client";
 import type { NextRequest } from "next/server";
 
@@ -16,8 +17,12 @@ export async function GET(request: NextRequest) {
 
 	try {
 		const filter = request.nextUrl.searchParams.get("filter");
+		const userRole = getUserRole(session);
+		const isAdmin = hasMinRole(userRole, "ADMIN");
+		const paginated = request.nextUrl.searchParams.get("paginated") === "true";
 
 		let where: Prisma.RecognitionCardWhereInput | undefined;
+
 		if (filter === "received") {
 			where = { recipientId: session.user.id };
 		} else if (filter === "sent") {
@@ -37,30 +42,61 @@ export async function GET(request: NextRequest) {
 			} else {
 				where = { id: "none" };
 			}
+		} else if (!isAdmin) {
+			where = { recipientId: session.user.id };
+		}
+
+		const include = {
+			sender: {
+				select: {
+					id: true,
+					firstName: true,
+					lastName: true,
+					avatar: true,
+					position: true,
+				},
+			},
+			recipient: {
+				select: {
+					id: true,
+					firstName: true,
+					lastName: true,
+					avatar: true,
+					position: true,
+				},
+			},
+		};
+
+		if (paginated && !filter && isAdmin) {
+			const page = Math.max(1, Number(request.nextUrl.searchParams.get("page")) || 1);
+			const pageSize = Math.min(100, Math.max(1, Number(request.nextUrl.searchParams.get("pageSize")) || 20));
+
+			const [cards, total] = await Promise.all([
+				prisma.recognitionCard.findMany({
+					where,
+					include,
+					orderBy: { createdAt: "desc" },
+					skip: (page - 1) * pageSize,
+					take: pageSize,
+				}),
+				prisma.recognitionCard.count({ where }),
+			]);
+
+			return Response.json({
+				success: true,
+				data: cards,
+				pagination: {
+					page,
+					pageSize,
+					total,
+					totalPages: Math.ceil(total / pageSize),
+				},
+			});
 		}
 
 		const cards = await prisma.recognitionCard.findMany({
 			where,
-			include: {
-				sender: {
-					select: {
-						id: true,
-						firstName: true,
-						lastName: true,
-						avatar: true,
-						position: true,
-					},
-				},
-				recipient: {
-					select: {
-						id: true,
-						firstName: true,
-						lastName: true,
-						avatar: true,
-						position: true,
-					},
-				},
-			},
+			include,
 			orderBy: { createdAt: "desc" },
 			take: 50,
 		});

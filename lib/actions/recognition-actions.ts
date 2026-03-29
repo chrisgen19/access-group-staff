@@ -124,6 +124,36 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 	}
 }
 
+export async function deleteRecognitionCardAction(cardId: string) {
+	try {
+		const session = await requireSession();
+
+		if (!session.user.role || !["ADMIN", "SUPERADMIN"].includes(session.user.role)) {
+			return { success: false as const, error: "Forbidden" };
+		}
+
+		const card = await prisma.recognitionCard.findUnique({
+			where: { id: cardId },
+			select: { id: true },
+		});
+
+		if (!card) {
+			return { success: false as const, error: "Card not found" };
+		}
+
+		await prisma.recognitionCard.delete({ where: { id: cardId } });
+
+		revalidatePath("/dashboard/recognition");
+		return { success: true as const };
+	} catch (error) {
+		const message =
+			error instanceof Error
+				? error.message
+				: "Failed to delete recognition card";
+		return { success: false as const, error: message };
+	}
+}
+
 export async function getRecognitionCardsAction() {
 	try {
 		await requireSession();
