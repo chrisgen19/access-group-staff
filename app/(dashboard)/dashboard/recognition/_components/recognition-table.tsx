@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Eye, Share2, Heart, Trash2 } from "lucide-react";
+import { Eye, Share2, Heart, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { hasMinRole } from "@/lib/permissions";
@@ -216,6 +216,15 @@ export function RecognitionTable() {
 												aria-label="Share card"
 											>
 												<Share2 size={16} />
+											</button>
+											<button
+												type="button"
+												disabled={session?.user?.id !== card.sender.id}
+												onClick={() => router.push(`/dashboard/recognition/${card.id}/edit`)}
+												className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+												aria-label="Edit card"
+											>
+												<Pencil size={16} />
 											</button>
 											{canDelete && (
 												<button
