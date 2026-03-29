@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
 				},
 			},
 			orderBy: { createdAt: "desc" },
-			take: 50,
+			...(where ? { take: 50 } : {}),
 		});
 
 		return Response.json({ success: true, data: cards });

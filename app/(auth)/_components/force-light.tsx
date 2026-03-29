@@ -1,22 +1,15 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export function ForceLight() {
-	const { theme, setTheme } = useTheme();
-	const previousTheme = useRef<string | undefined>(undefined);
-
 	useEffect(() => {
-		if (theme !== "light") {
-			previousTheme.current = theme;
-			setTheme("light");
-		}
+		const html = document.documentElement;
+		html.classList.remove("dark");
+		html.style.colorScheme = "light";
 
 		return () => {
-			if (previousTheme.current) {
-				setTheme(previousTheme.current);
-			}
+			html.style.colorScheme = "";
 		};
 	}, []);
 
