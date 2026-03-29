@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus, LayoutList, Inbox, Send } from "lucide-react";
+import { Plus } from "lucide-react";
 import { getServerSession } from "@/lib/auth-utils";
 import { hasMinRole } from "@/lib/permissions";
 import type { Role } from "@/app/generated/prisma/client";
@@ -24,7 +24,7 @@ export default async function RecognitionInboxLayout({
 			key: "all",
 			label: "All",
 			href: "/dashboard/recognition/all",
-			icon: LayoutList,
+			icon: "LayoutList",
 		});
 	}
 
@@ -33,13 +33,13 @@ export default async function RecognitionInboxLayout({
 			key: "received",
 			label: "Received",
 			href: "/dashboard/recognition/received",
-			icon: Inbox,
+			icon: "Inbox",
 		},
 		{
 			key: "sent",
 			label: "Sent",
 			href: "/dashboard/recognition/sent",
-			icon: Send,
+			icon: "Send",
 		},
 	);
 

@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutList, Inbox, Send } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+	LayoutList,
+	Inbox,
+	Send,
+};
 
 export interface TabItem {
 	key: string;
 	label: string;
 	href: string;
-	icon: LucideIcon;
+	icon: string;
 }
 
 interface RecognitionTabsProps {
@@ -27,7 +34,7 @@ export function RecognitionTabs({ tabs }: RecognitionTabsProps) {
 		>
 			{tabs.map((tab) => {
 				const isActive = pathname === tab.href;
-				const Icon = tab.icon;
+				const Icon = ICON_MAP[tab.icon];
 				return (
 					<Link
 						key={tab.key}
@@ -41,7 +48,7 @@ export function RecognitionTabs({ tabs }: RecognitionTabsProps) {
 								: "text-muted-foreground hover:text-foreground",
 						)}
 					>
-						<Icon size={16} />
+						{Icon && <Icon size={16} />}
 						{tab.label}
 					</Link>
 				);
