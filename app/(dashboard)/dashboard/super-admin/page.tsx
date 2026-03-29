@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth-utils";
-import { getOAuthSettings } from "@/lib/actions/settings-actions";
+import { getOAuthSettings, getOAuthProviderAvailability } from "@/lib/actions/settings-actions";
 import { OAuthSettingsPanel } from "./_components/oauth-settings";
 
 export default async function SuperAdminPage() {
@@ -11,6 +11,7 @@ export default async function SuperAdminPage() {
 	}
 
 	const oauthSettings = await getOAuthSettings();
+	const providerAvailability = getOAuthProviderAvailability();
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -23,7 +24,7 @@ export default async function SuperAdminPage() {
 				</p>
 			</div>
 
-			<OAuthSettingsPanel initialSettings={oauthSettings} />
+			<OAuthSettingsPanel initialSettings={oauthSettings} providerAvailability={providerAvailability} />
 		</div>
 	);
 }

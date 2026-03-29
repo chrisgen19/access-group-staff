@@ -48,10 +48,22 @@ const PROVIDERS = [
 	},
 ];
 
+interface ProviderAvailability {
+	google: boolean;
+	microsoft: boolean;
+}
+
+const AVAILABILITY_KEY_MAP: Record<string, keyof ProviderAvailability> = {
+	oauth_google_enabled: "google",
+	oauth_microsoft_enabled: "microsoft",
+};
+
 export function OAuthSettingsPanel({
 	initialSettings,
+	providerAvailability,
 }: {
 	initialSettings: OAuthSettings;
+	providerAvailability: ProviderAvailability;
 }) {
 	const [settings, setSettings] = useState(initialSettings);
 	const [isPending, startTransition] = useTransition();
@@ -89,7 +101,9 @@ export function OAuthSettingsPanel({
 
 			<div className="px-8 py-6 space-y-4">
 				{PROVIDERS.map((provider) => {
-					const isEnabled = settings[provider.key];
+					const availabilityKey = AVAILABILITY_KEY_MAP[provider.key];
+					const isConfigured = providerAvailability[availabilityKey];
+					const isEnabled = isConfigured && settings[provider.key];
 					const isLoading = isPending && pendingKey === provider.key;
 
 					return (
@@ -97,6 +111,7 @@ export function OAuthSettingsPanel({
 							key={provider.key}
 							className={cn(
 								"flex items-center justify-between rounded-2xl border p-5 transition-all duration-200",
+								!isConfigured && "opacity-60",
 								isEnabled
 									? "border-primary/20 bg-primary/5"
 									: "border-gray-200 dark:border-white/10",
@@ -111,7 +126,9 @@ export function OAuthSettingsPanel({
 										{provider.name}
 									</p>
 									<p className="text-xs text-muted-foreground">
-										{provider.description}
+										{isConfigured
+											? provider.description
+											: "Not configured — environment variables are missing"}
 									</p>
 								</div>
 							</div>
@@ -123,12 +140,12 @@ export function OAuthSettingsPanel({
 										isEnabled ? "text-primary" : "text-muted-foreground",
 									)}
 								>
-									{isEnabled ? "Enabled" : "Disabled"}
+									{!isConfigured ? "Unavailable" : isEnabled ? "Enabled" : "Disabled"}
 								</span>
 								<Switch
 									checked={isEnabled}
 									onCheckedChange={(checked) => handleToggle(provider.key, checked)}
-									disabled={isLoading}
+									disabled={isLoading || !isConfigured}
 								/>
 							</div>
 						</div>

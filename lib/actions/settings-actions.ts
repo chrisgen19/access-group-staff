@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { requireRole } from "@/lib/auth-utils";
+import { env } from "@/env";
 
 const OAUTH_KEYS = ["oauth_google_enabled", "oauth_microsoft_enabled"] as const;
 type OAuthKey = (typeof OAUTH_KEYS)[number];
@@ -16,8 +17,15 @@ export async function getOAuthSettings(): Promise<OAuthSettings> {
 	const map = new Map(settings.map((s) => [s.key, s.value]));
 
 	return {
-		oauth_google_enabled: map.get("oauth_google_enabled") === "true",
-		oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") === "true",
+		oauth_google_enabled: map.get("oauth_google_enabled") !== "false",
+		oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") !== "false",
+	};
+}
+
+export function getOAuthProviderAvailability() {
+	return {
+		google: true,
+		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
 	};
 }
 

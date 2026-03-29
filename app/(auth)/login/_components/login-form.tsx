@@ -50,11 +50,15 @@ export function LoginForm() {
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
 	const [oauthSettings, setOauthSettings] = useState<OAuthSettings | null>(null);
+	const [oauthAvailability, setOauthAvailability] = useState<{ google: boolean; microsoft: boolean } | null>(null);
 
 	useEffect(() => {
 		fetch("/api/settings/oauth")
 			.then((res) => res.json())
-			.then((json) => setOauthSettings(json.data))
+			.then((json) => {
+				setOauthSettings(json.data);
+				setOauthAvailability(json.availability);
+			})
 			.catch(() => {});
 	}, []);
 
@@ -115,8 +119,8 @@ export function LoginForm() {
 	}
 
 	const anyOAuthDisabled = isLoading || isGoogleLoading || isMicrosoftLoading;
-	const showGoogle = oauthSettings?.oauth_google_enabled;
-	const showMicrosoft = oauthSettings?.oauth_microsoft_enabled;
+	const showGoogle = oauthSettings?.oauth_google_enabled && oauthAvailability?.google !== false;
+	const showMicrosoft = oauthSettings?.oauth_microsoft_enabled && oauthAvailability?.microsoft === true;
 	const hasOAuth = showGoogle || showMicrosoft;
 
 	return (
