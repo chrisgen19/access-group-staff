@@ -5,6 +5,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Eye, Share2, Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useSession } from "@/lib/auth-client";
+import { hasMinRole } from "@/lib/permissions";
+import type { Role } from "@/app/generated/prisma/client";
+
 function getInitials(firstName: string, lastName: string) {
 	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
@@ -59,6 +63,9 @@ function TableSkeleton() {
 export function RecognitionTable() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const userRole = (session?.user?.role as Role) ?? "STAFF";
+	const canDelete = hasMinRole(userRole, "ADMIN");
 	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -210,14 +217,16 @@ export function RecognitionTable() {
 											>
 												<Share2 size={16} />
 											</button>
-											<button
-												type="button"
-												onClick={() => setDeleteCardId(card.id)}
-												className="rounded-full p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 transition-colors"
-												aria-label="Delete card"
-											>
-												<Trash2 size={16} />
-											</button>
+											{canDelete && (
+												<button
+													type="button"
+													onClick={() => setDeleteCardId(card.id)}
+													className="rounded-full p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 transition-colors"
+													aria-label="Delete card"
+												>
+													<Trash2 size={16} />
+												</button>
+											)}
 										</div>
 									</TableCell>
 								</TableRow>
