@@ -3,6 +3,30 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@/lib/db";
 import { env } from "@/env";
 
+const socialProviders: Record<string, unknown> = {
+	google: {
+		clientId: env.GOOGLE_CLIENT_ID,
+		clientSecret: env.GOOGLE_CLIENT_SECRET,
+		mapProfileToUser: (profile: { given_name: string; family_name: string }) => ({
+			firstName: profile.given_name,
+			lastName: profile.family_name,
+			name: `${profile.given_name} ${profile.family_name}`,
+		}),
+	},
+};
+
+if (env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET) {
+	socialProviders.microsoft = {
+		clientId: env.MICROSOFT_CLIENT_ID,
+		clientSecret: env.MICROSOFT_CLIENT_SECRET,
+		mapProfileToUser: (profile: { given_name: string; family_name: string }) => ({
+			firstName: profile.given_name,
+			lastName: profile.family_name,
+			name: `${profile.given_name} ${profile.family_name}`,
+		}),
+	};
+}
+
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, { provider: "postgresql" }),
 	secret: env.BETTER_AUTH_SECRET,
@@ -10,17 +34,7 @@ export const auth = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 	},
-	socialProviders: {
-		google: {
-			clientId: env.GOOGLE_CLIENT_ID,
-			clientSecret: env.GOOGLE_CLIENT_SECRET,
-			mapProfileToUser: (profile) => ({
-				firstName: profile.given_name,
-				lastName: profile.family_name,
-				name: `${profile.given_name} ${profile.family_name}`,
-			}),
-		},
-	},
+	socialProviders,
 	user: {
 		additionalFields: {
 			firstName: {

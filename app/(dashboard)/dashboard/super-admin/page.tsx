@@ -1,6 +1,7 @@
-import { requireRole } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
-import { ShieldCheck } from "lucide-react";
+import { requireRole } from "@/lib/auth-utils";
+import { getOAuthSettings, getOAuthProviderAvailability } from "@/lib/actions/settings-actions";
+import { OAuthSettingsPanel } from "./_components/oauth-settings";
 
 export default async function SuperAdminPage() {
 	try {
@@ -8,6 +9,9 @@ export default async function SuperAdminPage() {
 	} catch {
 		redirect("/dashboard");
 	}
+
+	const oauthSettings = await getOAuthSettings();
+	const providerAvailability = await getOAuthProviderAvailability();
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -19,21 +23,8 @@ export default async function SuperAdminPage() {
 					System-level administration and advanced controls.
 				</p>
 			</div>
-			<div className="flex flex-col items-center justify-center rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card p-16 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
-				<div className="mb-6 rounded-full bg-background p-6">
-					<ShieldCheck
-						size={48}
-						className="text-muted-foreground opacity-40"
-					/>
-				</div>
-				<p className="text-[1.5rem] font-medium text-foreground">
-					Super admin panel coming soon
-				</p>
-				<p className="mt-2 text-base text-muted-foreground">
-					System administration and advanced controls will appear
-					here.
-				</p>
-			</div>
+
+			<OAuthSettingsPanel initialSettings={oauthSettings} providerAvailability={providerAvailability} />
 		</div>
 	);
 }
