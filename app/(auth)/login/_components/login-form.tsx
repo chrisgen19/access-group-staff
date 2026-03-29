@@ -118,6 +118,7 @@ export function LoginForm() {
 		}
 	}
 
+	const oauthLoaded = oauthSettings !== null;
 	const anyOAuthDisabled = isLoading || isGoogleLoading || isMicrosoftLoading;
 	const showGoogle = oauthSettings?.oauth_google_enabled && oauthAvailability?.google !== false;
 	const showMicrosoft = oauthSettings?.oauth_microsoft_enabled && oauthAvailability?.microsoft === true;
@@ -145,7 +146,13 @@ export function LoginForm() {
 
 			<div className="bg-card py-10 px-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] rounded-[2rem] sm:px-12 border border-gray-200/60 dark:border-white/10">
 				<div className="space-y-6">
-					{hasOAuth && (
+					{!oauthLoaded && (
+						<div className="space-y-3">
+							<div className="h-[52px] w-full animate-pulse rounded-full bg-gray-100 dark:bg-white/5" />
+						</div>
+					)}
+
+					{oauthLoaded && hasOAuth && (
 						<>
 							<div className="space-y-3">
 								{showGoogle && (
