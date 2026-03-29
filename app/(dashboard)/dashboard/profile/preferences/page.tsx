@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Check, CreditCard, List, Minimize2, Square, Maximize2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -28,8 +29,13 @@ const SIZE_ICONS: Record<CardSize, React.ComponentType<{ size?: number; classNam
 };
 
 export default function PreferencesPage() {
+	const [mounted, setMounted] = useState(false);
 	const { resolvedTheme } = useTheme();
-	const isDark = resolvedTheme === "dark";
+	const isDark = mounted && resolvedTheme === "dark";
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 	const bgColorId = usePreferencesStore((s) => s.bgColorId);
 	const setBgColor = usePreferencesStore((s) => s.setBgColor);
 	const cardView = usePreferencesStore((s) => s.cardView);
