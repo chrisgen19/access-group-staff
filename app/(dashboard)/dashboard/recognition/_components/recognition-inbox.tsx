@@ -1,15 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { Inbox, Send } from "lucide-react";
+import { Inbox, Send, LayoutList } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { hasMinRole } from "@/lib/permissions";
+import type { Role } from "@/app/generated/prisma/client";
 import { RecognitionFeed } from "./recognition-feed";
+import { RecognitionTable } from "./recognition-table";
 import { ShareDialog } from "./share-dialog";
 
-const TABS = [
+type TabKey = "all" | "received" | "sent";
+
+const TABS: {
+	key: TabKey;
+	label: string;
+	icon: typeof Inbox;
+	adminOnly?: boolean;
+	emptyTitle: string;
+	emptyDescription: string;
+}[] = [
 	{
-		key: "received" as const,
+		key: "all",
+		label: "All",
+		icon: LayoutList,
+		adminOnly: true,
+		emptyTitle: "No recognition cards yet",
+		emptyDescription: "No one has sent a recognition card yet.",
+	},
+	{
+		key: "received",
 		label: "Received",
 		icon: Inbox,
 		emptyTitle: "No recognition cards received yet",
@@ -17,7 +37,7 @@ const TABS = [
 			"When a colleague recognizes you, it will appear here.",
 	},
 	{
-		key: "sent" as const,
+		key: "sent",
 		label: "Sent",
 		icon: Send,
 		emptyTitle: "You haven't sent any cards yet",
@@ -27,9 +47,14 @@ const TABS = [
 
 export function RecognitionInbox() {
 	const { data: session } = useSession();
-	const [activeTab, setActiveTab] = useState<"received" | "sent">("received");
+	const userRole = (session?.user?.role as Role) ?? "STAFF";
+	const isAdmin = hasMinRole(userRole, "ADMIN");
+	const visibleTabs = TABS.filter((tab) => !tab.adminOnly || isAdmin);
+	const defaultTab = isAdmin ? "all" : "received";
+
+	const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
 	const [shareCardId, setShareCardId] = useState<string | null>(null);
-	const currentTab = TABS.find((t) => t.key === activeTab)!;
+	const currentTab = visibleTabs.find((t) => t.key === activeTab)!;
 
 	return (
 		<>
@@ -38,7 +63,7 @@ export function RecognitionInbox() {
 				role="tablist"
 				aria-label="Recognition inbox"
 			>
-				{TABS.map((tab) => (
+				{visibleTabs.map((tab) => (
 					<button
 						key={tab.key}
 						type="button"
@@ -59,16 +84,20 @@ export function RecognitionInbox() {
 			</div>
 
 			<div role="tabpanel">
-				<RecognitionFeed
-					cardMaxWidth="max-w-3xl"
-					filter={activeTab}
-					showTitle={false}
-					showActions
-					currentUserId={session?.user?.id}
-					emptyTitle={currentTab.emptyTitle}
-					emptyDescription={currentTab.emptyDescription}
-					onShare={setShareCardId}
-				/>
+				{activeTab === "all" ? (
+					<RecognitionTable onShare={setShareCardId} />
+				) : (
+					<RecognitionFeed
+						cardMaxWidth="max-w-3xl"
+						filter={activeTab}
+						showTitle={false}
+						showActions
+						currentUserId={session?.user?.id}
+						emptyTitle={currentTab.emptyTitle}
+						emptyDescription={currentTab.emptyDescription}
+						onShare={setShareCardId}
+					/>
+				)}
 			</div>
 
 			<ShareDialog
