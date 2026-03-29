@@ -107,10 +107,13 @@ function getQuarter(dateString: string): string {
 }
 
 function escapeCsvField(value: string): string {
-	if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-		return `"${value.replace(/"/g, '""')}"`;
+	const needsQuoting =
+		value.includes(",") || value.includes('"') || value.includes("\n");
+	const escaped = needsQuoting ? `"${value.replace(/"/g, '""')}"` : value;
+	if (/^[=+\-@\t\r]/.test(escaped)) {
+		return `\t${escaped}`;
 	}
-	return value;
+	return escaped;
 }
 
 const CSV_HEADERS = [

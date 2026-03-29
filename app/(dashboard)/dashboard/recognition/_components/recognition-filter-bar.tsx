@@ -2,7 +2,7 @@
 
 import { Download, Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { COMPANY_VALUES } from "@/lib/recognition";
+import { COMPANY_VALUES, VALUE_KEY_MAP } from "@/lib/recognition";
 import { cn } from "@/lib/utils";
 
 const MONTHS = [
@@ -38,6 +38,7 @@ interface RecognitionFilterBarProps {
 	onMonthChange: (value: string) => void;
 	selectedYear: string;
 	onYearChange: (value: string) => void;
+	hasActiveFilters: boolean;
 	onClear: () => void;
 	onExport: () => void;
 	isExporting: boolean;
@@ -52,15 +53,11 @@ export function RecognitionFilterBar({
 	onMonthChange,
 	selectedYear,
 	onYearChange,
+	hasActiveFilters,
 	onClear,
 	onExport,
 	isExporting,
 }: RecognitionFilterBarProps) {
-	const hasActiveFilters =
-		search.length > 0 ||
-		selectedValues.length > 0 ||
-		selectedMonth.length > 0 ||
-		selectedYear.length > 0;
 
 	function toggleValue(key: string) {
 		if (selectedValues.includes(key)) {
@@ -91,9 +88,9 @@ export function RecognitionFilterBar({
 				{/* Value toggles */}
 				<div className="flex flex-wrap items-center gap-1.5">
 					{COMPANY_VALUES.map((value) => {
-						const shortKey = value.key.replace("values", "");
-						const urlKey =
-							shortKey.charAt(0).toLowerCase() + shortKey.slice(1);
+						const urlKey = Object.entries(VALUE_KEY_MAP).find(
+							([, v]) => v === value.key,
+						)?.[0] ?? value.key;
 						const isActive = selectedValues.includes(urlKey);
 
 						return (

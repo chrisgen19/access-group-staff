@@ -252,6 +252,7 @@ export function RecognitionTable() {
 				onMonthChange={setSelectedMonth}
 				selectedYear={selectedYear}
 				onYearChange={setSelectedYear}
+				hasActiveFilters={hasActiveFilters}
 				onClear={clearFilters}
 				onExport={exportCards}
 				isExporting={isExporting}

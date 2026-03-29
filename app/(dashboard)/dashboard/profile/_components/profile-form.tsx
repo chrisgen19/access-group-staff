@@ -28,18 +28,20 @@ export function ProfileForm({ user }: ProfileFormProps) {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 
+	const defaultValues = {
+		firstName: user.firstName,
+		lastName: user.lastName,
+		displayName: user.displayName ?? "",
+		phone: user.phone ?? "",
+		position: user.position ?? "",
+		branch: user.branch ?? null,
+	};
+
 	const { register, handleSubmit, watch, setValue } = useForm({
-		defaultValues: {
-			firstName: user.firstName,
-			lastName: user.lastName,
-			displayName: user.displayName ?? "",
-			phone: user.phone ?? "",
-			position: user.position ?? "",
-			branch: user.branch ?? null,
-		},
+		defaultValues,
 	});
 
-	async function onSubmit(data: Record<string, string | null>) {
+	async function onSubmit(data: typeof defaultValues) {
 		setIsLoading(true);
 		try {
 			const result = await updateProfileAction(data);

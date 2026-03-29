@@ -132,10 +132,12 @@ export async function GET(request: NextRequest) {
 					},
 				};
 
+				const EXPORT_LIMIT = 10_000;
 				const cards = await prisma.recognitionCard.findMany({
 					where: filteredWhere,
 					include: exportInclude,
 					orderBy: { createdAt: "desc" },
+					take: EXPORT_LIMIT,
 				});
 
 				return Response.json({ success: true, data: cards });
