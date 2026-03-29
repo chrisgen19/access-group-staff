@@ -5,7 +5,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Eye, Share2, Heart, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { getInitials } from "@/lib/utils";
+function getInitials(firstName: string, lastName: string) {
+	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
 import {
 	type RecognitionCard,
 	getSelectedValues,

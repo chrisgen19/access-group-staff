@@ -1,12 +1,47 @@
-import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Plus } from "lucide-react";
-import { RecognitionInbox } from "./_components/recognition-inbox";
+import { Plus, LayoutList, Inbox, Send } from "lucide-react";
+import { getServerSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
+import type { Role } from "@/app/generated/prisma/client";
+import { RecognitionTabs, type TabItem } from "../_components/recognition-tabs";
 
-export default async function RecognitionPage() {
+export default async function RecognitionInboxLayout({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
+
+	const userRole = (session.user.role as Role) ?? "STAFF";
+	const isAdmin = hasMinRole(userRole, "ADMIN");
+
+	const tabs: TabItem[] = [];
+
+	if (isAdmin) {
+		tabs.push({
+			key: "all",
+			label: "All",
+			href: "/dashboard/recognition/all",
+			icon: LayoutList,
+		});
+	}
+
+	tabs.push(
+		{
+			key: "received",
+			label: "Received",
+			href: "/dashboard/recognition/received",
+			icon: Inbox,
+		},
+		{
+			key: "sent",
+			label: "Sent",
+			href: "/dashboard/recognition/sent",
+			icon: Send,
+		},
+	);
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">
@@ -28,7 +63,9 @@ export default async function RecognitionPage() {
 				</Link>
 			</div>
 
-			<RecognitionInbox />
+			<RecognitionTabs tabs={tabs} />
+
+			{children}
 		</div>
 	);
 }
