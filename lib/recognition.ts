@@ -40,6 +40,14 @@ export const VALUE_LABELS: Record<string, string> = {
 	valuesContinuousImprovement: "Continuous Improvement",
 };
 
+export const VALUE_KEY_MAP: Record<string, string> = {
+	people: "valuesPeople",
+	safety: "valuesSafety",
+	respect: "valuesRespect",
+	communication: "valuesCommunication",
+	continuousImprovement: "valuesContinuousImprovement",
+};
+
 export function formatRecognitionDate(dateString: string) {
 	const [year, month, day] = dateString.split("T")[0].split("-");
 	return new Date(
