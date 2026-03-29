@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import { useTheme } from "next-themes";
 import { usePreferencesStore, BG_OPTIONS } from "@/stores/use-preferences-store";
 
 export function BgProvider() {
 	const bgColorId = usePreferencesStore((s) => s.bgColorId);
+	const { resolvedTheme } = useTheme();
 
 	useEffect(() => {
+		if (resolvedTheme === "dark") {
+			document.documentElement.style.removeProperty("--background");
+			return;
+		}
+
 		const option = BG_OPTIONS.find((o) => o.id === bgColorId);
 		if (option) {
 			document.documentElement.style.setProperty("--background", option.value);
@@ -14,7 +21,7 @@ export function BgProvider() {
 		return () => {
 			document.documentElement.style.removeProperty("--background");
 		};
-	}, [bgColorId]);
+	}, [bgColorId, resolvedTheme]);
 
 	return null;
 }

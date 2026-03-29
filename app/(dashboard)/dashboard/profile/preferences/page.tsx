@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Check, CreditCard, List, Minimize2, Square, Maximize2 } from "lucide-react";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import {
 	usePreferencesStore,
@@ -27,6 +29,13 @@ const SIZE_ICONS: Record<CardSize, React.ComponentType<{ size?: number; classNam
 };
 
 export default function PreferencesPage() {
+	const [mounted, setMounted] = useState(false);
+	const { resolvedTheme } = useTheme();
+	const isDark = mounted && resolvedTheme === "dark";
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
 	const bgColorId = usePreferencesStore((s) => s.bgColorId);
 	const setBgColor = usePreferencesStore((s) => s.setBgColor);
 	const cardView = usePreferencesStore((s) => s.cardView);
@@ -67,6 +76,11 @@ export default function PreferencesPage() {
 						<p className="mt-1 text-sm text-muted-foreground">
 							Choose the page background color for your dashboard.
 						</p>
+						{isDark && (
+							<p className="mt-1.5 text-xs text-muted-foreground/70">
+								Background color is only available in light mode.
+							</p>
+						)}
 					</div>
 
 					<div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
@@ -76,10 +90,12 @@ export default function PreferencesPage() {
 								<button
 									key={option.id}
 									type="button"
+									disabled={isDark}
 									onClick={() => handleBgSelect(option.id)}
 									className={cn(
 										"group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-all duration-200",
-										isSelected
+										isDark && "opacity-40 cursor-not-allowed",
+										isSelected && !isDark
 											? "border-primary ring-2 ring-primary/20"
 											: "border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20",
 									)}

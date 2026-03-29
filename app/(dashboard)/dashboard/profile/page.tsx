@@ -15,6 +15,7 @@ export default async function ProfilePage() {
 			displayName: true,
 			phone: true,
 			position: true,
+			branch: true,
 		},
 	});
 
