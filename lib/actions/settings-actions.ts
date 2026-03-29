@@ -38,7 +38,7 @@ function invalidateOAuthCache() {
 	cacheExpiry = 0;
 }
 
-export function getOAuthProviderAvailability() {
+export async function getOAuthProviderAvailability() {
 	return {
 		google: true,
 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),

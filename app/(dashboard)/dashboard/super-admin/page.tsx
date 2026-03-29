@@ -11,7 +11,7 @@ export default async function SuperAdminPage() {
 	}
 
 	const oauthSettings = await getOAuthSettings();
-	const providerAvailability = getOAuthProviderAvailability();
+	const providerAvailability = await getOAuthProviderAvailability();
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
