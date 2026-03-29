@@ -20,13 +20,8 @@ export async function GET(request: NextRequest) {
 
 		let where: Prisma.RecognitionCardWhereInput | undefined;
 		const isAdmin = hasMinRole((session.user.role as Role) ?? "STAFF", "ADMIN");
-
-		if (!filter && !isAdmin) {
-			return Response.json(
-				{ success: false, error: "Forbidden" },
-				{ status: 403 },
-			);
-		}
+		const unlimitedParam = request.nextUrl.searchParams.get("limit") === "none";
+		const unlimited = !filter && isAdmin && unlimitedParam;
 
 		if (filter === "received") {
 			where = { recipientId: session.user.id };
@@ -72,7 +67,7 @@ export async function GET(request: NextRequest) {
 				},
 			},
 			orderBy: { createdAt: "desc" },
-			...(where ? { take: 50 } : {}),
+			...(unlimited ? {} : { take: 50 }),
 		});
 
 		return Response.json({ success: true, data: cards });

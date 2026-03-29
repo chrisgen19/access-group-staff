@@ -13,8 +13,7 @@ export function ForceLight() {
 		html.style.colorScheme = "light";
 
 		return () => {
-			const theme = savedTheme.current;
-			if (!theme || theme === "light") return;
+			const theme = savedTheme.current ?? "system";
 
 			html.style.colorScheme = "";
 

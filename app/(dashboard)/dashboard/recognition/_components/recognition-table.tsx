@@ -76,7 +76,7 @@ export function RecognitionTable() {
 	}>({
 		queryKey: ["recognition-cards", "all"],
 		queryFn: async () => {
-			const res = await fetch("/api/recognition");
+			const res = await fetch("/api/recognition?limit=none");
 			if (!res.ok) throw new Error("Failed to fetch recognition cards");
 			return res.json();
 		},
