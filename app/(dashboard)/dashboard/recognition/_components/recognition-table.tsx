@@ -3,15 +3,11 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Eye, Share2, Heart, Trash2, Pencil } from "lucide-react";
+import { Eye, Share2, Heart, Trash2, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { hasMinRole } from "@/lib/permissions";
 import type { Role } from "@/app/generated/prisma/client";
-
-function getInitials(firstName: string, lastName: string) {
-	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
 import {
 	type RecognitionCard,
 	getSelectedValues,
@@ -37,6 +33,23 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ShareDialog } from "./share-dialog";
+
+function getInitials(firstName: string, lastName: string) {
+	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+const PAGE_SIZE = 20;
+
+interface PaginatedResponse {
+	success: boolean;
+	data: RecognitionCard[];
+	pagination: {
+		page: number;
+		pageSize: number;
+		total: number;
+		totalPages: number;
+	};
+}
 
 function TableSkeleton() {
 	return (
@@ -66,17 +79,17 @@ export function RecognitionTable() {
 	const { data: session } = useSession();
 	const userRole = (session?.user?.role as Role) ?? "STAFF";
 	const canDelete = hasMinRole(userRole, "ADMIN");
+	const [page, setPage] = useState(1);
 	const [shareCardId, setShareCardId] = useState<string | null>(null);
 	const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
 
-	const { data, isPending } = useQuery<{
-		success: boolean;
-		data: RecognitionCard[];
-	}>({
-		queryKey: ["recognition-cards", "all"],
+	const { data, isPending } = useQuery<PaginatedResponse>({
+		queryKey: ["recognition-cards", "all", page],
 		queryFn: async () => {
-			const res = await fetch("/api/recognition?limit=none");
+			const res = await fetch(
+				`/api/recognition?paginated=true&page=${page}&pageSize=${PAGE_SIZE}`,
+			);
 			if (!res.ok) throw new Error("Failed to fetch recognition cards");
 			return res.json();
 		},
@@ -84,6 +97,7 @@ export function RecognitionTable() {
 	});
 
 	const cards = data?.data ?? [];
+	const pagination = data?.pagination;
 
 	async function handleDelete() {
 		if (!deleteCardId) return;
@@ -108,7 +122,7 @@ export function RecognitionTable() {
 		return <TableSkeleton />;
 	}
 
-	if (cards.length === 0) {
+	if (cards.length === 0 && page === 1) {
 		return (
 			<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
 				<div className="mb-6 rounded-full bg-background p-6">
@@ -244,6 +258,37 @@ export function RecognitionTable() {
 					</TableBody>
 				</Table>
 			</div>
+
+			{pagination && pagination.totalPages > 1 && (
+				<div className="flex items-center justify-between pt-2">
+					<p className="text-sm text-muted-foreground">
+						Showing {(pagination.page - 1) * pagination.pageSize + 1}–{Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} cards
+					</p>
+					<div className="flex items-center gap-2">
+						<button
+							type="button"
+							disabled={page === 1}
+							onClick={() => setPage((p) => p - 1)}
+							className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-gray-100 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+						>
+							<ChevronLeft size={16} />
+							Previous
+						</button>
+						<span className="text-sm font-medium text-foreground">
+							{pagination.page} / {pagination.totalPages}
+						</span>
+						<button
+							type="button"
+							disabled={page >= pagination.totalPages}
+							onClick={() => setPage((p) => p + 1)}
+							className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-gray-100 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+						>
+							Next
+							<ChevronRight size={16} />
+						</button>
+					</div>
+				</div>
+			)}
 
 			<AlertDialog open={!!deleteCardId} onOpenChange={(open) => !open && setDeleteCardId(null)}>
 				<AlertDialogContent>
