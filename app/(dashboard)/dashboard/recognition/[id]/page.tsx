@@ -96,6 +96,15 @@ export default async function RecognitionDetailPage({
 
 	if (!isSender && !isRecipient && !isAdmin) notFound();
 
+	if (isRecipient) {
+		prisma.notification
+			.updateMany({
+				where: { userId: session.user.id, cardId: id, isRead: false },
+				data: { isRead: true },
+			})
+			.catch(() => {});
+	}
+
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
 	const department = card.recipient.department?.name ?? "";

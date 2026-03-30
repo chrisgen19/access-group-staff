@@ -19,6 +19,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
+import { NotificationBadge } from "@/components/shared/notification-badge";
 
 type MinRole = "STAFF" | "ADMIN" | "SUPERADMIN";
 
@@ -123,6 +124,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 						>
 							<item.icon size={22} />
 							{item.label}
+							{item.href === "/dashboard/recognition" && <NotificationBadge />}
 						</Link>
 					);
 				})}

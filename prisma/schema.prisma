@@ -18,6 +18,12 @@ enum Branch {
   PERTH
 }
 
+enum NotificationType {
+  CARD_RECEIVED
+  CARD_EDITED
+  CARD_DELETED
+}
+
 model User {
   id            String   @id @default(cuid())
   name          String?
@@ -42,6 +48,7 @@ model User {
   accounts             Account[]
   sentRecognitions     RecognitionCard[] @relation("sender")
   receivedRecognitions RecognitionCard[] @relation("recipient")
+  notifications        Notification[]
 
   @@map("users")
 }
@@ -130,5 +137,25 @@ model RecognitionCard {
   valuesCommunication         Boolean @default(false) @map("values_communication")
   valuesContinuousImprovement Boolean @default(false) @map("values_continuous_improvement")
 
+  notifications Notification[]
+
   @@map("recognition_cards")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  cardId String?          @map("card_id")
+  card   RecognitionCard? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }

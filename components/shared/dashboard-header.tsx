@@ -5,6 +5,7 @@ import { ChevronDown, UserCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { signOut, useSession } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { NotificationBell } from "@/components/shared/notification-bell";
 import { MobileSidebarTrigger } from "@/components/shared/dashboard-sidebar";
 import {
 	DropdownMenu,
@@ -42,6 +43,7 @@ export function DashboardHeader() {
 
 			<div className="flex items-center gap-3">
 				<ThemeToggle />
+				{user && <NotificationBell />}
 				{user && (
 					<DropdownMenu>
 						<DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1.5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer outline-none">

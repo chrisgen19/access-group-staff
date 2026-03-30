@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth-utils";
 import { createRecognitionCardSchema } from "@/lib/validations/recognition";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "@/lib/notifications";
 
 export async function createRecognitionCardAction(formData: unknown) {
 	try {
@@ -47,7 +48,15 @@ export async function createRecognitionCardAction(formData: unknown) {
 			},
 		});
 
+		await createNotification({
+			userId: recipientId,
+			type: "CARD_RECEIVED",
+			message: `${session.user.name} sent you a recognition card`,
+			cardId: card.id,
+		});
+
 		revalidatePath("/dashboard/recognition");
+		revalidatePath("/dashboard");
 		return { success: true as const, data: card };
 	} catch (error) {
 		const message =
@@ -112,7 +121,15 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			},
 		});
 
+		await createNotification({
+			userId: card.recipientId,
+			type: "CARD_EDITED",
+			message: `${session.user.name} edited a recognition card sent to you`,
+			cardId: card.id,
+		});
+
 		revalidatePath("/dashboard/recognition");
+		revalidatePath("/dashboard");
 		revalidatePath(`/recognition/${cardId}`);
 		return { success: true as const, data: card };
 	} catch (error) {
@@ -134,7 +151,7 @@ export async function deleteRecognitionCardAction(cardId: string) {
 
 		const card = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { id: true },
+			select: { id: true, recipientId: true },
 		});
 
 		if (!card) {
@@ -143,7 +160,15 @@ export async function deleteRecognitionCardAction(cardId: string) {
 
 		await prisma.recognitionCard.delete({ where: { id: cardId } });
 
+		await createNotification({
+			userId: card.recipientId,
+			type: "CARD_DELETED",
+			message: "An admin deleted a recognition card you received",
+			cardId: null,
+		});
+
 		revalidatePath("/dashboard/recognition");
+		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
 		const message =

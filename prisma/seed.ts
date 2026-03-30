@@ -322,6 +322,28 @@ async function seed() {
 	}
 
 	console.log(`Created ${recognitionCards.length} recognition cards`);
+	console.log("Seeding notifications...");
+
+	const allCards = await prisma.recognitionCard.findMany({
+		select: {
+			id: true,
+			recipientId: true,
+			sender: { select: { firstName: true, lastName: true } },
+		},
+	});
+
+	for (const card of allCards) {
+		await prisma.notification.create({
+			data: {
+				userId: card.recipientId,
+				type: "CARD_RECEIVED",
+				message: `${card.sender.firstName} ${card.sender.lastName} sent you a recognition card`,
+				cardId: card.id,
+			},
+		});
+	}
+
+	console.log(`Created ${allCards.length} notifications`);
 	console.log("Seed complete!");
 }
 
