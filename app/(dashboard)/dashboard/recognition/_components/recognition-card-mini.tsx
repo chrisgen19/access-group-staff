@@ -108,9 +108,11 @@ function ValueIndicator({
 export function RecognitionCardMini({
 	card,
 	size = "normal",
+	isNew = false,
 }: {
 	card: RecognitionCard;
 	size?: CardSize;
+	isNew?: boolean;
 }) {
 	const s = SIZE_CONFIG[size];
 
@@ -119,8 +121,18 @@ export function RecognitionCardMini({
 			className={cn(
 				"bg-[#e6e7e8] relative shadow-md flex flex-col md:flex-row",
 				s.outer,
+				isNew && "ring-2 ring-primary/30",
 			)}
 		>
+			{/* New Badge */}
+			{isNew && (
+				<div className="absolute top-2 left-2 z-10">
+					<span className="inline-flex items-center rounded-full bg-primary px-2.5 py-1 text-[10px] font-bold text-primary-foreground uppercase tracking-wider shadow-sm">
+						New
+					</span>
+				</div>
+			)}
+
 			{/* Crop Marks */}
 			<div
 				className="absolute top-1 left-1 w-2.5 h-2.5 border-t border-l border-gray-400"
