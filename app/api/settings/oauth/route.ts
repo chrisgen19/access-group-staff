@@ -3,6 +3,6 @@ import { getOAuthSettings, getOAuthProviderAvailability } from "@/lib/actions/se
 
 export async function GET() {
 	const settings = await getOAuthSettings();
-	const availability = getOAuthProviderAvailability();
+	const availability = await getOAuthProviderAvailability();
 	return NextResponse.json({ success: true, data: settings, availability });
 }

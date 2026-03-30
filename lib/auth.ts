@@ -35,6 +35,11 @@ export const auth = betterAuth({
 		enabled: true,
 	},
 	socialProviders,
+	account: {
+		accountLinking: {
+			enabled: true,
+		},
+	},
 	user: {
 		additionalFields: {
 			firstName: {
