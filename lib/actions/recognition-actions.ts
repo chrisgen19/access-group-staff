@@ -5,6 +5,7 @@ import { requireSession } from "@/lib/auth-utils";
 import { createRecognitionCardSchema } from "@/lib/validations/recognition";
 import { revalidatePath } from "next/cache";
 
+
 export async function createRecognitionCardAction(formData: unknown) {
 	try {
 		const session = await requireSession();
@@ -38,16 +39,30 @@ export async function createRecognitionCardAction(formData: unknown) {
 			};
 		}
 
-		const card = await prisma.recognitionCard.create({
-			data: {
-				...rest,
-				recipientId,
-				senderId: session.user.id,
-				date: new Date(`${date}T00:00:00`),
-			},
+		const card = await prisma.$transaction(async (tx) => {
+			const created = await tx.recognitionCard.create({
+				data: {
+					...rest,
+					recipientId,
+					senderId: session.user.id,
+					date: new Date(`${date}T00:00:00`),
+				},
+			});
+
+			await tx.notification.create({
+				data: {
+					userId: recipientId,
+					type: "CARD_RECEIVED",
+					message: `${session.user.name} sent you a recognition card`,
+					cardId: created.id,
+				},
+			});
+
+			return created;
 		});
 
 		revalidatePath("/dashboard/recognition");
+		revalidatePath("/dashboard");
 		return { success: true as const, data: card };
 	} catch (error) {
 		const message =
@@ -74,7 +89,7 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 
 		const existingCard = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { senderId: true },
+			select: { senderId: true, recipientId: true },
 		});
 
 		if (!existingCard || existingCard.senderId !== session.user.id) {
@@ -103,16 +118,40 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			};
 		}
 
-		const card = await prisma.recognitionCard.update({
-			where: { id: cardId },
-			data: {
-				...rest,
-				recipientId,
-				date: new Date(`${date}T00:00:00`),
-			},
+		const recipientChanged = existingCard.recipientId !== recipientId;
+
+		const card = await prisma.$transaction(async (tx) => {
+			const updated = await tx.recognitionCard.update({
+				where: { id: cardId },
+				data: {
+					...rest,
+					recipientId,
+					date: new Date(`${date}T00:00:00`),
+				},
+			});
+
+			if (recipientChanged) {
+				await tx.notification.deleteMany({
+					where: { cardId, userId: existingCard.recipientId },
+				});
+			}
+
+			await tx.notification.create({
+				data: {
+					userId: updated.recipientId,
+					type: recipientChanged ? "CARD_RECEIVED" : "CARD_EDITED",
+					message: recipientChanged
+						? `${session.user.name} sent you a recognition card`
+						: `${session.user.name} edited a recognition card sent to you`,
+					cardId: updated.id,
+				},
+			});
+
+			return updated;
 		});
 
 		revalidatePath("/dashboard/recognition");
+		revalidatePath("/dashboard");
 		revalidatePath(`/recognition/${cardId}`);
 		return { success: true as const, data: card };
 	} catch (error) {
@@ -134,16 +173,28 @@ export async function deleteRecognitionCardAction(cardId: string) {
 
 		const card = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { id: true },
+			select: { id: true, recipientId: true },
 		});
 
 		if (!card) {
 			return { success: false as const, error: "Card not found" };
 		}
 
-		await prisma.recognitionCard.delete({ where: { id: cardId } });
+		await prisma.$transaction(async (tx) => {
+			await tx.notification.deleteMany({ where: { cardId } });
+			await tx.recognitionCard.delete({ where: { id: cardId } });
+			await tx.notification.create({
+				data: {
+					userId: card.recipientId,
+					type: "CARD_DELETED",
+					message: "An admin deleted a recognition card you received",
+					cardId: null,
+				},
+			});
+		});
 
 		revalidatePath("/dashboard/recognition");
+		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
 		const message =
