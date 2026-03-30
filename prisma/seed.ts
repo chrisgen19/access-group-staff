@@ -326,6 +326,62 @@ async function seed() {
 			valuesCommunication: true,
 			valuesPeople: true,
 		},
+		// Kate Bickley — sent
+		{
+			senderId: userByEmail("kate.bickley@accessgroup.net.au"),
+			recipientId: userByEmail("christian.diomampo@accessgroup.net.au"),
+			message:
+				"Your leadership on the brand refresh project has been outstanding. The new direction really captures who we are as a company.",
+			date: new Date("2026-03-13"),
+			valuesCommunication: true,
+			valuesContinuousImprovement: true,
+		},
+		{
+			senderId: userByEmail("kate.bickley@accessgroup.net.au"),
+			recipientId: userByEmail("aaron.alonzo@accessgroup.net.au"),
+			message:
+				"The Perth office launch campaign you put together exceeded all expectations. The reach and engagement numbers speak for themselves.",
+			date: new Date("2026-03-19"),
+			valuesPeople: true,
+			valuesContinuousImprovement: true,
+		},
+		{
+			senderId: userByEmail("kate.bickley@accessgroup.net.au"),
+			recipientId: userByEmail("grace.urmeneta@accessgroup.net.au"),
+			message:
+				"Your design work on the quarterly report was exceptional. It turned dry data into a compelling story for stakeholders.",
+			date: new Date("2026-03-26"),
+			valuesCommunication: true,
+			valuesRespect: true,
+		},
+		// Kate Bickley — received
+		{
+			senderId: userByEmail("alfred.irlanda@accessgroup.net.au"),
+			recipientId: userByEmail("kate.bickley@accessgroup.net.au"),
+			message:
+				"Thank you for championing the cross-office collaboration initiative. It's already making a real difference between ISO and Perth teams.",
+			date: new Date("2026-03-14"),
+			valuesPeople: true,
+			valuesRespect: true,
+		},
+		{
+			senderId: userByEmail("kaye.mora@accessgroup.net.au"),
+			recipientId: userByEmail("kate.bickley@accessgroup.net.au"),
+			message:
+				"Your presentation at the all-hands meeting was inspiring. You really brought the marketing vision to life for the whole company.",
+			date: new Date("2026-03-21"),
+			valuesCommunication: true,
+			valuesPeople: true,
+		},
+		{
+			senderId: userByEmail("tamer.abdelatty@accessgroup.net.au"),
+			recipientId: userByEmail("kate.bickley@accessgroup.net.au"),
+			message:
+				"The new employee branding guidelines you rolled out are clear and practical. They've made onboarding materials so much more consistent.",
+			date: new Date("2026-03-28"),
+			valuesContinuousImprovement: true,
+			valuesSafety: true,
+		},
 	];
 
 	for (const card of recognitionCards) {
