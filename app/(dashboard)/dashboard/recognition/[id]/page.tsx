@@ -14,6 +14,7 @@ import { Check, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FlipCard } from "@/app/recognition/[id]/flip-card";
 import { CardDetailActions } from "./_components/card-detail-actions";
+import { MarkNotificationsRead } from "./_components/mark-notifications-read";
 
 function ValueIndicator({
 	checked,
@@ -95,15 +96,6 @@ export default async function RecognitionDetailPage({
 	const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
 
 	if (!isSender && !isRecipient && !isAdmin) notFound();
-
-	if (isRecipient) {
-		prisma.notification
-			.updateMany({
-				where: { userId: session.user.id, cardId: id, isRead: false },
-				data: { isRead: true },
-			})
-			.catch(() => {});
-	}
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
@@ -213,6 +205,7 @@ export default async function RecognitionDetailPage({
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">
+			{isRecipient && <MarkNotificationsRead cardId={id} />}
 			<div className="flex items-center gap-4">
 				<Link
 					href="/dashboard/recognition"

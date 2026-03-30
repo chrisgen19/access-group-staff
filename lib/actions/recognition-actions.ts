@@ -83,7 +83,7 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 
 		const existingCard = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { senderId: true },
+			select: { senderId: true, recipientId: true },
 		});
 
 		if (!existingCard || existingCard.senderId !== session.user.id) {
@@ -112,6 +112,8 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			};
 		}
 
+		const recipientChanged = existingCard.recipientId !== recipientId;
+
 		const card = await prisma.recognitionCard.update({
 			where: { id: cardId },
 			data: {
@@ -120,6 +122,12 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 				date: new Date(`${date}T00:00:00`),
 			},
 		});
+
+		if (recipientChanged) {
+			await prisma.notification.deleteMany({
+				where: { cardId, userId: existingCard.recipientId },
+			});
+		}
 
 		await createNotification({
 			userId: card.recipientId,
