@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck, Heart, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -14,15 +14,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-
-interface Notification {
-	id: string;
-	type: "CARD_RECEIVED" | "CARD_EDITED" | "CARD_DELETED";
-	message: string;
-	isRead: boolean;
-	createdAt: string;
-	cardId: string | null;
-}
+import { useNotifications, type Notification } from "@/hooks/use-notifications";
 
 function formatRelativeTime(dateString: string) {
 	const now = Date.now();
@@ -54,31 +46,18 @@ export function NotificationBell() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 
-	const { data } = useQuery<{
-		success: boolean;
-		data: { notifications: Notification[]; unreadCount: number };
-	}>({
-		queryKey: ["notifications"],
-		queryFn: async () => {
-			const res = await fetch("/api/notifications");
-			if (!res.ok) throw new Error("Failed to fetch notifications");
-			return res.json();
-		},
-		staleTime: 30_000,
-	});
-
-	const notifications = data?.data?.notifications ?? [];
-	const unreadCount = data?.data?.unreadCount ?? 0;
+	const { notifications, unreadCount } = useNotifications();
 
 	async function handleMarkAllRead() {
 		await markAllNotificationsReadAction();
 		queryClient.invalidateQueries({ queryKey: ["notifications"] });
 	}
 
-	async function handleNotificationClick(notification: Notification) {
+	function handleNotificationClick(notification: Notification) {
 		if (!notification.isRead) {
-			await markNotificationReadAction(notification.id);
-			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			markNotificationReadAction(notification.id).then(() => {
+				queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			});
 		}
 		if (notification.cardId) {
 			router.push(`/dashboard/recognition/${notification.cardId}`);

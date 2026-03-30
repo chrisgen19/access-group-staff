@@ -324,6 +324,8 @@ async function seed() {
 	console.log(`Created ${recognitionCards.length} recognition cards`);
 	console.log("Seeding notifications...");
 
+	await prisma.notification.deleteMany();
+
 	const allCards = await prisma.recognitionCard.findMany({
 		select: {
 			id: true,

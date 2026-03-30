@@ -59,6 +59,7 @@ export async function markNotificationsReadByCardAction(cardId: string) {
 			data: { isRead: true },
 		});
 
+		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
 		const message =

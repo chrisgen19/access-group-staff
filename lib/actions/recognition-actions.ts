@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth-utils";
 import { createRecognitionCardSchema } from "@/lib/validations/recognition";
 import { revalidatePath } from "next/cache";
-import { createNotification } from "@/lib/notifications";
+
 
 export async function createRecognitionCardAction(formData: unknown) {
 	try {
@@ -180,16 +180,18 @@ export async function deleteRecognitionCardAction(cardId: string) {
 			return { success: false as const, error: "Card not found" };
 		}
 
-		await prisma.notification.deleteMany({ where: { cardId } });
-
-		await prisma.recognitionCard.delete({ where: { id: cardId } });
-
-		await createNotification({
-			userId: card.recipientId,
-			type: "CARD_DELETED",
-			message: "An admin deleted a recognition card you received",
-			cardId: null,
-		}).catch(() => {});
+		await prisma.$transaction(async (tx) => {
+			await tx.notification.deleteMany({ where: { cardId } });
+			await tx.recognitionCard.delete({ where: { id: cardId } });
+			await tx.notification.create({
+				data: {
+					userId: card.recipientId,
+					type: "CARD_DELETED",
+					message: "An admin deleted a recognition card you received",
+					cardId: null,
+				},
+			});
+		});
 
 		revalidatePath("/dashboard/recognition");
 		revalidatePath("/dashboard");
