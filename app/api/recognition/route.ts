@@ -35,10 +35,7 @@ export async function GET(request: NextRequest) {
 				| undefined;
 			if (departmentId) {
 				where = {
-					OR: [
-						{ sender: { departmentId } },
-						{ recipient: { departmentId } },
-					],
+					recipient: { departmentId },
 				};
 			} else {
 				where = { id: "none" };
