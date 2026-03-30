@@ -14,7 +14,7 @@ async function checkOAuthAllowed(request: NextRequest): Promise<Response | null>
 	const pathname = request.nextUrl.pathname;
 
 	const providerMatch = pathname.match(
-		/\/api\/auth\/(?:callback|sign-in\/social)\/?(.*)?/,
+		/\/api\/auth\/(?:callback|sign-in\/social|link-social)\/?(.*)?/,
 	);
 	if (!providerMatch) return null;
 
@@ -25,7 +25,7 @@ async function checkOAuthAllowed(request: NextRequest): Promise<Response | null>
 
 	if (typeof provider !== "string" || !(provider in PROVIDER_SETTING_MAP)) return null;
 
-	const availability = getOAuthProviderAvailability();
+	const availability = await getOAuthProviderAvailability();
 	const availabilityKey = provider as keyof typeof availability;
 	if (!availability[availabilityKey]) {
 		return Response.json(
