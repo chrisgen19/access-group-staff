@@ -10,5 +10,5 @@ export default async function UsersPage() {
 		redirect("/dashboard");
 	}
 
-	return <UserListClient />;
+	return <UserListClient currentUserRole={session.user.role as Role} />;
 }

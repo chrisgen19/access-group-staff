@@ -206,6 +206,115 @@ async function seed() {
 			valuesCommunication: true,
 			valuesPeople: true,
 		},
+		// Round 2
+		{
+			senderId: userByEmail("christian.diomampo@accessgroup.net.au"),
+			recipientId: userByEmail("kaye.mora@accessgroup.net.au"),
+			message:
+				"Your effort in streamlining the leave approval process has saved the team so much time. Really appreciate the initiative.",
+			date: new Date("2026-03-10"),
+			valuesContinuousImprovement: true,
+			valuesPeople: true,
+		},
+		{
+			senderId: userByEmail("christian.diomampo@accessgroup.net.au"),
+			recipientId: userByEmail("grace.urmeneta@accessgroup.net.au"),
+			message:
+				"The social media strategy you proposed was spot on. Great research and execution across all channels.",
+			date: new Date("2026-03-12"),
+			valuesCommunication: true,
+			valuesContinuousImprovement: true,
+		},
+		{
+			senderId: userByEmail("alfred.irlanda@accessgroup.net.au"),
+			recipientId: userByEmail("tamer.abdelatty@accessgroup.net.au"),
+			message:
+				"Thanks for covering the compliance audit while the team was short-staffed. Your reliability is outstanding.",
+			date: new Date("2026-03-11"),
+			valuesRespect: true,
+			valuesSafety: true,
+		},
+		{
+			senderId: userByEmail("alfred.irlanda@accessgroup.net.au"),
+			recipientId: userByEmail("aaron.alonzo@accessgroup.net.au"),
+			message:
+				"Your quick turnaround on the event brochures was impressive. The quality didn't slip despite the tight deadline.",
+			date: new Date("2026-03-14"),
+			valuesContinuousImprovement: true,
+			valuesPeople: true,
+		},
+		{
+			senderId: userByEmail("kaye.mora@accessgroup.net.au"),
+			recipientId: userByEmail("christian.diomampo@accessgroup.net.au"),
+			message:
+				"Thank you for mentoring the new interns this month. They've already made great progress thanks to your guidance.",
+			date: new Date("2026-03-16"),
+			valuesPeople: true,
+			valuesRespect: true,
+		},
+		{
+			senderId: userByEmail("kaye.mora@accessgroup.net.au"),
+			recipientId: userByEmail("alfred.irlanda@accessgroup.net.au"),
+			message:
+				"Your thorough review of the policy documents caught several critical issues before they went out. Great attention to detail.",
+			date: new Date("2026-03-19"),
+			valuesSafety: true,
+			valuesCommunication: true,
+		},
+		{
+			senderId: userByEmail("tamer.abdelatty@accessgroup.net.au"),
+			recipientId: userByEmail("grace.urmeneta@accessgroup.net.au"),
+			message:
+				"The welcome kits you designed for new employees are fantastic. They really set the tone for a positive first day.",
+			date: new Date("2026-03-21"),
+			valuesPeople: true,
+			valuesCommunication: true,
+		},
+		{
+			senderId: userByEmail("tamer.abdelatty@accessgroup.net.au"),
+			recipientId: userByEmail("christian.diomampo@accessgroup.net.au"),
+			message:
+				"Your dashboard reporting tool has made weekly reviews so much smoother. The whole team benefits from your work.",
+			date: new Date("2026-03-24"),
+			valuesContinuousImprovement: true,
+			valuesCommunication: true,
+		},
+		{
+			senderId: userByEmail("aaron.alonzo@accessgroup.net.au"),
+			recipientId: userByEmail("alfred.irlanda@accessgroup.net.au"),
+			message:
+				"Thanks for organising the cross-department workshop. It really helped us understand HR processes better.",
+			date: new Date("2026-03-17"),
+			valuesCommunication: true,
+			valuesRespect: true,
+		},
+		{
+			senderId: userByEmail("aaron.alonzo@accessgroup.net.au"),
+			recipientId: userByEmail("kaye.mora@accessgroup.net.au"),
+			message:
+				"Your feedback on our marketing proposals was constructive and actionable. It made the final version so much stronger.",
+			date: new Date("2026-03-26"),
+			valuesRespect: true,
+			valuesContinuousImprovement: true,
+		},
+		{
+			senderId: userByEmail("grace.urmeneta@accessgroup.net.au"),
+			recipientId: userByEmail("christian.diomampo@accessgroup.net.au"),
+			message:
+				"Thank you for jumping in to fix the website issue over the weekend. Your dedication to the team is unmatched.",
+			date: new Date("2026-03-23"),
+			valuesPeople: true,
+			valuesSafety: true,
+		},
+		{
+			senderId: userByEmail("grace.urmeneta@accessgroup.net.au"),
+			recipientId: userByEmail("aaron.alonzo@accessgroup.net.au"),
+			message:
+				"Great job coordinating the product photoshoot. Everything ran on time and the results look amazing.",
+			date: new Date("2026-03-27"),
+			valuesCommunication: true,
+			valuesPeople: true,
+		},
 	];
 
 	for (const card of recognitionCards) {

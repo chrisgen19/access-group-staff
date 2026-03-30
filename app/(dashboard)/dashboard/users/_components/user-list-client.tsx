@@ -33,7 +33,7 @@ function roleBadgeVariant(role: string) {
 	}
 }
 
-export function UserListClient() {
+export function UserListClient({ currentUserRole }: { currentUserRole: string }) {
 	const router = useRouter();
 	const [searchQuery, setSearchQuery] = useState("");
 
@@ -174,9 +174,11 @@ export function UserListClient() {
 										</td>
 										<td className="whitespace-nowrap px-8 py-5">
 											<div className="flex flex-col gap-1.5">
-												<Badge variant={roleBadgeVariant(user.role)}>
-													{user.role}
-												</Badge>
+												{currentUserRole === "SUPERADMIN" && (
+													<Badge variant={roleBadgeVariant(user.role)}>
+														{user.role}
+													</Badge>
+												)}
 												<Badge
 													variant={user.isActive ? "outline" : "destructive"}
 												>
