@@ -9,7 +9,7 @@ Internal employee recognition app for Access Group. Team members publicly recogn
 | Framework | Next.js 16 (App Router, Turbopack) |
 | Language | TypeScript 5 |
 | Runtime | Node.js 20+, Bun (package manager) |
-| Auth | better-auth (email/password + Google OAuth) |
+| Auth | better-auth (email/password + Google + Microsoft OAuth) |
 | Database | PostgreSQL + Prisma 7 |
 | Styling | Tailwind CSS v4 + shadcn/ui + Lucide React |
 | Forms | React Hook Form + Zod |
@@ -58,6 +58,9 @@ bun run dev
 | `NEXT_PUBLIC_APP_URL` | Public app URL |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `MICROSOFT_CLIENT_ID` | Microsoft Entra ID client ID (optional) |
+| `MICROSOFT_CLIENT_SECRET` | Microsoft Entra ID client secret (optional) |
+| `MICROSOFT_TENANT_ID` | Microsoft Entra ID tenant ID for single-tenant auth (optional, defaults to `common`) |
 
 ### Seed Users
 
@@ -83,6 +86,7 @@ app/
 │       ├── admin-settings/        # Admin settings (ADMIN+)
 │       ├── super-admin/           # Super admin panel (SUPERADMIN only)
 │       └── profile/               # Profile + Preferences
+│           ├── connected-accounts/ # OAuth account linking (Google, Microsoft)
 │           └── preferences/       # Background color, card view, card size
 ├── api/
 │   ├── auth/[...all]/             # better-auth catch-all handler
