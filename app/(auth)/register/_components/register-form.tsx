@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
@@ -17,6 +17,8 @@ const inputClass =
 export function RegisterForm() {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 	const {
 		register,
@@ -115,7 +117,17 @@ export function RegisterForm() {
 						<label htmlFor="password" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
 							Password
 						</label>
-						<input id="password" type="password" placeholder="••••••••" className={inputClass} {...register("password")} />
+						<div className="relative">
+							<input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className={`${inputClass} pr-11`} {...register("password")} />
+							<button
+								type="button"
+								onClick={() => setShowPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								tabIndex={-1}
+							>
+								{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+							</button>
+						</div>
 						{errors.password && (
 							<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
 						)}
@@ -125,7 +137,17 @@ export function RegisterForm() {
 						<label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
 							Confirm Password
 						</label>
-						<input id="confirmPassword" type="password" placeholder="••••••••" className={inputClass} {...register("confirmPassword")} />
+						<div className="relative">
+							<input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className={`${inputClass} pr-11`} {...register("confirmPassword")} />
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								tabIndex={-1}
+							>
+								{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+							</button>
+						</div>
 						{errors.confirmPassword && (
 							<p className="mt-1 text-sm text-destructive">{errors.confirmPassword.message}</p>
 						)}

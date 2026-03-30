@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
@@ -49,6 +49,7 @@ export function LoginForm() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const [oauthSettings, setOauthSettings] = useState<OAuthSettings | null>(null);
 	const [oauthAvailability, setOauthAvailability] = useState<{ google: boolean; microsoft: boolean } | null>(null);
 
@@ -212,7 +213,7 @@ export function LoginForm() {
 							<input
 								id="email"
 								type="email"
-								placeholder="name@accessgroup.net.au"
+								placeholder="name@accessgroup.com.au"
 								className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200"
 								{...register("email")}
 							/>
@@ -228,13 +229,23 @@ export function LoginForm() {
 							>
 								Password
 							</label>
-							<input
-								id="password"
-								type="password"
-								placeholder="••••••••"
-								className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200"
-								{...register("password")}
-							/>
+							<div className="relative">
+								<input
+									id="password"
+									type={showPassword ? "text" : "password"}
+									placeholder="••••••••"
+									className="block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200"
+									{...register("password")}
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword((prev) => !prev)}
+									className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+									tabIndex={-1}
+								>
+									{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+								</button>
+							</div>
 							{errors.password && (
 								<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
 							)}
