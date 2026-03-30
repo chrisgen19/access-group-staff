@@ -2,7 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-export function useUnreadCardIds() {
+const EMPTY_SET = new Set<string>();
+
+export function useUnreadCardIds(enabled = true) {
 	const { data, ...rest } = useQuery<{
 		success: boolean;
 		data: string[];
@@ -14,10 +16,11 @@ export function useUnreadCardIds() {
 			return res.json();
 		},
 		staleTime: 30_000,
+		enabled,
 	});
 
 	return {
-		unreadCardIds: new Set(data?.data ?? []),
+		unreadCardIds: enabled ? new Set(data?.data ?? []) : EMPTY_SET,
 		...rest,
 	};
 }

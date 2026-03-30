@@ -100,7 +100,7 @@ export function RecognitionFeed({
 }: RecognitionFeedProps) {
 	const cardView = usePreferencesStore((s) => s.cardView);
 	const cardSize = usePreferencesStore((s) => s.cardSize);
-	const { unreadCardIds } = useUnreadCardIds();
+	const { unreadCardIds } = useUnreadCardIds(filter === "received");
 	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
 
 	const { data, isPending } = useQuery<{
