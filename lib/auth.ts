@@ -19,6 +19,7 @@ if (env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET) {
 	socialProviders.microsoft = {
 		clientId: env.MICROSOFT_CLIENT_ID,
 		clientSecret: env.MICROSOFT_CLIENT_SECRET,
+		tenantId: env.MICROSOFT_TENANT_ID ?? "common",
 		mapProfileToUser: (profile: { given_name: string; family_name: string }) => ({
 			firstName: profile.given_name,
 			lastName: profile.family_name,
