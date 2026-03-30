@@ -13,6 +13,12 @@ import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { GoogleIcon, MicrosoftIcon } from "@/components/shared/oauth-icons";
 import type { OAuthSettings } from "@/lib/actions/settings-actions";
 
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+	invalid_code: "OAuth sign-in failed. Please try again.",
+	access_denied: "OAuth sign-in was cancelled.",
+	server_error: "OAuth provider encountered an error. Please try again.",
+};
+
 export function LoginForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -33,6 +39,13 @@ export function LoginForm() {
 			})
 			.catch(() => {});
 	}, []);
+
+	useEffect(() => {
+		const error = searchParams.get("error");
+		if (error) {
+			toast.error(OAUTH_ERROR_MESSAGES[error] ?? "Sign-in failed. Please try again.");
+		}
+	}, [searchParams]);
 
 	const {
 		register,

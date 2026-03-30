@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -16,8 +16,15 @@ import type { OAuthSettings } from "@/lib/actions/settings-actions";
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+	invalid_code: "OAuth sign-up failed. Please try again.",
+	access_denied: "OAuth sign-up was cancelled.",
+	server_error: "OAuth provider encountered an error. Please try again.",
+};
+
 export function RegisterForm() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
@@ -35,6 +42,13 @@ export function RegisterForm() {
 			})
 			.catch(() => {});
 	}, []);
+
+	useEffect(() => {
+		const error = searchParams.get("error");
+		if (error) {
+			toast.error(OAUTH_ERROR_MESSAGES[error] ?? "Sign-up failed. Please try again.");
+		}
+	}, [searchParams]);
 
 	const {
 		register,
