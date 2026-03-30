@@ -11,7 +11,7 @@ export default async function ConnectedAccountsPage() {
 	const [accounts, availability, settings] = await Promise.all([
 		prisma.account.findMany({
 			where: { userId: session.user.id },
-			select: { providerId: true, accountId: true },
+			select: { providerId: true },
 		}),
 		getOAuthProviderAvailability(),
 		getOAuthSettings(),

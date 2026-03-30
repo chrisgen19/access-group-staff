@@ -22,4 +22,4 @@ export const authClient = createAuthClient({
 	],
 });
 
-export const { signIn, signUp, signOut, useSession, linkSocial, listAccounts, unlinkAccount } = authClient;
+export const { signIn, signUp, signOut, useSession, linkSocial, unlinkAccount } = authClient;
