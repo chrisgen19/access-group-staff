@@ -70,10 +70,13 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 			});
 			if (result.error) {
 				toast.error(result.error.message ?? `Failed to link ${providerId} account`);
-				setLoadingProvider(null);
+			} else {
+				toast.success(`${providerId} account linked`);
+				router.refresh();
 			}
 		} catch {
 			toast.error(`Failed to link ${providerId} account`);
+		} finally {
 			setLoadingProvider(null);
 		}
 	}
