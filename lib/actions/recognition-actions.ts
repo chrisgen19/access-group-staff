@@ -39,20 +39,26 @@ export async function createRecognitionCardAction(formData: unknown) {
 			};
 		}
 
-		const card = await prisma.recognitionCard.create({
-			data: {
-				...rest,
-				recipientId,
-				senderId: session.user.id,
-				date: new Date(`${date}T00:00:00`),
-			},
-		});
+		const card = await prisma.$transaction(async (tx) => {
+			const created = await tx.recognitionCard.create({
+				data: {
+					...rest,
+					recipientId,
+					senderId: session.user.id,
+					date: new Date(`${date}T00:00:00`),
+				},
+			});
 
-		await createNotification({
-			userId: recipientId,
-			type: "CARD_RECEIVED",
-			message: `${session.user.name} sent you a recognition card`,
-			cardId: card.id,
+			await tx.notification.create({
+				data: {
+					userId: recipientId,
+					type: "CARD_RECEIVED",
+					message: `${session.user.name} sent you a recognition card`,
+					cardId: created.id,
+				},
+			});
+
+			return created;
 		});
 
 		revalidatePath("/dashboard/recognition");
@@ -114,26 +120,32 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 
 		const recipientChanged = existingCard.recipientId !== recipientId;
 
-		const card = await prisma.recognitionCard.update({
-			where: { id: cardId },
-			data: {
-				...rest,
-				recipientId,
-				date: new Date(`${date}T00:00:00`),
-			},
-		});
-
-		if (recipientChanged) {
-			await prisma.notification.deleteMany({
-				where: { cardId, userId: existingCard.recipientId },
+		const card = await prisma.$transaction(async (tx) => {
+			const updated = await tx.recognitionCard.update({
+				where: { id: cardId },
+				data: {
+					...rest,
+					recipientId,
+					date: new Date(`${date}T00:00:00`),
+				},
 			});
-		}
 
-		await createNotification({
-			userId: card.recipientId,
-			type: "CARD_EDITED",
-			message: `${session.user.name} edited a recognition card sent to you`,
-			cardId: card.id,
+			if (recipientChanged) {
+				await tx.notification.deleteMany({
+					where: { cardId, userId: existingCard.recipientId },
+				});
+			}
+
+			await tx.notification.create({
+				data: {
+					userId: updated.recipientId,
+					type: "CARD_EDITED",
+					message: `${session.user.name} edited a recognition card sent to you`,
+					cardId: updated.id,
+				},
+			});
+
+			return updated;
 		});
 
 		revalidatePath("/dashboard/recognition");
@@ -173,7 +185,7 @@ export async function deleteRecognitionCardAction(cardId: string) {
 			type: "CARD_DELETED",
 			message: "An admin deleted a recognition card you received",
 			cardId: null,
-		});
+		}).catch(() => {});
 
 		revalidatePath("/dashboard/recognition");
 		revalidatePath("/dashboard");

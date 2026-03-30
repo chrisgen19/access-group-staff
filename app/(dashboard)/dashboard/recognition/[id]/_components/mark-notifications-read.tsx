@@ -6,11 +6,11 @@ import { markNotificationsReadByCardAction } from "@/lib/actions/notification-ac
 
 export function MarkNotificationsRead({ cardId }: { cardId: string }) {
 	const queryClient = useQueryClient();
-	const calledRef = useRef(false);
+	const lastCardIdRef = useRef<string | null>(null);
 
 	useEffect(() => {
-		if (calledRef.current) return;
-		calledRef.current = true;
+		if (lastCardIdRef.current === cardId) return;
+		lastCardIdRef.current = cardId;
 
 		markNotificationsReadByCardAction(cardId).then(() => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
