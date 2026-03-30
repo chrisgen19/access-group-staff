@@ -50,6 +50,7 @@ async function seed() {
 		role: Role;
 		branch: Branch;
 		departmentId: string | null;
+		position?: string;
 	}> = [
 		{
 			email: "christian.diomampo@accessgroup.net.au",
@@ -99,6 +100,15 @@ async function seed() {
 			branch: "ISO",
 			departmentId: departments[5].id,
 		},
+		{
+			email: "kate.bickley@accessgroup.net.au",
+			firstName: "Kate",
+			lastName: "Bickley",
+			role: "ADMIN",
+			branch: "PERTH",
+			departmentId: departments[5].id,
+			position: "CMO",
+		},
 	];
 
 	for (const userData of users) {
@@ -132,6 +142,7 @@ async function seed() {
 				role: userData.role,
 				branch: userData.branch,
 				departmentId: userData.departmentId,
+				position: userData.position ?? null,
 				isActive: true,
 			},
 		});
