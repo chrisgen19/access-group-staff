@@ -178,6 +178,8 @@ export async function deleteRecognitionCardAction(cardId: string) {
 			return { success: false as const, error: "Card not found" };
 		}
 
+		await prisma.notification.deleteMany({ where: { cardId } });
+
 		await prisma.recognitionCard.delete({ where: { id: cardId } });
 
 		await createNotification({

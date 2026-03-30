@@ -12,6 +12,7 @@ import {
 	DropdownMenu,
 	DropdownMenuTrigger,
 	DropdownMenuContent,
+	DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
 interface Notification {
@@ -123,12 +124,11 @@ export function NotificationBell() {
 						</div>
 					) : (
 						notifications.map((notification) => (
-							<button
+							<DropdownMenuItem
 								key={notification.id}
-								type="button"
 								onClick={() => handleNotificationClick(notification)}
 								className={cn(
-									"flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/5",
+									"flex w-full items-start gap-3 px-4 py-3 text-left transition-colors rounded-none cursor-pointer",
 									!notification.isRead && "bg-primary/5",
 								)}
 							>
@@ -153,20 +153,19 @@ export function NotificationBell() {
 								{!notification.isRead && (
 									<span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-primary" />
 								)}
-							</button>
+							</DropdownMenuItem>
 						))
 					)}
 				</div>
 
 				{notifications.length > 0 && (
-					<div className="border-t border-gray-200 dark:border-white/10 px-4 py-2.5">
-						<button
-							type="button"
+					<div className="border-t border-gray-200 dark:border-white/10">
+						<DropdownMenuItem
 							onClick={() => router.push("/dashboard/recognition")}
-							className="w-full text-center text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+							className="w-full justify-center rounded-none px-4 py-2.5 text-xs font-medium text-primary hover:text-primary/80 cursor-pointer"
 						>
 							View all
-						</button>
+						</DropdownMenuItem>
 					</div>
 				)}
 			</DropdownMenuContent>
