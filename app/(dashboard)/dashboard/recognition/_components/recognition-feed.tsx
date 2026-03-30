@@ -10,6 +10,7 @@ import {
 	formatRecognitionDate,
 } from "@/lib/recognition";
 import { usePreferencesStore } from "@/stores/use-preferences-store";
+import { useUnreadCardIds } from "@/hooks/use-unread-card-ids";
 import { RecognitionCardMini } from "./recognition-card-mini";
 
 function CardSkeleton() {
@@ -99,6 +100,7 @@ export function RecognitionFeed({
 }: RecognitionFeedProps) {
 	const cardView = usePreferencesStore((s) => s.cardView);
 	const cardSize = usePreferencesStore((s) => s.cardSize);
+	const { unreadCardIds } = useUnreadCardIds(filter === "received");
 	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
 
 	const { data, isPending } = useQuery<{
@@ -172,11 +174,13 @@ export function RecognitionFeed({
 				) : null;
 
 				if (cardView === "physical") {
+					const isNew = filter === "received" && unreadCardIds.has(card.id);
 					return (
 						<div key={card.id} className={cn("group relative", cardMaxWidth)}>
 							<RecognitionCardMini
 								card={card}
 								size={cardSize}
+								isNew={isNew}
 							/>
 							{actions && (
 								<div className="absolute top-3 right-3 z-10">
@@ -188,10 +192,11 @@ export function RecognitionFeed({
 				}
 
 				const values = getSelectedValues(card);
+				const isNewCard = filter === "received" && unreadCardIds.has(card.id);
 				return (
 					<div
 						key={card.id}
-						className={cn("group rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", cardMaxWidth)}
+						className={cn("group rounded-[2rem] border bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", isNewCard ? "border-primary/40 ring-1 ring-primary/20" : "border-gray-200/60 dark:border-white/10", cardMaxWidth)}
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
@@ -232,9 +237,14 @@ export function RecognitionFeed({
 									</p>
 								)}
 							</div>
-							{actions && (
-								<div className="ml-auto">{actions}</div>
-							)}
+							<div className="ml-auto flex items-center gap-2">
+								{isNewCard && (
+									<span className="inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-semibold text-primary-foreground uppercase tracking-wide">
+										New
+									</span>
+								)}
+								{actions}
+							</div>
 						</div>
 
 						<p className="text-sm text-foreground/80 mb-3 leading-relaxed">

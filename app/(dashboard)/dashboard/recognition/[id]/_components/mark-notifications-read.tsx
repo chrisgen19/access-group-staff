@@ -14,6 +14,7 @@ export function MarkNotificationsRead({ cardId }: { cardId: string }) {
 
 		markNotificationsReadByCardAction(cardId).then(() => {
 			queryClient.invalidateQueries({ queryKey: ["notifications"] });
+			queryClient.invalidateQueries({ queryKey: ["unread-card-ids"] });
 		});
 	}, [cardId, queryClient]);
 

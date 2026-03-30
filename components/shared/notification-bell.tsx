@@ -51,12 +51,14 @@ export function NotificationBell() {
 	async function handleMarkAllRead() {
 		await markAllNotificationsReadAction();
 		queryClient.invalidateQueries({ queryKey: ["notifications"] });
+		queryClient.invalidateQueries({ queryKey: ["unread-card-ids"] });
 	}
 
 	function handleNotificationClick(notification: Notification) {
 		if (!notification.isRead) {
 			markNotificationReadAction(notification.id).then(() => {
 				queryClient.invalidateQueries({ queryKey: ["notifications"] });
+				queryClient.invalidateQueries({ queryKey: ["unread-card-ids"] });
 			});
 		}
 		if (notification.cardId) {
