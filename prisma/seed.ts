@@ -1,6 +1,6 @@
 import { prisma } from "../lib/db";
 import { auth } from "../lib/auth";
-import type { Role } from "../app/generated/prisma/client";
+import type { Branch, Role } from "../app/generated/prisma/client";
 
 const PASSWORD = "Password123!";
 
@@ -48,6 +48,7 @@ async function seed() {
 		firstName: string;
 		lastName: string;
 		role: Role;
+		branch: Branch;
 		departmentId: string | null;
 	}> = [
 		{
@@ -55,6 +56,7 @@ async function seed() {
 			firstName: "Christian",
 			lastName: "Diomampo",
 			role: "SUPERADMIN",
+			branch: "ISO",
 			departmentId: departments[5].id,
 		},
 		{
@@ -62,6 +64,7 @@ async function seed() {
 			firstName: "Alfred",
 			lastName: "Irlanda",
 			role: "ADMIN",
+			branch: "ISO",
 			departmentId: departments[1].id,
 		},
 		{
@@ -69,6 +72,7 @@ async function seed() {
 			firstName: "Kaye",
 			lastName: "Mora",
 			role: "ADMIN",
+			branch: "ISO",
 			departmentId: departments[1].id,
 		},
 		{
@@ -76,6 +80,7 @@ async function seed() {
 			firstName: "Tamer",
 			lastName: "Abdelatty",
 			role: "ADMIN",
+			branch: "ISO",
 			departmentId: departments[1].id,
 		},
 		{
@@ -83,6 +88,7 @@ async function seed() {
 			firstName: "Aaron Gabriel",
 			lastName: "Alonzo",
 			role: "STAFF",
+			branch: "ISO",
 			departmentId: departments[5].id,
 		},
 		{
@@ -90,6 +96,7 @@ async function seed() {
 			firstName: "Ace",
 			lastName: "Urmeneta",
 			role: "STAFF",
+			branch: "ISO",
 			departmentId: departments[5].id,
 		},
 	];
@@ -123,6 +130,7 @@ async function seed() {
 			where: { id: result.user.id },
 			data: {
 				role: userData.role,
+				branch: userData.branch,
 				departmentId: userData.departmentId,
 				isActive: true,
 			},
