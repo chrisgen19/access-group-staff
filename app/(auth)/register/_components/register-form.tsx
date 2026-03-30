@@ -47,12 +47,17 @@ export function RegisterForm() {
 	async function handleGoogleSignIn() {
 		setIsGoogleLoading(true);
 		try {
-			await signIn.social({
+			const result = await signIn.social({
 				provider: "google",
 				callbackURL: "/dashboard",
+				errorCallbackURL: "/register",
 			});
+			if (result.error) {
+				toast.error(result.error.message ?? "Failed to sign up with Google");
+			}
 		} catch {
 			toast.error("Failed to sign up with Google");
+		} finally {
 			setIsGoogleLoading(false);
 		}
 	}
@@ -60,12 +65,17 @@ export function RegisterForm() {
 	async function handleMicrosoftSignIn() {
 		setIsMicrosoftLoading(true);
 		try {
-			await signIn.social({
+			const result = await signIn.social({
 				provider: "microsoft",
 				callbackURL: "/dashboard",
+				errorCallbackURL: "/register",
 			});
+			if (result.error) {
+				toast.error(result.error.message ?? "Failed to sign up with Microsoft");
+			}
 		} catch {
 			toast.error("Failed to sign up with Microsoft");
+		} finally {
 			setIsMicrosoftLoading(false);
 		}
 	}

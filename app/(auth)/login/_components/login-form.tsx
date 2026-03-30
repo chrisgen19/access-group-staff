@@ -67,12 +67,17 @@ export function LoginForm() {
 	async function handleGoogleSignIn() {
 		setIsGoogleLoading(true);
 		try {
-			await signIn.social({
+			const result = await signIn.social({
 				provider: "google",
 				callbackURL: callbackUrl,
+				errorCallbackURL: "/login",
 			});
+			if (result.error) {
+				toast.error(result.error.message ?? "Failed to sign in with Google");
+			}
 		} catch {
 			toast.error("Failed to sign in with Google");
+		} finally {
 			setIsGoogleLoading(false);
 		}
 	}
@@ -80,12 +85,17 @@ export function LoginForm() {
 	async function handleMicrosoftSignIn() {
 		setIsMicrosoftLoading(true);
 		try {
-			await signIn.social({
+			const result = await signIn.social({
 				provider: "microsoft",
 				callbackURL: callbackUrl,
+				errorCallbackURL: "/login",
 			});
+			if (result.error) {
+				toast.error(result.error.message ?? "Failed to sign in with Microsoft");
+			}
 		} catch {
 			toast.error("Failed to sign in with Microsoft");
+		} finally {
 			setIsMicrosoftLoading(false);
 		}
 	}
