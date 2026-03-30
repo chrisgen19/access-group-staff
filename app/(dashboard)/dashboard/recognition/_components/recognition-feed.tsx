@@ -10,7 +10,7 @@ import {
 	formatRecognitionDate,
 } from "@/lib/recognition";
 import { usePreferencesStore } from "@/stores/use-preferences-store";
-import { useNotifications } from "@/hooks/use-notifications";
+import { useUnreadCardIds } from "@/hooks/use-unread-card-ids";
 import { RecognitionCardMini } from "./recognition-card-mini";
 
 function CardSkeleton() {
@@ -100,14 +100,8 @@ export function RecognitionFeed({
 }: RecognitionFeedProps) {
 	const cardView = usePreferencesStore((s) => s.cardView);
 	const cardSize = usePreferencesStore((s) => s.cardSize);
-	const { notifications } = useNotifications();
+	const { unreadCardIds } = useUnreadCardIds();
 	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
-
-	const unreadCardIds = new Set(
-		notifications
-			.filter((n) => !n.isRead && n.cardId)
-			.map((n) => n.cardId as string),
-	);
 
 	const { data, isPending } = useQuery<{
 		success: boolean;
