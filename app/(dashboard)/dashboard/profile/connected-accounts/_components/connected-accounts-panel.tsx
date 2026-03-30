@@ -63,10 +63,15 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 	async function handleLink(providerId: string) {
 		setLoadingProvider(providerId);
 		try {
-			await linkSocial({
+			const result = await linkSocial({
 				provider: providerId as "google" | "microsoft",
 				callbackURL: "/dashboard/profile/connected-accounts",
+				errorCallbackURL: "/dashboard/profile/connected-accounts",
 			});
+			if (result.error) {
+				toast.error(result.error.message ?? `Failed to link ${providerId} account`);
+				setLoadingProvider(null);
+			}
 		} catch {
 			toast.error(`Failed to link ${providerId} account`);
 			setLoadingProvider(null);
