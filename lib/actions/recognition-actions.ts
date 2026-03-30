@@ -139,8 +139,10 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			await tx.notification.create({
 				data: {
 					userId: updated.recipientId,
-					type: "CARD_EDITED",
-					message: `${session.user.name} edited a recognition card sent to you`,
+					type: recipientChanged ? "CARD_RECEIVED" : "CARD_EDITED",
+					message: recipientChanged
+						? `${session.user.name} sent you a recognition card`
+						: `${session.user.name} edited a recognition card sent to you`,
 					cardId: updated.id,
 				},
 			});
