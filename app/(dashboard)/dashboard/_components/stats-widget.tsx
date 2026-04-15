@@ -131,22 +131,25 @@ export function StatsWidget() {
 							Most Recognized
 						</h4>
 					</div>
-					<ol className="space-y-3">
-						{stats.topRecipients.map((person) => (
+					<ol className="space-y-3 max-h-80 overflow-y-auto pr-1">
+						{stats.topRecipients.map((person, index) => (
 							<li
 								key={`${person.firstName}-${person.lastName}`}
 								className="flex items-center gap-3"
 							>
-								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
+								<span className="w-5 text-xs font-semibold text-muted-foreground text-right shrink-0">
+									{index + 1}
+								</span>
+								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0">
 									{getInitials(
 										person.firstName,
 										person.lastName,
 									)}
 								</div>
-								<span className="text-sm font-medium text-foreground flex-1">
+								<span className="text-sm font-medium text-foreground flex-1 truncate">
 									{person.firstName} {person.lastName}
 								</span>
-								<span className="text-sm font-semibold text-primary">
+								<span className="text-sm font-semibold text-primary shrink-0">
 									{person.count}
 								</span>
 							</li>

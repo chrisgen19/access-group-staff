@@ -1,5 +1,6 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
+import { getTopRecognizedLimit } from "@/lib/actions/settings-actions";
 
 export async function GET() {
 	let session: Awaited<ReturnType<typeof requireSession>>;
@@ -16,6 +17,7 @@ export async function GET() {
 		const userId = session.user.id;
 		const now = new Date();
 		const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		const topLimit = await getTopRecognizedLimit();
 
 		const [sent, received, monthlyTotal, topRecipientsRaw] =
 			await Promise.all([
@@ -32,7 +34,7 @@ export async function GET() {
 					by: ["recipientId"],
 					_count: { recipientId: true },
 					orderBy: { _count: { recipientId: "desc" } },
-					take: 3,
+					take: topLimit,
 				}),
 			]);
 

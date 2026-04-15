@@ -13,6 +13,14 @@ let cachedSettings: OAuthSettings | null = null;
 let cacheExpiry = 0;
 const CACHE_TTL_MS = 30_000;
 
+const TOP_RECOGNIZED_KEY = "top_recognized_limit";
+const TOP_RECOGNIZED_DEFAULT = 10;
+const TOP_RECOGNIZED_MIN = 1;
+const TOP_RECOGNIZED_MAX = 50;
+
+let cachedTopLimit: number | null = null;
+let topLimitCacheExpiry = 0;
+
 export async function getOAuthSettings(): Promise<OAuthSettings> {
 	if (cachedSettings && Date.now() < cacheExpiry) {
 		return cachedSettings;
@@ -66,6 +74,63 @@ export async function updateOAuthSetting(
 	});
 
 	invalidateOAuthCache();
+
+	return { success: true };
+}
+
+/* ── Top Recognized Limit ────────────────────────────── */
+
+function invalidateTopLimitCache() {
+	cachedTopLimit = null;
+	topLimitCacheExpiry = 0;
+}
+
+export async function getTopRecognizedLimit(): Promise<number> {
+	if (cachedTopLimit !== null && Date.now() < topLimitCacheExpiry) {
+		return cachedTopLimit;
+	}
+
+	const row = await prisma.appSetting.findUnique({
+		where: { key: TOP_RECOGNIZED_KEY },
+	});
+
+	const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
+	cachedTopLimit =
+		Number.isNaN(parsed) || parsed < TOP_RECOGNIZED_MIN || parsed > TOP_RECOGNIZED_MAX
+			? TOP_RECOGNIZED_DEFAULT
+			: parsed;
+	topLimitCacheExpiry = Date.now() + CACHE_TTL_MS;
+
+	return cachedTopLimit;
+}
+
+export async function updateTopRecognizedLimit(
+	limit: number,
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		await requireRole("ADMIN");
+	} catch {
+		return { success: false, error: "Unauthorized" };
+	}
+
+	if (
+		!Number.isInteger(limit) ||
+		limit < TOP_RECOGNIZED_MIN ||
+		limit > TOP_RECOGNIZED_MAX
+	) {
+		return {
+			success: false,
+			error: `Limit must be between ${TOP_RECOGNIZED_MIN} and ${TOP_RECOGNIZED_MAX}`,
+		};
+	}
+
+	await prisma.appSetting.upsert({
+		where: { key: TOP_RECOGNIZED_KEY },
+		update: { value: String(limit) },
+		create: { key: TOP_RECOGNIZED_KEY, value: String(limit) },
+	});
+
+	invalidateTopLimitCache();
 
 	return { success: true };
 }

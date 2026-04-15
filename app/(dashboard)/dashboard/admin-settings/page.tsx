@@ -1,6 +1,7 @@
 import { requireRole } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
-import { Settings } from "lucide-react";
+import { getTopRecognizedLimit } from "@/lib/actions/settings-actions";
+import { RecognitionSettingsPanel } from "./_components/recognition-settings";
 
 export default async function AdminSettingsPage() {
 	try {
@@ -8,6 +9,8 @@ export default async function AdminSettingsPage() {
 	} catch {
 		redirect("/dashboard");
 	}
+
+	const topLimit = await getTopRecognizedLimit();
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -19,20 +22,8 @@ export default async function AdminSettingsPage() {
 					Manage application settings and configurations.
 				</p>
 			</div>
-			<div className="flex flex-col items-center justify-center rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card p-16 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
-				<div className="mb-6 rounded-full bg-background p-6">
-					<Settings
-						size={48}
-						className="text-muted-foreground opacity-40"
-					/>
-				</div>
-				<p className="text-[1.5rem] font-medium text-foreground">
-					Admin settings coming soon
-				</p>
-				<p className="mt-2 text-base text-muted-foreground">
-					Application configuration options will appear here.
-				</p>
-			</div>
+
+			<RecognitionSettingsPanel initialLimit={topLimit} />
 		</div>
 	);
 }
