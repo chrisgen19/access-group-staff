@@ -5,6 +5,7 @@ import { Pencil, Trash2, Check, X } from "lucide-react";
 import { toast } from "sonner";
 import { cn, getInitials } from "@/lib/utils";
 import type { CardComment } from "@/lib/recognition";
+import { useSession } from "@/lib/auth-client";
 import {
 	addCommentAction,
 	editCommentAction,
@@ -43,7 +44,9 @@ function CommentItem({
 }: CommentItemProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [editValue, setEditValue] = useState(comment.body);
-	const [isPending, startTransition] = useTransition();
+	const [confirmDelete, setConfirmDelete] = useState(false);
+	const [isEditPending, startEditTransition] = useTransition();
+	const [isDeletePending, startDeleteTransition] = useTransition();
 
 	const isOwner = comment.userId === currentUserId;
 	const canEdit = isOwner;
@@ -54,7 +57,7 @@ function CommentItem({
 			setIsEditing(false);
 			return;
 		}
-		startTransition(async () => {
+		startEditTransition(async () => {
 			const result = await editCommentAction(comment.id, editValue.trim());
 			if (result.success) {
 				onEdit({
@@ -70,7 +73,7 @@ function CommentItem({
 	}
 
 	function handleDelete() {
-		startTransition(async () => {
+		startDeleteTransition(async () => {
 			const result = await deleteCommentAction(comment.id);
 			if (result.success) {
 				onDelete(comment.id);
@@ -104,7 +107,7 @@ function CommentItem({
 								onChange={(e) => setEditValue(e.target.value)}
 								maxLength={500}
 								rows={2}
-								disabled={isPending}
+								disabled={isEditPending}
 								className="flex-1 resize-none text-sm bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
 								// biome-ignore lint/a11y/noAutofocus: intentional focus on edit mode
 								autoFocus
@@ -123,7 +126,7 @@ function CommentItem({
 								<button
 									type="button"
 									onClick={handleSaveEdit}
-									disabled={isPending}
+									disabled={isEditPending}
 									className="rounded-full p-1 text-primary hover:bg-primary/10 transition-colors"
 									aria-label="Save edit"
 								>
@@ -165,14 +168,34 @@ function CommentItem({
 								</button>
 							)}
 							{canDelete && (
-								<button
-									type="button"
-									onClick={handleDelete}
-									disabled={isPending}
-									className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
-								>
-									<Trash2 size={11} />
-								</button>
+								confirmDelete ? (
+									<span className="inline-flex items-center gap-1">
+										<button
+											type="button"
+											onClick={handleDelete}
+											disabled={isDeletePending}
+											className="text-[10px] text-destructive font-medium transition-colors"
+										>
+											Delete?
+										</button>
+										<button
+											type="button"
+											onClick={() => setConfirmDelete(false)}
+											className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+										>
+											<X size={11} />
+										</button>
+									</span>
+								) : (
+									<button
+										type="button"
+										onClick={() => setConfirmDelete(true)}
+										disabled={isDeletePending}
+										className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+									>
+										<Trash2 size={11} />
+									</button>
+								)
 							)}
 						</div>
 					)}
@@ -197,6 +220,7 @@ export function CommentThread({
 	isAdmin,
 	onCommentsChange,
 }: CommentThreadProps) {
+	const { data: session } = useSession();
 	const [input, setInput] = useState("");
 	const [isPending, startTransition] = useTransition();
 
@@ -248,7 +272,9 @@ export function CommentThread({
 			{/* Comment input */}
 			<div className="flex gap-2.5 items-end">
 				<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
-					Me
+					{session?.user
+						? getInitials(session.user.firstName, session.user.lastName)
+						: "Me"}
 				</div>
 				<div
 					className={cn(

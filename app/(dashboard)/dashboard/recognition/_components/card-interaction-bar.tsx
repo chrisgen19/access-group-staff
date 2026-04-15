@@ -114,11 +114,10 @@ export function CardInteractionBar({
 					return {
 						success: true,
 						data: {
-							reactions: REACTION_EMOJIS.map((emoji) => ({
-								emoji,
-								count: 0,
-								hasReacted: false,
-							})),
+							reactions: REACTION_EMOJIS.map((emoji) => {
+								const initial = initialReactions?.find((r) => r.emoji === emoji);
+								return initial ?? { emoji, count: 0, hasReacted: false };
+							}),
 							comments,
 							totalComments: comments.length,
 						},
