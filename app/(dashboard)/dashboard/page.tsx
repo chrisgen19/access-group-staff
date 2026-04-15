@@ -2,6 +2,7 @@ import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Plus } from "lucide-react";
+import { hasMinRole, getUserRole } from "@/lib/permissions";
 import { StatsWidget } from "./_components/stats-widget";
 import { RecognitionFeedWidget } from "./_components/recognition-feed-widget";
 
@@ -10,6 +11,7 @@ export default async function DashboardPage() {
 	if (!session) redirect("/login");
 
 	const user = session.user;
+	const isAdmin = hasMinRole(getUserRole(session), "ADMIN");
 
 	return (
 		<div className="max-w-7xl mx-auto mt-2 space-y-8">
@@ -36,7 +38,7 @@ export default async function DashboardPage() {
 			{/* Widgets: Public Feed + Stats */}
 			<div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8">
 				<div className="order-2 lg:order-1">
-					<RecognitionFeedWidget />
+					<RecognitionFeedWidget currentUserId={user.id} isAdmin={isAdmin} />
 				</div>
 				<div className="order-1 lg:order-2">
 					<StatsWidget />

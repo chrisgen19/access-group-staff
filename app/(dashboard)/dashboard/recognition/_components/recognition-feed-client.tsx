@@ -7,6 +7,7 @@ import { ShareDialog } from "./share-dialog";
 interface RecognitionFeedClientProps {
 	filter: "received" | "sent";
 	currentUserId: string;
+	isAdmin: boolean;
 	emptyTitle: string;
 	emptyDescription: string;
 }
@@ -14,6 +15,7 @@ interface RecognitionFeedClientProps {
 export function RecognitionFeedClient({
 	filter,
 	currentUserId,
+	isAdmin,
 	emptyTitle,
 	emptyDescription,
 }: RecognitionFeedClientProps) {
@@ -27,6 +29,7 @@ export function RecognitionFeedClient({
 				showTitle={false}
 				showActions
 				currentUserId={currentUserId}
+				isAdmin={isAdmin}
 				emptyTitle={emptyTitle}
 				emptyDescription={emptyDescription}
 				onShare={setShareCardId}

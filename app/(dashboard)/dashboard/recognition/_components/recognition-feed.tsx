@@ -12,6 +12,7 @@ import {
 import { usePreferencesStore } from "@/stores/use-preferences-store";
 import { useUnreadCardIds } from "@/hooks/use-unread-card-ids";
 import { RecognitionCardMini } from "./recognition-card-mini";
+import { CardInteractionBar } from "./card-interaction-bar";
 
 function CardSkeleton() {
 	return (
@@ -82,6 +83,7 @@ interface RecognitionFeedProps {
 	showTitle?: boolean;
 	showActions?: boolean;
 	currentUserId?: string;
+	isAdmin?: boolean;
 	cardMaxWidth?: string;
 	emptyTitle?: string;
 	emptyDescription?: string;
@@ -92,7 +94,8 @@ export function RecognitionFeed({
 	filter = "all",
 	showTitle = true,
 	showActions = false,
-	currentUserId,
+	currentUserId = "",
+	isAdmin = false,
 	cardMaxWidth,
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
@@ -176,17 +179,26 @@ export function RecognitionFeed({
 				if (cardView === "physical") {
 					const isNew = filter === "received" && unreadCardIds.has(card.id);
 					return (
-						<div key={card.id} className={cn("group relative", cardMaxWidth)}>
-							<RecognitionCardMini
-								card={card}
-								size={cardSize}
-								isNew={isNew}
-							/>
-							{actions && (
-								<div className="absolute top-3 right-3 z-10">
-									{actions}
-								</div>
-							)}
+						<div key={card.id} className={cn("group relative rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden", cardMaxWidth)}>
+							<div className="relative">
+								<RecognitionCardMini
+									card={card}
+									size={cardSize}
+									isNew={isNew}
+								/>
+								{actions && (
+									<div className="absolute top-3 right-3 z-10">
+										{actions}
+									</div>
+								)}
+							</div>
+							<div className="px-5 pb-4">
+								<CardInteractionBar
+									cardId={card.id}
+									currentUserId={currentUserId}
+									isAdmin={isAdmin}
+								/>
+							</div>
 						</div>
 					);
 				}
@@ -264,6 +276,12 @@ export function RecognitionFeed({
 								{formatRecognitionDate(card.date)}
 							</span>
 						</div>
+
+						<CardInteractionBar
+							cardId={card.id}
+							currentUserId={currentUserId}
+							isAdmin={isAdmin}
+						/>
 					</div>
 				);
 			})}
