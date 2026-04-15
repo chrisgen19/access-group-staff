@@ -154,7 +154,7 @@ function CommentItem({
 						{comment.updatedAt !== comment.createdAt && " · edited"}
 					</span>
 					{!isEditing && (canEdit || canDelete) && (
-						<div className="flex gap-1 opacity-0 group-hover/comment:opacity-100 transition-opacity">
+						<div className="flex gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/comment:opacity-100 transition-opacity">
 							{canEdit && (
 								<button
 									type="button"

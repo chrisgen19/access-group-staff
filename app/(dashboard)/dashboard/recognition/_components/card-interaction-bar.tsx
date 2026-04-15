@@ -30,9 +30,9 @@ export function CardInteractionBar({
 	const [fetchEnabled, setFetchEnabled] = useState(false);
 
 	const { data } = useQuery<{ success: boolean; data: CardInteractions }>({
-		queryKey: ["card-interactions", cardId],
-		queryFn: async () => {
-			const res = await fetch(`/api/recognition/${cardId}/interactions`);
+		queryKey: ["card-interactions", cardId, currentUserId],
+		queryFn: async ({ signal }) => {
+			const res = await fetch(`/api/recognition/${cardId}/interactions`, { signal });
 			if (!res.ok) throw new Error("Failed to fetch interactions");
 			return res.json();
 		},
@@ -50,18 +50,17 @@ export function CardInteractionBar({
 			// Data not loaded yet — action handles add/remove atomically on server;
 			// invalidate after so the query picks up the new state
 			toggleReactionAction(cardId, emoji).then((result) => {
-				if (result.success) {
-					queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId] });
-				} else {
+				if (!result.success) {
 					toast.error(result.error);
 				}
+				queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId, currentUserId] });
 			});
 			return;
 		}
 
 		// Optimistic update when we already have the current state
 		queryClient.setQueryData<{ success: boolean; data: CardInteractions }>(
-			["card-interactions", cardId],
+			["card-interactions", cardId, currentUserId],
 			(old) => {
 				if (!old?.data) return old;
 				const reactions = old.data.reactions.map((r) => {
@@ -79,9 +78,10 @@ export function CardInteractionBar({
 
 		toggleReactionAction(cardId, emoji).then((result) => {
 			if (!result.success) {
-				queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId] });
 				toast.error(result.error);
 			}
+			// Always invalidate to pick up concurrent reactions from other users
+			queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId, currentUserId] });
 		});
 	}
 
@@ -91,9 +91,9 @@ export function CardInteractionBar({
 	}
 
 	async function handleCommentsChange(comments: CardComment[]) {
-		await queryClient.cancelQueries({ queryKey: ["card-interactions", cardId] });
+		await queryClient.cancelQueries({ queryKey: ["card-interactions", cardId, currentUserId] });
 		queryClient.setQueryData<{ success: boolean; data: CardInteractions }>(
-			["card-interactions", cardId],
+			["card-interactions", cardId, currentUserId],
 			(old) => {
 				// Seed cache from scratch if the lazy query hasn't fired yet
 				if (!old?.data) {
