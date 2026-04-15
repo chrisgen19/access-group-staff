@@ -26,24 +26,40 @@ export function CardInteractionBar({
 }: CardInteractionBarProps) {
 	const queryClient = useQueryClient();
 	const [showComments, setShowComments] = useState(false);
+	// Lazy: only fetch when user first hovers (desktop) or interacts (mobile)
+	const [fetchEnabled, setFetchEnabled] = useState(false);
 
-	const { data, isLoading } = useQuery<{ success: boolean; data: CardInteractions }>({
+	const { data } = useQuery<{ success: boolean; data: CardInteractions }>({
 		queryKey: ["card-interactions", cardId],
 		queryFn: async () => {
 			const res = await fetch(`/api/recognition/${cardId}/interactions`);
 			if (!res.ok) throw new Error("Failed to fetch interactions");
 			return res.json();
 		},
+		enabled: fetchEnabled,
 		staleTime: 30_000,
 	});
 
 	const interactions = data?.data;
 
 	function handleReaction(emoji: string) {
-		const current = interactions;
-		if (!current) return;
+		// Ensure the query is (or will be) active
+		setFetchEnabled(true);
 
-		// Optimistic update
+		if (!interactions) {
+			// Data not loaded yet — action handles add/remove atomically on server;
+			// invalidate after so the query picks up the new state
+			toggleReactionAction(cardId, emoji).then((result) => {
+				if (result.success) {
+					queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId] });
+				} else {
+					toast.error(result.error);
+				}
+			});
+			return;
+		}
+
+		// Optimistic update when we already have the current state
 		queryClient.setQueryData<{ success: boolean; data: CardInteractions }>(
 			["card-interactions", cardId],
 			(old) => {
@@ -63,11 +79,15 @@ export function CardInteractionBar({
 
 		toggleReactionAction(cardId, emoji).then((result) => {
 			if (!result.success) {
-				// Revert on failure
 				queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId] });
 				toast.error(result.error);
 			}
 		});
+	}
+
+	function handleCommentToggle() {
+		setFetchEnabled(true);
+		setShowComments((v) => !v);
 	}
 
 	function handleCommentsChange(comments: CardComment[]) {
@@ -83,31 +103,24 @@ export function CardInteractionBar({
 		);
 	}
 
-	if (isLoading) {
-		return (
-			<div className="flex gap-1.5 pt-3 mt-3 border-t border-border/50">
-				{REACTION_EMOJIS.map((emoji) => (
-					<div
-						key={emoji}
-						className="h-7 w-10 rounded-full bg-muted/60 animate-pulse"
-					/>
-				))}
-			</div>
-		);
-	}
-
 	const reactions = interactions?.reactions ?? [];
 	const comments = interactions?.comments ?? [];
 	const totalComments = interactions?.totalComments ?? 0;
 
 	const activeReactions = reactions.filter((r) => r.count > 0);
-	const inactiveReactions = reactions.filter((r) => r.count === 0);
+	// Show all 6 ghost buttons when data not loaded; only zero-count ones after load
+	const ghostReactions = interactions
+		? reactions.filter((r) => r.count === 0)
+		: REACTION_EMOJIS.map((emoji) => ({ emoji, count: 0, hasReacted: false }));
 
 	return (
-		<div className="pt-3 mt-3 border-t border-border/50">
+		<div
+			className="pt-3 mt-3 border-t border-border/50"
+			onMouseEnter={() => setFetchEnabled(true)}
+		>
 			{/* Reaction row */}
 			<div className="flex flex-wrap items-center gap-1.5">
-				{/* Active reactions first */}
+				{/* Active reactions with counts */}
 				{activeReactions.map((r) => (
 					<button
 						key={r.emoji}
@@ -126,8 +139,8 @@ export function CardInteractionBar({
 					</button>
 				))}
 
-				{/* Inactive emojis as small ghost buttons */}
-				{inactiveReactions.map((r) => (
+				{/* Ghost buttons for zero-count emojis */}
+				{ghostReactions.map((r) => (
 					<button
 						key={r.emoji}
 						type="button"
@@ -142,7 +155,7 @@ export function CardInteractionBar({
 				{/* Comment toggle */}
 				<button
 					type="button"
-					onClick={() => setShowComments((v) => !v)}
+					onClick={handleCommentToggle}
 					className={cn(
 						"ml-auto inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs transition-colors",
 						showComments

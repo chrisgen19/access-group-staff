@@ -30,7 +30,7 @@ interface CommentItemProps {
 	comment: CardComment;
 	currentUserId: string;
 	isAdmin: boolean;
-	onEdit: (commentId: string, newBody: string) => void;
+	onEdit: (updated: CardComment) => void;
 	onDelete: (commentId: string) => void;
 }
 
@@ -57,7 +57,11 @@ function CommentItem({
 		startTransition(async () => {
 			const result = await editCommentAction(comment.id, editValue.trim());
 			if (result.success) {
-				onEdit(comment.id, editValue.trim());
+				onEdit({
+					...comment,
+					body: result.data.body,
+					updatedAt: result.data.updatedAt.toISOString(),
+				});
 				setIsEditing(false);
 			} else {
 				toast.error(result.error);
@@ -218,9 +222,9 @@ export function CommentThread({
 		});
 	}
 
-	function handleEdit(commentId: string, newBody: string) {
+	function handleEdit(updated: CardComment) {
 		onCommentsChange(
-			comments.map((c) => (c.id === commentId ? { ...c, body: newBody } : c)),
+			comments.map((c) => (c.id === updated.id ? updated : c)),
 		);
 	}
 
