@@ -1,8 +1,33 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Send, Inbox, Calendar, Trophy } from "lucide-react";
+import { Send, Inbox, Calendar, Trophy, Medal } from "lucide-react";
 import { getInitials } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+
+const PODIUM_STYLES = [
+	{
+		ring: "ring-2 ring-amber-400/60",
+		bg: "bg-amber-50 dark:bg-amber-400/15",
+		text: "text-amber-600 dark:text-amber-400",
+		medal: "text-amber-500",
+		countBg: "bg-amber-50 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400",
+	},
+	{
+		ring: "ring-2 ring-gray-300/80 dark:ring-gray-400/40",
+		bg: "bg-gray-100 dark:bg-gray-400/15",
+		text: "text-gray-500 dark:text-gray-300",
+		medal: "text-gray-400 dark:text-gray-300",
+		countBg: "bg-gray-100 dark:bg-gray-400/10 text-gray-500 dark:text-gray-300",
+	},
+	{
+		ring: "ring-2 ring-orange-400/50 dark:ring-orange-500/40",
+		bg: "bg-orange-50 dark:bg-orange-400/15",
+		text: "text-orange-600 dark:text-orange-400",
+		medal: "text-orange-500 dark:text-orange-400",
+		countBg: "bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-400",
+	},
+] as const;
 
 interface StatsData {
 	sent: number;
@@ -131,29 +156,67 @@ export function StatsWidget() {
 							Most Recognized
 						</h4>
 					</div>
-					<ol className="space-y-3 max-h-80 overflow-y-auto pr-1">
-						{stats.topRecipients.map((person, index) => (
-							<li
-								key={`${person.firstName}-${person.lastName}`}
-								className="flex items-center gap-3"
-							>
-								<span className="w-5 text-xs font-semibold text-muted-foreground text-right shrink-0">
-									{index + 1}
-								</span>
-								<div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0">
-									{getInitials(
-										person.firstName,
-										person.lastName,
+					<ol className="space-y-2 max-h-80 overflow-y-auto pr-1">
+						{stats.topRecipients.map((person, index) => {
+							const isPodium = index < 3;
+							const style = isPodium ? PODIUM_STYLES[index] : null;
+
+							return (
+								<li
+									key={`${person.firstName}-${person.lastName}`}
+									className={cn(
+										"flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors",
+										isPodium
+											? "bg-card border border-gray-200/60 dark:border-white/10 shadow-sm"
+											: "px-3 py-2",
 									)}
-								</div>
-								<span className="text-sm font-medium text-foreground flex-1 truncate">
-									{person.firstName} {person.lastName}
-								</span>
-								<span className="text-sm font-semibold text-primary shrink-0">
-									{person.count}
-								</span>
-							</li>
-						))}
+								>
+									{isPodium ? (
+										<Medal
+											size={18}
+											className={cn("shrink-0", style?.medal)}
+										/>
+									) : (
+										<span className="w-[18px] text-xs font-semibold text-muted-foreground text-center shrink-0">
+											{index + 1}
+										</span>
+									)}
+									<div
+										className={cn(
+											"flex items-center justify-center rounded-full text-xs font-semibold shrink-0",
+											isPodium
+												? cn("h-9 w-9", style?.ring, style?.bg, style?.text)
+												: "h-8 w-8 bg-primary/10 text-primary",
+										)}
+									>
+										{getInitials(
+											person.firstName,
+											person.lastName,
+										)}
+									</div>
+									<span
+										className={cn(
+											"flex-1 truncate",
+											isPodium
+												? "text-sm font-semibold text-foreground"
+												: "text-sm font-medium text-foreground",
+										)}
+									>
+										{person.firstName} {person.lastName}
+									</span>
+									<span
+										className={cn(
+											"shrink-0 text-sm font-bold tabular-nums",
+											isPodium
+												? cn("rounded-full px-2.5 py-0.5", style?.countBg)
+												: "text-primary",
+										)}
+									>
+										{person.count}
+									</span>
+								</li>
+							);
+						})}
 					</ol>
 				</div>
 			)}
