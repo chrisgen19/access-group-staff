@@ -18,6 +18,7 @@ interface CardInteractionBarProps {
 	currentUserId: string;
 	isAdmin: boolean;
 	initialCommentCount?: number;
+	initialReactions?: { emoji: string; count: number; hasReacted: boolean }[];
 }
 
 export function CardInteractionBar({
@@ -25,6 +26,7 @@ export function CardInteractionBar({
 	currentUserId,
 	isAdmin,
 	initialCommentCount = 0,
+	initialReactions,
 }: CardInteractionBarProps) {
 	const queryClient = useQueryClient();
 	const [showComments, setShowComments] = useState(false);
@@ -138,11 +140,17 @@ export function CardInteractionBar({
 	const comments = interactions?.comments ?? [];
 	const totalComments = interactions?.totalComments ?? initialCommentCount;
 
-	const activeReactions = reactions.filter((r) => r.count > 0);
-	// Show all 6 ghost buttons when data not loaded; only zero-count ones after load
-	const ghostReactions = interactions
-		? reactions.filter((r) => r.count === 0)
-		: REACTION_EMOJIS.map((emoji) => ({ emoji, count: 0, hasReacted: false }));
+	// Use initialReactions from the feed before the lazy fetch fires
+	const displayReactions = interactions
+		? reactions
+		: initialReactions ?? [];
+
+	const activeReactions = displayReactions.filter((r) => r.count > 0);
+	// Build ghost buttons for emojis not already shown as active
+	const activeEmojis = new Set(activeReactions.map((r) => r.emoji));
+	const ghostReactions = REACTION_EMOJIS.filter((e) => !activeEmojis.has(e)).map(
+		(emoji) => ({ emoji, count: 0, hasReacted: false }),
+	);
 
 	return (
 		<div

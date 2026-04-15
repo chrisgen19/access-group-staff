@@ -189,7 +189,56 @@ export async function GET(request: NextRequest) {
 			take: 50,
 		});
 
-		return Response.json({ success: true, data: cards.map(mapCounts) });
+		const cardIds = cards.map((c) => c.id);
+
+		// Batch fetch per-emoji reaction counts + current user's reactions (2 queries, not N+1)
+		const [reactionCounts, userReactions] = await Promise.all([
+			prisma.cardReaction.groupBy({
+				by: ["cardId", "emoji"],
+				where: { cardId: { in: cardIds } },
+				_count: true,
+			}),
+			prisma.cardReaction.findMany({
+				where: { cardId: { in: cardIds }, userId: session.user.id },
+				select: { cardId: true, emoji: true },
+			}),
+		]);
+
+		const userReactionSet = new Set(
+			userReactions.map((r) => `${r.cardId}:${r.emoji}`),
+		);
+
+		const reactionsByCard = new Map<
+			string,
+			{ emoji: string; count: number; hasReacted: boolean }[]
+		>();
+		for (const rc of reactionCounts) {
+			if (!reactionsByCard.has(rc.cardId)) {
+				reactionsByCard.set(rc.cardId, []);
+			}
+			reactionsByCard.get(rc.cardId)!.push({
+				emoji: rc.emoji,
+				count: rc._count,
+				hasReacted: userReactionSet.has(`${rc.cardId}:${rc.emoji}`),
+			});
+		}
+
+		return Response.json({
+			success: true,
+			data: cards.map((card) => {
+				const mapped = mapCounts(card);
+				const isCardParticipant =
+					card.senderId === session.user.id ||
+					card.recipientId === session.user.id ||
+					isAdmin;
+				return {
+					...mapped,
+					reactionSummary: isCardParticipant
+						? reactionsByCard.get(card.id) ?? []
+						: undefined,
+				};
+			}),
+		});
 	} catch {
 		return Response.json(
 			{ success: false, error: "Internal server error" },

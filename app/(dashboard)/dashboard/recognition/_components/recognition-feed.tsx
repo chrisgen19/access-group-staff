@@ -203,7 +203,8 @@ export function RecognitionFeed({
 										cardId={card.id}
 										currentUserId={currentUserId}
 										isAdmin={isAdmin}
-										initialCommentCount={card.interactionCounts.comments}
+										initialCommentCount={card.interactionCounts?.comments ?? 0}
+										initialReactions={card.reactionSummary}
 									/>
 								</div>
 							)}
@@ -290,7 +291,8 @@ export function RecognitionFeed({
 								cardId={card.id}
 								currentUserId={currentUserId}
 								isAdmin={isAdmin}
-								initialCommentCount={card.interactionCounts.comments}
+								initialCommentCount={card.interactionCounts?.comments ?? 0}
+								initialReactions={card.reactionSummary}
 							/>
 						)}
 					</div>
