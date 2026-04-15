@@ -33,10 +33,10 @@ export default async function DashboardPage() {
 				</Link>
 			</div>
 
-			{/* Widgets: Stats + Public Feed */}
-			<div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8">
-				<StatsWidget />
+			{/* Widgets: Public Feed + Stats */}
+			<div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8">
 				<RecognitionFeedWidget />
+				<StatsWidget />
 			</div>
 		</div>
 	);
