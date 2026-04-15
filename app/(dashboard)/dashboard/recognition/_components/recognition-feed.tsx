@@ -203,6 +203,7 @@ export function RecognitionFeed({
 										cardId={card.id}
 										currentUserId={currentUserId}
 										isAdmin={isAdmin}
+										initialCommentCount={card.interactionCounts.comments}
 									/>
 								</div>
 							)}
@@ -289,6 +290,7 @@ export function RecognitionFeed({
 								cardId={card.id}
 								currentUserId={currentUserId}
 								isAdmin={isAdmin}
+								initialCommentCount={card.interactionCounts.comments}
 							/>
 						)}
 					</div>

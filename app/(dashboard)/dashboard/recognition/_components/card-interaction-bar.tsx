@@ -17,12 +17,14 @@ interface CardInteractionBarProps {
 	cardId: string;
 	currentUserId: string;
 	isAdmin: boolean;
+	initialCommentCount?: number;
 }
 
 export function CardInteractionBar({
 	cardId,
 	currentUserId,
 	isAdmin,
+	initialCommentCount = 0,
 }: CardInteractionBarProps) {
 	const queryClient = useQueryClient();
 	const [showComments, setShowComments] = useState(false);
@@ -120,7 +122,7 @@ export function CardInteractionBar({
 
 	const reactions = interactions?.reactions ?? [];
 	const comments = interactions?.comments ?? [];
-	const totalComments = interactions?.totalComments ?? 0;
+	const totalComments = interactions?.totalComments ?? initialCommentCount;
 
 	const activeReactions = reactions.filter((r) => r.count > 0);
 	// Show all 6 ghost buttons when data not loaded; only zero-count ones after load

@@ -63,7 +63,14 @@ export async function GET(request: NextRequest) {
 					position: true,
 				},
 			},
+			_count: {
+				select: { reactions: true, comments: true },
+			},
 		};
+
+		const mapCounts = <T extends { _count: { reactions: number; comments: number } }>(
+			{ _count, ...card }: T,
+		) => ({ ...card, interactionCounts: _count });
 
 		const isExport = request.nextUrl.searchParams.get("export") === "true";
 
@@ -156,7 +163,7 @@ export async function GET(request: NextRequest) {
 
 			return Response.json({
 				success: true,
-				data: cards,
+				data: cards.map(mapCounts),
 				pagination: {
 					page,
 					pageSize,
@@ -173,7 +180,7 @@ export async function GET(request: NextRequest) {
 			take: 50,
 		});
 
-		return Response.json({ success: true, data: cards });
+		return Response.json({ success: true, data: cards.map(mapCounts) });
 	} catch {
 		return Response.json(
 			{ success: false, error: "Internal server error" },
