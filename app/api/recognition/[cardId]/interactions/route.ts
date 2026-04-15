@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getServerSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
 import { REACTION_EMOJIS } from "@/lib/recognition";
+import type { Role } from "@/app/generated/prisma/client";
 
 export async function GET(
 	_req: Request,
@@ -20,13 +22,23 @@ export async function GET(
 
 		const card = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { id: true },
+			select: { id: true, senderId: true, recipientId: true },
 		});
 
 		if (!card) {
 			return NextResponse.json(
 				{ success: false, error: "Card not found" },
 				{ status: 404 },
+			);
+		}
+
+		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const isParticipant =
+			card.senderId === session.user.id || card.recipientId === session.user.id;
+		if (!isParticipant && !isAdmin) {
+			return NextResponse.json(
+				{ success: false, error: "Forbidden" },
+				{ status: 403 },
 			);
 		}
 

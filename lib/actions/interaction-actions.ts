@@ -30,10 +30,17 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 
 		const card = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { id: true },
+			select: { id: true, senderId: true, recipientId: true },
 		});
 		if (!card) {
 			return { success: false as const, error: "Card not found" };
+		}
+
+		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const isParticipant =
+			card.senderId === session.user.id || card.recipientId === session.user.id;
+		if (!isParticipant && !isAdmin) {
+			return { success: false as const, error: "Forbidden" };
 		}
 
 		const existing = await prisma.cardReaction.findUnique({
@@ -71,10 +78,17 @@ export async function addCommentAction(cardId: string, body: string) {
 
 		const card = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { id: true },
+			select: { id: true, senderId: true, recipientId: true },
 		});
 		if (!card) {
 			return { success: false as const, error: "Card not found" };
+		}
+
+		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const isParticipant =
+			card.senderId === session.user.id || card.recipientId === session.user.id;
+		if (!isParticipant && !isAdmin) {
+			return { success: false as const, error: "Forbidden" };
 		}
 
 		const comment = await prisma.cardComment.create({

@@ -94,7 +94,21 @@ export function CardInteractionBar({
 		queryClient.setQueryData<{ success: boolean; data: CardInteractions }>(
 			["card-interactions", cardId],
 			(old) => {
-				if (!old?.data) return old;
+				// Seed cache from scratch if the lazy query hasn't fired yet
+				if (!old?.data) {
+					return {
+						success: true,
+						data: {
+							reactions: REACTION_EMOJIS.map((emoji) => ({
+								emoji,
+								count: 0,
+								hasReacted: false,
+							})),
+							comments,
+							totalComments: comments.length,
+						},
+					};
+				}
 				return {
 					...old,
 					data: { ...old.data, comments, totalComments: comments.length },
