@@ -176,6 +176,11 @@ export function RecognitionFeed({
 					/>
 				) : null;
 
+				const isParticipant =
+					currentUserId === card.sender.id ||
+					currentUserId === card.recipient.id;
+				const canInteract = isParticipant || isAdmin;
+
 				if (cardView === "physical") {
 					const isNew = filter === "received" && unreadCardIds.has(card.id);
 					return (
@@ -192,13 +197,15 @@ export function RecognitionFeed({
 									</div>
 								)}
 							</div>
-							<div className="px-5 pb-4">
-								<CardInteractionBar
-									cardId={card.id}
-									currentUserId={currentUserId}
-									isAdmin={isAdmin}
-								/>
-							</div>
+							{canInteract && (
+								<div className="px-5 pb-4">
+									<CardInteractionBar
+										cardId={card.id}
+										currentUserId={currentUserId}
+										isAdmin={isAdmin}
+									/>
+								</div>
+							)}
 						</div>
 					);
 				}
@@ -277,11 +284,13 @@ export function RecognitionFeed({
 							</span>
 						</div>
 
-						<CardInteractionBar
-							cardId={card.id}
-							currentUserId={currentUserId}
-							isAdmin={isAdmin}
-						/>
+						{canInteract && (
+							<CardInteractionBar
+								cardId={card.id}
+								currentUserId={currentUserId}
+								isAdmin={isAdmin}
+							/>
+						)}
 					</div>
 				);
 			})}

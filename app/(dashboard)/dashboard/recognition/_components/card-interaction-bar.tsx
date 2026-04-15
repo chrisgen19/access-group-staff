@@ -90,7 +90,8 @@ export function CardInteractionBar({
 		setShowComments((v) => !v);
 	}
 
-	function handleCommentsChange(comments: CardComment[]) {
+	async function handleCommentsChange(comments: CardComment[]) {
+		await queryClient.cancelQueries({ queryKey: ["card-interactions", cardId] });
 		queryClient.setQueryData<{ success: boolean; data: CardInteractions }>(
 			["card-interactions", cardId],
 			(old) => {

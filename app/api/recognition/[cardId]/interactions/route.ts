@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getServerSession } from "@/lib/auth-utils";
+import { requireSession } from "@/lib/auth-utils";
 import { hasMinRole } from "@/lib/permissions";
 import { REACTION_EMOJIS } from "@/lib/recognition";
 import type { Role } from "@/app/generated/prisma/client";
@@ -9,15 +9,17 @@ export async function GET(
 	_req: Request,
 	{ params }: { params: Promise<{ cardId: string }> },
 ) {
+	let session: Awaited<ReturnType<typeof requireSession>>;
 	try {
-		const session = await getServerSession();
-		if (!session) {
-			return NextResponse.json(
-				{ success: false, error: "Unauthorized" },
-				{ status: 401 },
-			);
-		}
+		session = await requireSession();
+	} catch {
+		return NextResponse.json(
+			{ success: false, error: "Unauthorized" },
+			{ status: 401 },
+		);
+	}
 
+	try {
 		const { cardId } = await params;
 
 		const card = await prisma.recognitionCard.findUnique({
