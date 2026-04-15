@@ -43,25 +43,35 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 			return { success: false as const, error: "Forbidden" };
 		}
 
-		const existing = await prisma.cardReaction.findUnique({
-			where: {
-				cardId_userId_emoji: {
-					cardId,
-					userId: session.user.id,
-					emoji,
-				},
-			},
+		// Atomic toggle: attempt delete first, then create if nothing was removed.
+		// Catches unique constraint (P2002) from concurrent double-taps.
+		const deleted = await prisma.cardReaction.deleteMany({
+			where: { cardId, userId: session.user.id, emoji },
 		});
 
-		if (existing) {
-			await prisma.cardReaction.delete({ where: { id: existing.id } });
+		if (deleted.count > 0) {
 			return { success: true as const, action: "removed" as const };
 		}
 
-		await prisma.cardReaction.create({
-			data: { cardId, userId: session.user.id, emoji },
-		});
-		return { success: true as const, action: "added" as const };
+		try {
+			await prisma.cardReaction.create({
+				data: { cardId, userId: session.user.id, emoji },
+			});
+			return { success: true as const, action: "added" as const };
+		} catch (err) {
+			// Concurrent toggle already created it — treat as remove
+			if (
+				err instanceof Error &&
+				"code" in err &&
+				(err as { code: string }).code === "P2002"
+			) {
+				await prisma.cardReaction.deleteMany({
+					where: { cardId, userId: session.user.id, emoji },
+				});
+				return { success: true as const, action: "removed" as const };
+			}
+			throw err;
+		}
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to update reaction";
 		return { success: false as const, error: message };
@@ -128,12 +138,24 @@ export async function editCommentAction(commentId: string, body: string) {
 
 		const comment = await prisma.cardComment.findUnique({
 			where: { id: commentId },
-			select: { userId: true },
+			select: {
+				userId: true,
+				card: { select: { senderId: true, recipientId: true } },
+			},
 		});
 
 		if (!comment) {
 			return { success: false as const, error: "Comment not found" };
 		}
+
+		const isEditAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const isEditParticipant =
+			comment.card.senderId === session.user.id ||
+			comment.card.recipientId === session.user.id;
+		if (!isEditParticipant && !isEditAdmin) {
+			return { success: false as const, error: "Forbidden" };
+		}
+
 		if (comment.userId !== session.user.id) {
 			return { success: false as const, error: "You can only edit your own comments" };
 		}
@@ -172,7 +194,10 @@ export async function deleteCommentAction(commentId: string) {
 
 		const comment = await prisma.cardComment.findUnique({
 			where: { id: commentId },
-			select: { userId: true },
+			select: {
+				userId: true,
+				card: { select: { senderId: true, recipientId: true } },
+			},
 		});
 
 		if (!comment) {
@@ -180,6 +205,13 @@ export async function deleteCommentAction(commentId: string) {
 		}
 
 		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const isDeleteParticipant =
+			comment.card.senderId === session.user.id ||
+			comment.card.recipientId === session.user.id;
+		if (!isDeleteParticipant && !isAdmin) {
+			return { success: false as const, error: "Forbidden" };
+		}
+
 		if (comment.userId !== session.user.id && !isAdmin) {
 			return { success: false as const, error: "Not allowed" };
 		}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -30,6 +30,8 @@ export function CardInteractionBar({
 	const [showComments, setShowComments] = useState(false);
 	// Lazy: only fetch when user first hovers (desktop) or interacts (mobile)
 	const [fetchEnabled, setFetchEnabled] = useState(false);
+	// Track in-flight emoji toggles to prevent double-tap race
+	const pendingToggles = useRef(new Set<string>());
 
 	const { data } = useQuery<{ success: boolean; data: CardInteractions }>({
 		queryKey: ["card-interactions", cardId, currentUserId],
@@ -45,6 +47,10 @@ export function CardInteractionBar({
 	const interactions = data?.data;
 
 	function handleReaction(emoji: string) {
+		// Prevent double-tap race: skip if a toggle for this emoji is already in flight
+		if (pendingToggles.current.has(emoji)) return;
+		pendingToggles.current.add(emoji);
+
 		// Ensure the query is (or will be) active
 		setFetchEnabled(true);
 
@@ -52,6 +58,7 @@ export function CardInteractionBar({
 			// Data not loaded yet — action handles add/remove atomically on server;
 			// invalidate after so the query picks up the new state
 			toggleReactionAction(cardId, emoji).then((result) => {
+				pendingToggles.current.delete(emoji);
 				if (!result.success) {
 					toast.error(result.error);
 				}
@@ -79,6 +86,7 @@ export function CardInteractionBar({
 		);
 
 		toggleReactionAction(cardId, emoji).then((result) => {
+			pendingToggles.current.delete(emoji);
 			if (!result.success) {
 				toast.error(result.error);
 			}
@@ -94,11 +102,13 @@ export function CardInteractionBar({
 
 	async function handleCommentsChange(comments: CardComment[]) {
 		await queryClient.cancelQueries({ queryKey: ["card-interactions", cardId, currentUserId] });
+		let seededFromScratch = false;
 		queryClient.setQueryData<{ success: boolean; data: CardInteractions }>(
 			["card-interactions", cardId, currentUserId],
 			(old) => {
 				// Seed cache from scratch if the lazy query hasn't fired yet
 				if (!old?.data) {
+					seededFromScratch = true;
 					return {
 						success: true,
 						data: {
@@ -118,6 +128,10 @@ export function CardInteractionBar({
 				};
 			},
 		);
+		// Refetch to reconcile pre-existing reactions/comments the seed doesn't know about
+		if (seededFromScratch) {
+			queryClient.invalidateQueries({ queryKey: ["card-interactions", cardId, currentUserId] });
+		}
 	}
 
 	const reactions = interactions?.reactions ?? [];

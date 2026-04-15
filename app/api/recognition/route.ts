@@ -68,9 +68,18 @@ export async function GET(request: NextRequest) {
 			},
 		};
 
-		const mapCounts = <T extends { _count: { reactions: number; comments: number } }>(
+		const mapCounts = <T extends { _count: { reactions: number; comments: number }; senderId: string; recipientId: string }>(
 			{ _count, ...card }: T,
-		) => ({ ...card, interactionCounts: _count });
+		) => ({
+			...card,
+			// Only expose interaction counts to participants (sender/recipient/admin)
+			interactionCounts:
+				card.senderId === session.user.id ||
+				card.recipientId === session.user.id ||
+				isAdmin
+					? _count
+					: null,
+		});
 
 		const isExport = request.nextUrl.searchParams.get("export") === "true";
 
