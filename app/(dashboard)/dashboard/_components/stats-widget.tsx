@@ -66,7 +66,7 @@ function StatItem({
 
 function StatsWidgetSkeleton() {
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6" aria-busy="true" aria-label="Loading recognition stats">
+		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6 h-full" aria-busy="true" aria-label="Loading recognition stats">
 			<div className="h-5 w-32 bg-gray-200 dark:bg-white/10 rounded" />
 			<div className="grid grid-cols-3 gap-4">
 				{[1, 2, 3].map((i) => (
@@ -111,7 +111,7 @@ export function StatsWidget() {
 
 	if (isError || !data?.data) {
 		return (
-			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] h-full">
 				<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight mb-2">
 					Recognition Stats
 				</h3>
@@ -125,12 +125,12 @@ export function StatsWidget() {
 	const stats = data.data;
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] space-y-6">
-			<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight">
+		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6 h-full">
+			<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight shrink-0">
 				Recognition Stats
 			</h3>
 
-			<div className="grid grid-cols-3 gap-4">
+			<div className="grid grid-cols-3 gap-4 shrink-0">
 				<StatItem
 					icon={Send}
 					label="Cards Sent"
@@ -149,14 +149,14 @@ export function StatsWidget() {
 			</div>
 
 			{stats?.topRecipients && stats.topRecipients.length > 0 && (
-				<div>
-					<div className="flex items-center gap-2 mb-3">
+				<div className="flex flex-col min-h-0 flex-1">
+					<div className="flex items-center gap-2 mb-3 shrink-0">
 						<Trophy size={16} className="text-primary" />
 						<h4 className="text-sm font-medium text-foreground/70">
 							Most Recognized
 						</h4>
 					</div>
-					<ol className="space-y-2 max-h-80 overflow-y-auto pr-1">
+					<ol className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
 						{stats.topRecipients.map((person, index) => {
 							const isPodium = index < 3;
 							const style = isPodium ? PODIUM_STYLES[index] : null;
