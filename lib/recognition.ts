@@ -1,3 +1,35 @@
+export const REACTION_EMOJIS = ["👏", "❤️", "🔥", "🎉", "💪", "😊"] as const;
+export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
+
+export interface CardReactionSummary {
+	emoji: string;
+	count: number;
+	hasReacted: boolean;
+}
+
+export interface CardCommentUser {
+	id: string;
+	firstName: string;
+	lastName: string;
+	avatar: string | null;
+	position: string | null;
+}
+
+export interface CardComment {
+	id: string;
+	body: string;
+	createdAt: string;
+	updatedAt: string;
+	userId: string;
+	user: CardCommentUser;
+}
+
+export interface CardInteractions {
+	reactions: CardReactionSummary[];
+	comments: CardComment[];
+	totalComments: number;
+}
+
 export interface RecognitionUser {
 	id: string;
 	firstName: string;
@@ -18,6 +50,8 @@ export interface RecognitionCard {
 	valuesRespect: boolean;
 	valuesCommunication: boolean;
 	valuesContinuousImprovement: boolean;
+	interactionCounts: { reactions: number; comments: number } | null;
+	reactionSummary?: { emoji: string; count: number; hasReacted: boolean }[];
 }
 
 export const COMPANY_VALUES = [

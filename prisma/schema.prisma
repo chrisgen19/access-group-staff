@@ -49,6 +49,8 @@ model User {
   sentRecognitions     RecognitionCard[] @relation("sender")
   receivedRecognitions RecognitionCard[] @relation("recipient")
   notifications        Notification[]
+  cardReactions        CardReaction[]
+  cardComments         CardComment[]
 
   @@map("users")
 }
@@ -138,8 +140,40 @@ model RecognitionCard {
   valuesContinuousImprovement Boolean @default(false) @map("values_continuous_improvement")
 
   notifications Notification[]
+  reactions     CardReaction[]
+  comments      CardComment[]
 
   @@map("recognition_cards")
+}
+
+model CardReaction {
+  id        String   @id @default(uuid())
+  emoji     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  cardId String          @map("card_id")
+  card   RecognitionCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId String          @map("user_id")
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, userId, emoji])
+  @@index([cardId])
+  @@map("card_reactions")
+}
+
+model CardComment {
+  id        String   @id @default(uuid())
+  body      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cardId String          @map("card_id")
+  card   RecognitionCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  userId String          @map("user_id")
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([cardId, createdAt])
+  @@map("card_comments")
 }
 
 model Notification {

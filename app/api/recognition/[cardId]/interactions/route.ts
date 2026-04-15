@@ -1,0 +1,104 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { requireSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
+import { REACTION_EMOJIS } from "@/lib/recognition";
+import type { Role } from "@/app/generated/prisma/client";
+
+export async function GET(
+	_req: Request,
+	{ params }: { params: Promise<{ cardId: string }> },
+) {
+	let session: Awaited<ReturnType<typeof requireSession>>;
+	try {
+		session = await requireSession();
+	} catch {
+		return NextResponse.json(
+			{ success: false, error: "Unauthorized" },
+			{ status: 401 },
+		);
+	}
+
+	try {
+		const { cardId } = await params;
+
+		const card = await prisma.recognitionCard.findUnique({
+			where: { id: cardId },
+			select: { id: true, senderId: true, recipientId: true },
+		});
+
+		if (!card) {
+			return NextResponse.json(
+				{ success: false, error: "Card not found" },
+				{ status: 404 },
+			);
+		}
+
+		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const isParticipant =
+			card.senderId === session.user.id || card.recipientId === session.user.id;
+		if (!isParticipant && !isAdmin) {
+			return NextResponse.json(
+				{ success: false, error: "Forbidden" },
+				{ status: 403 },
+			);
+		}
+
+		const [allReactions, comments] = await Promise.all([
+			prisma.cardReaction.findMany({
+				where: { cardId },
+				select: { emoji: true, userId: true },
+			}),
+			prisma.cardComment.findMany({
+				where: { cardId },
+				select: {
+					id: true,
+					body: true,
+					createdAt: true,
+					updatedAt: true,
+					userId: true,
+					user: {
+						select: {
+							id: true,
+							firstName: true,
+							lastName: true,
+							avatar: true,
+							position: true,
+						},
+					},
+				},
+				orderBy: { createdAt: "asc" },
+			}),
+		]);
+
+		const reactionMap = new Map<string, { count: number; hasReacted: boolean }>();
+		for (const emoji of REACTION_EMOJIS) {
+			reactionMap.set(emoji, { count: 0, hasReacted: false });
+		}
+		for (const r of allReactions) {
+			const entry = reactionMap.get(r.emoji);
+			if (entry) {
+				entry.count += 1;
+				if (r.userId === session.user.id) entry.hasReacted = true;
+			}
+		}
+
+		const reactions = Array.from(reactionMap.entries()).map(
+			([emoji, { count, hasReacted }]) => ({ emoji, count, hasReacted }),
+		);
+
+		return NextResponse.json({
+			success: true,
+			data: {
+				reactions,
+				comments,
+				totalComments: comments.length,
+			},
+		});
+	} catch {
+		return NextResponse.json(
+			{ success: false, error: "Failed to fetch interactions" },
+			{ status: 500 },
+		);
+	}
+}

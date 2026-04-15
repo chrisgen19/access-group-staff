@@ -23,7 +23,12 @@ const FEED_TABS = [
 	},
 ];
 
-export function RecognitionFeedWidget() {
+interface RecognitionFeedWidgetProps {
+	currentUserId: string;
+	isAdmin: boolean;
+}
+
+export function RecognitionFeedWidget({ currentUserId, isAdmin }: RecognitionFeedWidgetProps) {
 	const [activeTab, setActiveTab] = useState<"all" | "department">("all");
 	const currentTab = FEED_TABS.find((t) => t.key === activeTab)!;
 
@@ -65,6 +70,8 @@ export function RecognitionFeedWidget() {
 				<RecognitionFeed
 					filter={activeTab}
 					showTitle={false}
+					currentUserId={currentUserId}
+					isAdmin={isAdmin}
 					emptyTitle={currentTab.emptyTitle}
 					emptyDescription={currentTab.emptyDescription}
 				/>
