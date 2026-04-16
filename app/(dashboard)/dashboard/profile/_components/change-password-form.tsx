@@ -35,6 +35,7 @@ export function ChangePasswordForm() {
 			const result = await changePassword({
 				currentPassword: data.currentPassword,
 				newPassword: data.newPassword,
+				revokeOtherSessions: true,
 			});
 
 			if (result.error) {

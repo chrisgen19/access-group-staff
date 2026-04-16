@@ -127,11 +127,27 @@ export async function getUsersAction() {
 
 export async function adminResetPasswordAction(userId: string, formData: unknown) {
 	try {
-		await requireRole("ADMIN");
+		const session = await requireRole("ADMIN");
 		const parsed = adminResetPasswordSchema.safeParse(formData);
 
 		if (!parsed.success) {
 			return { success: false as const, error: parsed.error.flatten().fieldErrors };
+		}
+
+		const targetUser = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { role: true },
+		});
+
+		if (!targetUser) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		if (!canAssignRole(session.user.role as Role, targetUser.role)) {
+			return {
+				success: false as const,
+				error: "Insufficient permissions to reset this user's password",
+			};
 		}
 
 		const account = await prisma.account.findFirst({
@@ -144,10 +160,15 @@ export async function adminResetPasswordAction(userId: string, formData: unknown
 
 		const hashedPassword = await hashPassword(parsed.data.newPassword);
 
-		await prisma.account.update({
-			where: { id: account.id },
-			data: { password: hashedPassword },
-		});
+		await prisma.$transaction([
+			prisma.account.update({
+				where: { id: account.id },
+				data: { password: hashedPassword },
+			}),
+			prisma.session.deleteMany({
+				where: { userId },
+			}),
+		]);
 
 		return { success: true as const, data: null };
 	} catch (error) {
