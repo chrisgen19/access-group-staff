@@ -1,5 +1,4 @@
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth";
+import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { uploadToR2, deleteFromR2, getAvatarKey, getPublicUrl, extractKeyFromUrl } from "@/lib/r2";
 
@@ -7,12 +6,9 @@ const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE = 500_000; // 500KB — compressed 200×200 should be well under this
 
 export async function POST(request: Request) {
-	const session = await auth.api.getSession({ headers: await headers() });
-	if (!session) {
-		return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
-	}
-
 	try {
+		const session = await requireSession();
+
 		const formData = await request.formData();
 		const file = formData.get("file");
 
@@ -35,9 +31,9 @@ export async function POST(request: Request) {
 		});
 
 		const buffer = Buffer.from(await file.arrayBuffer());
-		const key = getAvatarKey(session.user.id);
+		const key = getAvatarKey(session.user.id, file.type);
 
-		await uploadToR2(key, buffer, "image/jpeg");
+		await uploadToR2(key, buffer, file.type);
 
 		const url = getPublicUrl(key);
 
@@ -46,17 +42,18 @@ export async function POST(request: Request) {
 			data: { avatar: url },
 		});
 
-		// Delete old file from R2 after DB is updated — non-fatal
+		// Delete old file from R2 after DB is updated — non-fatal but awaited
 		if (user?.avatar) {
 			const oldKey = extractKeyFromUrl(user.avatar);
 			if (oldKey) {
-				deleteFromR2(oldKey).catch(() => {});
+				await deleteFromR2(oldKey).catch(() => {});
 			}
 		}
 
 		return Response.json({ success: true, data: { url } });
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Upload failed";
-		return Response.json({ success: false, error: message }, { status: 500 });
+		const status = message === "Unauthorized" || message === "Account deactivated" ? 401 : 500;
+		return Response.json({ success: false, error: message }, { status });
 	}
 }

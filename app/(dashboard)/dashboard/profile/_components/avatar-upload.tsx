@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { removeAvatarAction } from "@/lib/actions/profile-actions";
+import { authClient } from "@/lib/auth-client";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +98,7 @@ export function AvatarUpload({
 			if (result.success) {
 				toast.success("Photo updated");
 				setPreview(null);
+				await authClient.getSession();
 				router.refresh();
 			} else {
 				toast.error(result.error ?? "Failed to save photo");
@@ -114,6 +116,7 @@ export function AvatarUpload({
 			const result = await removeAvatarAction();
 			if (result.success) {
 				toast.success("Photo removed");
+				await authClient.getSession();
 				router.refresh();
 			} else {
 				toast.error(result.error ?? "Failed to remove photo");
