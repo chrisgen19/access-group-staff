@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
 import {
 	createUserSchema,
@@ -45,6 +45,7 @@ export function UserForm({
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [isLoading, setIsLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const isCreate = mode === "create";
 
 	const {
@@ -152,7 +153,22 @@ export function UserForm({
 									<label htmlFor="password" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
 										Password
 									</label>
-									<input id="password" type="password" className={inputClass} {...register("password")} />
+									<div className="relative">
+										<input
+											id="password"
+											type={showPassword ? "text" : "password"}
+											className={`${inputClass} pr-11`}
+											{...register("password")}
+										/>
+										<button
+											type="button"
+											onClick={() => setShowPassword((prev) => !prev)}
+											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+											tabIndex={-1}
+										>
+											{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+										</button>
+									</div>
 									{errors.password && (
 										<p className="mt-1 text-sm text-destructive">{errors.password.message}</p>
 									)}

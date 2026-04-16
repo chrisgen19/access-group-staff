@@ -3,8 +3,10 @@
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { requireRole, requireSession } from "@/lib/auth-utils";
+import { hashPassword } from "better-auth/crypto";
 import { canAssignRole } from "@/lib/permissions";
 import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
+import { adminResetPasswordSchema } from "@/lib/validations/auth";
 import type { Role } from "@/app/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 
@@ -119,6 +121,58 @@ export async function getUsersAction() {
 		return { success: true as const, data: users };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to fetch users";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function adminResetPasswordAction(userId: string, formData: unknown) {
+	try {
+		const session = await requireRole("ADMIN");
+		const parsed = adminResetPasswordSchema.safeParse(formData);
+
+		if (!parsed.success) {
+			return { success: false as const, error: parsed.error.flatten().fieldErrors };
+		}
+
+		const targetUser = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { role: true },
+		});
+
+		if (!targetUser) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		if (!canAssignRole(session.user.role as Role, targetUser.role)) {
+			return {
+				success: false as const,
+				error: "Insufficient permissions to reset this user's password",
+			};
+		}
+
+		const account = await prisma.account.findFirst({
+			where: { userId, providerId: "credential" },
+		});
+
+		if (!account) {
+			return { success: false as const, error: "User does not have a password-based account" };
+		}
+
+		const hashedPassword = await hashPassword(parsed.data.newPassword);
+
+		await prisma.$transaction([
+			prisma.account.update({
+				where: { id: account.id },
+				data: { password: hashedPassword },
+			}),
+			prisma.session.deleteMany({
+				where: { userId },
+			}),
+		]);
+
+		return { success: true as const, data: null };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to reset password";
 		return { success: false as const, error: message };
 	}
 }
