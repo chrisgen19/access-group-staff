@@ -19,7 +19,14 @@ interface AvatarUploadProps {
 interface Preview {
 	dataUrl: string;
 	blob: Blob;
+	filename: string;
 }
+
+const MIME_EXT: Record<string, string> = {
+	"image/jpeg": "jpg",
+	"image/png": "png",
+	"image/webp": "webp",
+};
 
 function compressToBlob(file: File): Promise<Preview> {
 	return new Promise((resolve, reject) => {
@@ -33,9 +40,12 @@ function compressToBlob(file: File): Promise<Preview> {
 				const ctx = canvas.getContext("2d");
 				if (!ctx) return reject(new Error("Canvas not available"));
 
-				// Fill white so transparent PNGs/WebPs don't get a dark background
-				ctx.fillStyle = "#ffffff";
-				ctx.fillRect(0, 0, 200, 200);
+				// Only fill white for JPEG (no alpha channel) — preserve transparency for PNG/WebP
+				const outputType = MIME_EXT[file.type] ? file.type : "image/jpeg";
+				if (outputType === "image/jpeg") {
+					ctx.fillStyle = "#ffffff";
+					ctx.fillRect(0, 0, 200, 200);
+				}
 
 				// Centre-crop to square before resizing
 				const size = Math.min(img.width, img.height);
@@ -43,14 +53,16 @@ function compressToBlob(file: File): Promise<Preview> {
 				const sy = (img.height - size) / 2;
 				ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
 
-				const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+				const quality = outputType === "image/png" ? undefined : 0.8;
+				const ext = MIME_EXT[outputType] ?? "jpg";
+				const dataUrl = canvas.toDataURL(outputType, quality);
 				canvas.toBlob(
 					(blob) => {
-						if (blob) resolve({ dataUrl, blob });
+						if (blob) resolve({ dataUrl, blob, filename: `avatar.${ext}` });
 						else reject(new Error("Compression failed"));
 					},
-					"image/jpeg",
-					0.8,
+					outputType,
+					quality,
 				);
 			};
 			img.onerror = reject;
@@ -91,7 +103,7 @@ export function AvatarUpload({
 		setIsSaving(true);
 		try {
 			const formData = new FormData();
-			formData.append("file", preview.blob, "avatar.jpg");
+			formData.append("file", preview.blob, preview.filename);
 
 			const res = await fetch("/api/upload/avatar", {
 				method: "POST",
@@ -102,7 +114,8 @@ export function AvatarUpload({
 			if (result.success) {
 				toast.success("Photo updated");
 				setPreview(null);
-				await authClient.getSession();
+				// updateUser triggers the session broadcast so useSession() picks up the change
+				await authClient.updateUser({ avatar: result.data.url });
 				router.refresh();
 			} else {
 				toast.error(result.error ?? "Failed to save photo");
@@ -120,7 +133,7 @@ export function AvatarUpload({
 			const result = await removeAvatarAction();
 			if (result.success) {
 				toast.success("Photo removed");
-				await authClient.getSession();
+				await authClient.updateUser({ avatar: "" });
 				router.refresh();
 			} else {
 				toast.error(result.error ?? "Failed to remove photo");
