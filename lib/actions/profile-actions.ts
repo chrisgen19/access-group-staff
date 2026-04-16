@@ -25,17 +25,18 @@ export async function removeAvatarAction() {
 			select: { avatar: true },
 		});
 
+		// Clear DB first so a failed R2 delete never leaves a broken avatar link
+		await prisma.user.update({
+			where: { id: session.user.id },
+			data: { avatar: null },
+		});
+
 		if (user?.avatar) {
 			const key = extractKeyFromUrl(user.avatar);
 			if (key) {
 				await deleteFromR2(key).catch(() => {});
 			}
 		}
-
-		await prisma.user.update({
-			where: { id: session.user.id },
-			data: { avatar: null },
-		});
 
 		revalidatePath("/dashboard");
 		return { success: true as const, data: null };

@@ -30,14 +30,14 @@ export function UserAvatar({
 	className,
 }: UserAvatarProps) {
 	const src = avatar ?? image ?? null;
-	const [errored, setErrored] = useState(false);
+	const [erroredSrc, setErroredSrc] = useState<string | null>(null);
 
-	if (src && !errored) {
+	if (src && src !== erroredSrc) {
 		return (
 			<img
 				src={src}
 				alt={`${firstName} ${lastName}`}
-				onError={() => setErrored(true)}
+				onError={() => setErroredSrc(src)}
 				className={cn(
 					"rounded-full object-cover shrink-0",
 					SIZE_CLASSES[size],

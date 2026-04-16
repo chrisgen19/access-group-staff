@@ -33,6 +33,10 @@ function compressToBlob(file: File): Promise<Preview> {
 				const ctx = canvas.getContext("2d");
 				if (!ctx) return reject(new Error("Canvas not available"));
 
+				// Fill white so transparent PNGs/WebPs don't get a dark background
+				ctx.fillStyle = "#ffffff";
+				ctx.fillRect(0, 0, 200, 200);
+
 				// Centre-crop to square before resizing
 				const size = Math.min(img.width, img.height);
 				const sx = (img.width - size) / 2;
