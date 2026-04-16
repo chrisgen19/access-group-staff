@@ -13,5 +13,9 @@ export default async function NewUserPage() {
 
 	const departments = await prisma.department.findMany({ orderBy: { name: "asc" } });
 
-	return <UserForm mode="create" currentUserRole={session.user.role as string} departments={departments} />;
+	return (
+		<div className="max-w-7xl mx-auto space-y-8 mt-2">
+			<UserForm mode="create" currentUserRole={session.user.role as string} departments={departments} />
+		</div>
+	);
 }

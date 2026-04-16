@@ -21,7 +21,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 	if (!user) notFound();
 
 	return (
-		<div className="space-y-8">
+		<div className="max-w-7xl mx-auto space-y-8 mt-2">
 			<UserForm
 				mode="edit"
 				userId={user.id}
