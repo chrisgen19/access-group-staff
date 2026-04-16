@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { adminResetPasswordAction } from "@/lib/actions/user-actions";
 import {
 	adminResetPasswordSchema,
@@ -12,7 +12,7 @@ import {
 } from "@/lib/validations/auth";
 
 const inputClass =
-	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
+	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
 interface ResetPasswordFormProps {
 	userId: string;
@@ -21,6 +21,8 @@ interface ResetPasswordFormProps {
 
 export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) {
 	const [isLoading, setIsLoading] = useState(false);
+	const [showNewPassword, setShowNewPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
 	const {
 		register,
@@ -74,12 +76,22 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 						>
 							New Password
 						</label>
-						<input
-							id="newPassword"
-							type="password"
-							className={inputClass}
-							{...register("newPassword")}
-						/>
+						<div className="relative">
+							<input
+								id="newPassword"
+								type={showNewPassword ? "text" : "password"}
+								className={inputClass}
+								{...register("newPassword")}
+							/>
+							<button
+								type="button"
+								onClick={() => setShowNewPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								tabIndex={-1}
+							>
+								{showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+							</button>
+						</div>
 						{errors.newPassword && (
 							<p className="mt-1 text-sm text-destructive">
 								{errors.newPassword.message}
@@ -94,12 +106,22 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 						>
 							Confirm New Password
 						</label>
-						<input
-							id="confirmPassword"
-							type="password"
-							className={inputClass}
-							{...register("confirmPassword")}
-						/>
+						<div className="relative">
+							<input
+								id="confirmPassword"
+								type={showConfirmPassword ? "text" : "password"}
+								className={inputClass}
+								{...register("confirmPassword")}
+							/>
+							<button
+								type="button"
+								onClick={() => setShowConfirmPassword((prev) => !prev)}
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+								tabIndex={-1}
+							>
+								{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+							</button>
+						</div>
 						{errors.confirmPassword && (
 							<p className="mt-1 text-sm text-destructive">
 								{errors.confirmPassword.message}
