@@ -20,6 +20,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FitText } from "@/components/shared/fit-text";
 import { CardInteractionBar } from "@/app/(dashboard)/dashboard/recognition/_components/card-interaction-bar";
+import { InteractionBarReadonly } from "./interaction-bar-readonly";
 import { FlipCard } from "./flip-card";
 
 const getCard = cache(async function getCard(id: string) {
@@ -148,30 +149,33 @@ export default async function SharePage({
 		: false;
 	const canInteract = session && (isSender || isRecipient || isAdmin);
 
-	const [reactionCounts, userReactions, commentCount] = canInteract && userId
-		? await Promise.all([
-				prisma.cardReaction.groupBy({
-					by: ["emoji"],
-					where: { cardId: id },
-					_count: true,
-				}),
-				prisma.cardReaction.findMany({
+	const [reactionCounts, userReactions, commentCount] = await Promise.all([
+		prisma.cardReaction.groupBy({
+			by: ["emoji"],
+			where: { cardId: id },
+			_count: true,
+		}),
+		canInteract && userId
+			? prisma.cardReaction.findMany({
 					where: { cardId: id, userId },
 					select: { emoji: true },
-				}),
-				prisma.cardComment.count({ where: { cardId: id } }),
-			])
-		: [[], [], 0];
+				})
+			: Promise.resolve([]),
+		prisma.cardComment.count({ where: { cardId: id } }),
+	]);
 
 	const userReactionSet = new Set(userReactions.map((r) => r.emoji));
 	const reactionMap = new Map(
 		reactionCounts.map((r) => [r.emoji, r._count]),
 	);
-	const initialReactions = REACTION_EMOJIS.map((emoji) => ({
+	const publicReactions = REACTION_EMOJIS.map((emoji) => ({
 		emoji,
 		count: reactionMap.get(emoji) ?? 0,
-		hasReacted: userReactionSet.has(emoji),
-	})).filter((r) => r.count > 0 || r.hasReacted);
+	})).filter((r) => r.count > 0);
+	const initialReactions = publicReactions.map((r) => ({
+		...r,
+		hasReacted: userReactionSet.has(r.emoji),
+	}));
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
@@ -382,7 +386,7 @@ export default async function SharePage({
 		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center py-8 px-4">
 			<FlipCard front={card1Front} back={card2Back} />
 
-			{canInteract && userId && (
+			{canInteract && userId ? (
 				<div className="w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 					<CardInteractionBar
 						cardId={id}
@@ -392,7 +396,14 @@ export default async function SharePage({
 						initialReactions={initialReactions}
 					/>
 				</div>
-			)}
+			) : (publicReactions.length > 0 || commentCount > 0) ? (
+				<div className="w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+					<InteractionBarReadonly
+						reactions={publicReactions}
+						commentCount={commentCount}
+					/>
+				</div>
+			) : null}
 
 			<div className="mt-8 text-center">
 				<p className="text-sm text-gray-500">
