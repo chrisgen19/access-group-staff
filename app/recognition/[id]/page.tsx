@@ -2,8 +2,15 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { cache } from "react";
+import { getServerSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
-import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
+import type { Role } from "@/app/generated/prisma/client";
+import {
+	COMPANY_VALUES,
+	REACTION_EMOJIS,
+	formatRecognitionDate,
+} from "@/lib/recognition";
 import {
 	AccessGroupLogo,
 	AccessBusinessLogo,
@@ -12,6 +19,7 @@ import {
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FitText } from "@/components/shared/fit-text";
+import { CardInteractionBar } from "@/app/(dashboard)/dashboard/recognition/_components/card-interaction-bar";
 import { FlipCard } from "./flip-card";
 
 const getCard = cache(async function getCard(id: string) {
@@ -20,6 +28,7 @@ const getCard = cache(async function getCard(id: string) {
 		include: {
 			sender: {
 				select: {
+					id: true,
 					firstName: true,
 					lastName: true,
 					position: true,
@@ -28,6 +37,7 @@ const getCard = cache(async function getCard(id: string) {
 			},
 			recipient: {
 				select: {
+					id: true,
 					firstName: true,
 					lastName: true,
 					position: true,
@@ -126,9 +136,42 @@ export default async function SharePage({
 	params: Promise<{ id: string }>;
 }) {
 	const { id } = await params;
-	const card = await getCard(id);
+	const [card, session] = await Promise.all([getCard(id), getServerSession()]);
 
 	if (!card) notFound();
+
+	const userId = session?.user.id;
+	const isSender = userId === card.sender.id;
+	const isRecipient = userId === card.recipient.id;
+	const isAdmin = session
+		? hasMinRole(session.user.role as Role, "ADMIN")
+		: false;
+	const canInteract = session && (isSender || isRecipient || isAdmin);
+
+	const [reactionCounts, userReactions, commentCount] = canInteract && userId
+		? await Promise.all([
+				prisma.cardReaction.groupBy({
+					by: ["emoji"],
+					where: { cardId: id },
+					_count: true,
+				}),
+				prisma.cardReaction.findMany({
+					where: { cardId: id, userId },
+					select: { emoji: true },
+				}),
+				prisma.cardComment.count({ where: { cardId: id } }),
+			])
+		: [[], [], 0];
+
+	const userReactionSet = new Set(userReactions.map((r) => r.emoji));
+	const reactionMap = new Map(
+		reactionCounts.map((r) => [r.emoji, r._count]),
+	);
+	const initialReactions = REACTION_EMOJIS.map((emoji) => ({
+		emoji,
+		count: reactionMap.get(emoji) ?? 0,
+		hasReacted: userReactionSet.has(emoji),
+	})).filter((r) => r.count > 0 || r.hasReacted);
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
@@ -338,6 +381,18 @@ export default async function SharePage({
 	return (
 		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center py-8 px-4">
 			<FlipCard front={card1Front} back={card2Back} />
+
+			{canInteract && userId && (
+				<div className="w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+					<CardInteractionBar
+						cardId={id}
+						currentUserId={userId}
+						isAdmin={isAdmin}
+						initialCommentCount={commentCount}
+						initialReactions={initialReactions}
+					/>
+				</div>
+			)}
 
 			<div className="mt-8 text-center">
 				<p className="text-sm text-gray-500">
