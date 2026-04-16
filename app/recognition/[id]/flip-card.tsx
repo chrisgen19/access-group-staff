@@ -26,7 +26,7 @@ export function FlipCard({
 
 			{/* Card container with perspective */}
 			<div
-				className="relative w-full"
+				className="relative z-0 w-full"
 				style={{ perspective: "2000px" }}
 			>
 				<div
