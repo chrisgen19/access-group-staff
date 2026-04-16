@@ -35,10 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { RecognitionFilterBar } from "./recognition-filter-bar";
 import { ShareDialog } from "./share-dialog";
-
-function getInitials(firstName: string, lastName: string) {
-	return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-}
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 const PAGE_SIZE = 20;
 
@@ -298,9 +295,13 @@ export function RecognitionTable() {
 										<TableRow key={card.id}>
 											<TableCell>
 												<div className="flex items-center gap-2">
-													<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-														{getInitials(card.sender.firstName, card.sender.lastName)}
-													</div>
+													<UserAvatar
+														firstName={card.sender.firstName}
+														lastName={card.sender.lastName}
+														avatar={card.sender.avatar}
+														size="sm"
+														className="bg-primary/10 text-primary"
+													/>
 													<div className="min-w-0">
 														<p className="text-sm font-medium text-foreground truncate">
 															{card.sender.firstName} {card.sender.lastName}
@@ -315,9 +316,13 @@ export function RecognitionTable() {
 											</TableCell>
 											<TableCell>
 												<div className="flex items-center gap-2">
-													<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-semibold">
-														{getInitials(card.recipient.firstName, card.recipient.lastName)}
-													</div>
+													<UserAvatar
+														firstName={card.recipient.firstName}
+														lastName={card.recipient.lastName}
+														avatar={card.recipient.avatar}
+														size="sm"
+														className="bg-primary/10 text-primary"
+													/>
 													<div className="min-w-0">
 														<p className="text-sm font-medium text-foreground truncate">
 															{card.recipient.firstName} {card.recipient.lastName}

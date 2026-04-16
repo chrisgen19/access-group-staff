@@ -14,6 +14,32 @@ const updateProfileSchema = z.object({
 	lastName: z.string().min(1, "Last name is required").optional(),
 });
 
+export async function updateAvatarAction(avatar: string | null) {
+	try {
+		const session = await requireSession();
+
+		if (avatar !== null) {
+			if (!avatar.startsWith("data:image/") || !avatar.includes(";base64,")) {
+				return { success: false as const, error: "Invalid image format" };
+			}
+			if (avatar.length > 200_000) {
+				return { success: false as const, error: "Image too large. Please pick a smaller photo." };
+			}
+		}
+
+		await prisma.user.update({
+			where: { id: session.user.id },
+			data: { avatar },
+		});
+
+		revalidatePath("/dashboard");
+		return { success: true as const, data: null };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to update photo";
+		return { success: false as const, error: message };
+	}
+}
+
 export async function updateProfileAction(formData: unknown) {
 	try {
 		const session = await requireSession();

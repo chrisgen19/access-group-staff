@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { ProfileForm } from "./_components/profile-form";
+import { AvatarUpload } from "./_components/avatar-upload";
 
 export default async function ProfilePage() {
 	const session = await getServerSession();
@@ -16,8 +17,22 @@ export default async function ProfilePage() {
 			phone: true,
 			position: true,
 			branch: true,
+			avatar: true,
+			image: true,
 		},
 	});
 
-	return <ProfileForm user={user} />;
+	return (
+		<div className="space-y-6">
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-8 py-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)]">
+				<AvatarUpload
+					firstName={user.firstName}
+					lastName={user.lastName}
+					currentAvatar={user.avatar}
+					currentImage={user.image}
+				/>
+			</div>
+			<ProfileForm user={user} />
+		</div>
+	);
 }
