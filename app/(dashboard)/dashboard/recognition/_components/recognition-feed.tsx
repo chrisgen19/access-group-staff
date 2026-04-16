@@ -3,7 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Heart, ArrowRight, Eye, Share2, Pencil } from "lucide-react";
-import { cn, getInitials } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import {
 	type RecognitionCard,
 	getSelectedValues,
@@ -220,12 +221,13 @@ export function RecognitionFeed({
 						className={cn("group rounded-[2rem] border bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", isNewCard ? "border-primary/40 ring-1 ring-primary/20" : "border-gray-200/60 dark:border-white/10", cardMaxWidth)}
 					>
 						<div className="flex items-center gap-3 mb-3">
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
-								{getInitials(
-									card.sender.firstName,
-									card.sender.lastName,
-								)}
-							</div>
+							<UserAvatar
+								firstName={card.sender.firstName}
+								lastName={card.sender.lastName}
+								avatar={card.sender.avatar}
+								size="lg"
+								className="bg-primary/10 text-primary"
+							/>
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
 									{card.sender.firstName}{" "}
@@ -241,12 +243,13 @@ export function RecognitionFeed({
 								size={16}
 								className="text-muted-foreground mx-1"
 							/>
-							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold">
-								{getInitials(
-									card.recipient.firstName,
-									card.recipient.lastName,
-								)}
-							</div>
+							<UserAvatar
+								firstName={card.recipient.firstName}
+								lastName={card.recipient.lastName}
+								avatar={card.recipient.avatar}
+								size="lg"
+								className="bg-primary/10 text-primary"
+							/>
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
 									{card.recipient.firstName}{" "}

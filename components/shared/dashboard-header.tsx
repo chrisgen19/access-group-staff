@@ -7,6 +7,7 @@ import { signOut, useSession } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { NotificationBell } from "@/components/shared/notification-bell";
 import { MobileSidebarTrigger } from "@/components/shared/dashboard-sidebar";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import {
 	DropdownMenu,
 	DropdownMenuTrigger,
@@ -19,9 +20,6 @@ export function DashboardHeader() {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const user = session?.user;
-	const initial = user
-		? ((user.firstName as string)?.[0] ?? user.name?.[0] ?? "?").toUpperCase()
-		: "?";
 
 	async function handleSignOut() {
 		try {
@@ -47,9 +45,14 @@ export function DashboardHeader() {
 				{user && (
 					<DropdownMenu>
 						<DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1.5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer outline-none">
-							<div className="flex h-9 w-9 items-center justify-center rounded-full bg-[oklch(0.96_0.03_18)] text-primary text-sm font-medium dark:bg-primary/15">
-								{initial}
-							</div>
+							<UserAvatar
+								firstName={user.firstName ?? ""}
+								lastName={user.lastName ?? ""}
+								avatar={user.avatar}
+								image={user.image}
+								size="md"
+								className="bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15"
+							/>
 							<span className="hidden text-sm font-medium text-foreground sm:block">
 								{user.name}
 							</span>

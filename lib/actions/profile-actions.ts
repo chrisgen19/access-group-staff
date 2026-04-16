@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth-utils";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { deleteFromR2, extractKeyFromUrl } from "@/lib/r2";
 
 const updateProfileSchema = z.object({
 	displayName: z.string().optional(),
@@ -13,6 +14,37 @@ const updateProfileSchema = z.object({
 	firstName: z.string().min(1, "First name is required").optional(),
 	lastName: z.string().min(1, "Last name is required").optional(),
 });
+
+/** Removes the user's avatar — deletes from R2 if applicable, clears DB. */
+export async function removeAvatarAction() {
+	try {
+		const session = await requireSession();
+
+		const user = await prisma.user.findUnique({
+			where: { id: session.user.id },
+			select: { avatar: true },
+		});
+
+		// Clear DB first so a failed R2 delete never leaves a broken avatar link
+		await prisma.user.update({
+			where: { id: session.user.id },
+			data: { avatar: null },
+		});
+
+		if (user?.avatar) {
+			const key = extractKeyFromUrl(user.avatar);
+			if (key) {
+				await deleteFromR2(key).catch(() => {});
+			}
+		}
+
+		revalidatePath("/dashboard");
+		return { success: true as const, data: null };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to remove photo";
+		return { success: false as const, error: message };
+	}
+}
 
 export async function updateProfileAction(formData: unknown) {
 	try {

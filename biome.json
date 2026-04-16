@@ -7,7 +7,7 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"ignore": ["node_modules", ".next", "prisma/generated"]
+		"includes": ["**", "!node_modules", "!.next", "!prisma/generated", "!app/generated"]
 	},
 	"formatter": {
 		"enabled": true,

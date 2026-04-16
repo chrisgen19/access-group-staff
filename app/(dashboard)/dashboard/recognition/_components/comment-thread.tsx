@@ -3,7 +3,8 @@
 import { useState, useTransition } from "react";
 import { Pencil, Trash2, Check, X } from "lucide-react";
 import { toast } from "sonner";
-import { cn, getInitials } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import type { CardComment } from "@/lib/recognition";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -85,9 +86,13 @@ function CommentItem({
 
 	return (
 		<div className="flex gap-2.5 group/comment">
-			<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
-				{getInitials(comment.user.firstName, comment.user.lastName)}
-			</div>
+			<UserAvatar
+				firstName={comment.user.firstName}
+				lastName={comment.user.lastName}
+				avatar={comment.user.avatar}
+				size="xs"
+				className="bg-primary/10 text-primary"
+			/>
 			<div className="flex-1 min-w-0">
 				<div className="rounded-2xl rounded-tl-sm bg-muted/60 dark:bg-white/5 px-3 py-2">
 					<div className="flex items-baseline gap-1.5 mb-0.5">
@@ -271,11 +276,13 @@ export function CommentThread({
 
 			{/* Comment input */}
 			<div className="flex gap-2.5 items-end">
-				<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
-					{session?.user
-						? getInitials(session.user.firstName, session.user.lastName)
-						: "Me"}
-				</div>
+				<UserAvatar
+					firstName={session?.user?.firstName ?? ""}
+					lastName={session?.user?.lastName ?? ""}
+					avatar={session?.user?.avatar}
+					size="xs"
+					className="bg-primary/10 text-primary"
+				/>
 				<div
 					className={cn(
 						"flex flex-1 items-end gap-2 rounded-2xl rounded-bl-sm border border-border/60 bg-muted/40 dark:bg-white/5 px-3 py-2 transition-colors",

@@ -8,6 +8,7 @@ import { Plus, Search, Eye, Pencil, UserX, UserCheck, Users } from "lucide-react
 import { toggleUserActiveAction } from "@/lib/actions/user-actions";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 interface User {
 	id: string;
@@ -15,6 +16,8 @@ interface User {
 	email: string;
 	firstName: string;
 	lastName: string;
+	avatar: string | null;
+	image: string | null;
 	role: string;
 	isActive: boolean;
 	position: string | null;
@@ -145,10 +148,14 @@ export function UserListClient({ currentUserRole }: { currentUserRole: string })
 									>
 										<td className="whitespace-nowrap px-8 py-5">
 											<div className="flex items-center">
-												<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-100 dark:border-white/10 bg-background text-primary text-sm font-medium">
-													{user.firstName.charAt(0)}
-													{user.lastName.charAt(0)}
-												</div>
+												<UserAvatar
+													firstName={user.firstName}
+													lastName={user.lastName}
+													avatar={user.avatar}
+													image={user.image}
+													size="lg"
+													className="border border-gray-100 dark:border-white/10 bg-background text-primary"
+												/>
 												<div className="ml-4">
 													<div className="text-sm font-medium text-foreground">
 														{user.firstName} {user.lastName}

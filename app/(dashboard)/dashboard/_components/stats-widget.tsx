@@ -2,8 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Send, Inbox, Calendar, Trophy, Medal } from "lucide-react";
-import { getInitials } from "@/lib/utils";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/shared/user-avatar";
 
 const PODIUM_STYLES = [
 	{
@@ -181,19 +181,17 @@ export function StatsWidget() {
 											{index + 1}
 										</span>
 									)}
-									<div
+									<UserAvatar
+										firstName={person.firstName}
+										lastName={person.lastName}
+										avatar={person.avatar}
+										size={isPodium ? "md" : "sm"}
 										className={cn(
-											"flex items-center justify-center rounded-full text-xs font-semibold shrink-0",
 											isPodium
-												? cn("h-9 w-9", style?.ring, style?.bg, style?.text)
-												: "h-8 w-8 bg-primary/10 text-primary",
+												? cn(style?.ring, style?.bg, style?.text)
+												: "bg-primary/10 text-primary",
 										)}
-									>
-										{getInitials(
-											person.firstName,
-											person.lastName,
-										)}
-									</div>
+									/>
 									<span
 										className={cn(
 											"flex-1 truncate",
