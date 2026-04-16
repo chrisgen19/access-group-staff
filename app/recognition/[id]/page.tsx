@@ -11,6 +11,7 @@ import {
 } from "@/components/shared/access-logos";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FitText } from "@/components/shared/fit-text";
 import { FlipCard } from "./flip-card";
 
 const getCard = cache(async function getCard(id: string) {
@@ -146,9 +147,7 @@ export default async function SharePage({
 							<span className="text-xs font-black text-black mb-1">
 								TEAM MEMBER NAME
 							</span>
-							<span className="text-lg text-[#222]">
-								{recipientName}
-							</span>
+							<FitText className="text-lg text-[#222]">{recipientName}</FitText>
 						</div>
 
 						<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm min-h-[160px] flex-grow">
@@ -173,9 +172,7 @@ export default async function SharePage({
 							<span className="text-xs font-black text-black mb-1">
 								MY NAME
 							</span>
-							<span className="text-lg text-[#222]">
-								{senderName}
-							</span>
+							<FitText className="text-lg text-[#222]">{senderName}</FitText>
 						</div>
 
 						<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
@@ -237,13 +234,11 @@ export default async function SharePage({
 
 				{/* Left Column */}
 				<div className="flex-1 flex flex-col gap-4">
-					<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col h-20 shadow-sm">
+					<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col min-h-20 shadow-sm">
 						<span className="text-xs font-black text-black mb-1">
 							TO
 						</span>
-						<span className="text-lg text-[#222]">
-							{recipientName}
-						</span>
+						<FitText className="text-lg text-[#222]">{recipientName}</FitText>
 					</div>
 
 					<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-grow min-h-[300px] shadow-sm relative">
@@ -282,15 +277,13 @@ export default async function SharePage({
 					</div>
 
 					<div className="flex gap-4">
-						<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
+						<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 min-h-20 shadow-sm">
 							<span className="text-xs font-black text-black mb-1">
 								FROM
 							</span>
-							<span className="text-lg text-[#222]">
-								{senderName}
-							</span>
+							<FitText className="text-lg text-[#222]">{senderName}</FitText>
 						</div>
-						<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
+						<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 min-h-20 shadow-sm">
 							<span className="text-xs font-black text-black mb-1">
 								DATE
 							</span>
