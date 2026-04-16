@@ -277,9 +277,9 @@ export function CommentThread({
 			{/* Comment input */}
 			<div className="flex gap-2.5 items-end">
 				<UserAvatar
-					firstName={(session?.user?.firstName as string) ?? ""}
-					lastName={(session?.user?.lastName as string) ?? ""}
-					avatar={session?.user?.avatar as string | null | undefined}
+					firstName={session?.user?.firstName ?? ""}
+					lastName={session?.user?.lastName ?? ""}
+					avatar={session?.user?.avatar}
 					size="xs"
 					className="bg-primary/10 text-primary"
 				/>

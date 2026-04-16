@@ -159,9 +159,9 @@ export function AvatarUpload({
 					lastName={lastName}
 					avatar={displayAvatar}
 					image={currentImage}
-					size="lg"
+					size="xl"
 					className={cn(
-						"!h-20 !w-20 !text-2xl border-2 border-gray-200 dark:border-white/10",
+						"border-2 border-gray-200 dark:border-white/10",
 						!displayAvatar && !currentImage && "bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15",
 					)}
 				/>

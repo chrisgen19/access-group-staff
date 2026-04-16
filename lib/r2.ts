@@ -1,11 +1,14 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/env";
 
+let _r2: S3Client | null = null;
+
 function getR2Client(): S3Client {
+	if (_r2) return _r2;
 	if (!env.CLOUDFLARE_ACCOUNT_ID || !env.R2_ACCESS_KEY_ID || !env.R2_SECRET_ACCESS_KEY) {
 		throw new Error("R2 environment variables are not configured");
 	}
-	return new S3Client({
+	_r2 = new S3Client({
 		region: "auto",
 		endpoint: `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
 		credentials: {
@@ -13,6 +16,7 @@ function getR2Client(): S3Client {
 			secretAccessKey: env.R2_SECRET_ACCESS_KEY,
 		},
 	});
+	return _r2;
 }
 
 const MIME_EXTENSIONS: Record<string, string> = {
@@ -45,6 +49,7 @@ export async function uploadToR2(key: string, body: Buffer, contentType: string)
 			Key: key,
 			Body: body,
 			ContentType: contentType,
+			CacheControl: "public, max-age=31536000, immutable",
 		}),
 	);
 }

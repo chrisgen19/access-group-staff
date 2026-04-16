@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { cn, getInitials } from "@/lib/utils";
 
-export type AvatarSize = "xs" | "sm" | "md" | "lg";
+export type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 const SIZE_CLASSES: Record<AvatarSize, string> = {
 	xs: "h-7 w-7 text-[10px]",
 	sm: "h-8 w-8 text-xs",
 	md: "h-9 w-9 text-xs",
 	lg: "h-10 w-10 text-sm",
+	xl: "h-20 w-20 text-2xl",
 };
 
 interface UserAvatarProps {

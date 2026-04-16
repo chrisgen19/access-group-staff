@@ -46,10 +46,10 @@ export function DashboardHeader() {
 					<DropdownMenu>
 						<DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1.5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer outline-none">
 							<UserAvatar
-								firstName={(user?.firstName as string) ?? ""}
-								lastName={(user?.lastName as string) ?? ""}
-								avatar={user?.avatar as string | null | undefined}
-								image={user?.image as string | null | undefined}
+								firstName={user.firstName ?? ""}
+								lastName={user.lastName ?? ""}
+								avatar={user.avatar}
+								image={user.image}
 								size="md"
 								className="bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15"
 							/>
