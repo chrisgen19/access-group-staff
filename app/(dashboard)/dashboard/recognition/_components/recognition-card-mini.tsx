@@ -12,6 +12,7 @@ import {
 	AccessBusinessLogo,
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
+import { FitText } from "@/components/shared/fit-text";
 import type { CardSize } from "@/stores/use-preferences-store";
 
 const SIZE_CONFIG = {
@@ -158,9 +159,9 @@ export function RecognitionCardMini({
 					<span className={cn("font-black text-black mb-0.5", s.labelText)}>
 						TO
 					</span>
-					<span className={cn("text-[#222]", s.valueText)}>
-						{card.recipient.firstName} {card.recipient.lastName}
-					</span>
+					<FitText className={cn("text-[#222]", s.valueText)}>
+						{`${card.recipient.firstName} ${card.recipient.lastName}`}
+					</FitText>
 				</div>
 
 				{/* WHAT YOU DID */}
@@ -228,9 +229,9 @@ export function RecognitionCardMini({
 						<span className={cn("font-black text-black mb-0.5", s.labelText)}>
 							FROM
 						</span>
-						<span className={cn("text-[#222]", s.valueText)}>
-							{card.sender.firstName} {card.sender.lastName}
-						</span>
+						<FitText className={cn("text-[#222]", s.valueText)}>
+							{`${card.sender.firstName} ${card.sender.lastName}`}
+						</FitText>
 					</div>
 					<div
 						className={cn(
