@@ -3,6 +3,8 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+const SAFETY_FACTOR = 0.98;
+
 interface FitTextProps {
 	children: string;
 	className?: string;
@@ -12,7 +14,7 @@ interface FitTextProps {
 export function FitText({
 	children,
 	className,
-	minFontSize = 10,
+	minFontSize = 11,
 }: FitTextProps) {
 	const ref = useRef<HTMLSpanElement>(null);
 	const [fontSize, setFontSize] = useState<number | null>(null);
@@ -33,7 +35,7 @@ export function FitText({
 				Number.parseFloat(style.paddingRight);
 
 			if (el.scrollWidth > available && available > 0) {
-				const scaled = (available / el.scrollWidth) * baseSize * 0.98;
+				const scaled = (available / el.scrollWidth) * baseSize * SAFETY_FACTOR;
 				setFontSize(Math.max(minFontSize, scaled));
 			} else {
 				setFontSize(null);
@@ -49,7 +51,10 @@ export function FitText({
 	return (
 		<span
 			ref={ref}
-			className={cn("block whitespace-nowrap", className)}
+			className={cn(
+				"block whitespace-nowrap overflow-hidden text-ellipsis",
+				className,
+			)}
 			style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
 		>
 			{children}
