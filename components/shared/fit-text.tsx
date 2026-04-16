@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const SAFETY_FACTOR = 0.98;
@@ -17,7 +17,6 @@ export function FitText({
 	minFontSize = 11,
 }: FitTextProps) {
 	const ref = useRef<HTMLSpanElement>(null);
-	const [fontSize, setFontSize] = useState<number | null>(null);
 
 	useLayoutEffect(() => {
 		const el = ref.current;
@@ -35,17 +34,19 @@ export function FitText({
 				Number.parseFloat(style.paddingRight);
 
 			if (el.scrollWidth > available && available > 0) {
-				const scaled = (available / el.scrollWidth) * baseSize * SAFETY_FACTOR;
-				setFontSize(Math.max(minFontSize, scaled));
-			} else {
-				setFontSize(null);
+				const scaled =
+					(available / el.scrollWidth) * baseSize * SAFETY_FACTOR;
+				el.style.fontSize = `${Math.max(minFontSize, scaled)}px`;
 			}
 		};
 
 		measure();
 		const ro = new ResizeObserver(measure);
 		ro.observe(parent);
-		return () => ro.disconnect();
+		return () => {
+			ro.disconnect();
+			el.style.fontSize = "";
+		};
 	}, [children, minFontSize]);
 
 	return (
@@ -55,7 +56,6 @@ export function FitText({
 				"block whitespace-nowrap overflow-hidden text-ellipsis",
 				className,
 			)}
-			style={fontSize ? { fontSize: `${fontSize}px` } : undefined}
 		>
 			{children}
 		</span>
