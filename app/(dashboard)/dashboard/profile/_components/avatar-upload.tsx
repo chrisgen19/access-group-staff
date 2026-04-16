@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
-import { updateAvatarAction } from "@/lib/actions/profile-actions";
+import { removeAvatarAction } from "@/lib/actions/profile-actions";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 
@@ -15,22 +15,13 @@ interface AvatarUploadProps {
 	currentImage: string | null;
 }
 
-export function AvatarUpload({
-	firstName,
-	lastName,
-	currentAvatar,
-	currentImage,
-}: AvatarUploadProps) {
-	const router = useRouter();
-	const inputRef = useRef<HTMLInputElement>(null);
-	const [preview, setPreview] = useState<string | null>(null);
-	const [isSaving, setIsSaving] = useState(false);
-	const [isRemoving, setIsRemoving] = useState(false);
+interface Preview {
+	dataUrl: string;
+	blob: Blob;
+}
 
-	function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-		const file = e.target.files?.[0];
-		if (!file) return;
-
+function compressToBlob(file: File): Promise<Preview> {
+	return new Promise((resolve, reject) => {
 		const reader = new FileReader();
 		reader.onload = (ev) => {
 			const img = new Image();
@@ -39,7 +30,7 @@ export function AvatarUpload({
 				canvas.width = 200;
 				canvas.height = 200;
 				const ctx = canvas.getContext("2d");
-				if (!ctx) return;
+				if (!ctx) return reject(new Error("Canvas not available"));
 
 				// Centre-crop to square before resizing
 				const size = Math.min(img.width, img.height);
@@ -47,26 +38,68 @@ export function AvatarUpload({
 				const sy = (img.height - size) / 2;
 				ctx.drawImage(img, sx, sy, size, size, 0, 0, 200, 200);
 
-				setPreview(canvas.toDataURL("image/jpeg", 0.8));
+				const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+				canvas.toBlob(
+					(blob) => {
+						if (blob) resolve({ dataUrl, blob });
+						else reject(new Error("Compression failed"));
+					},
+					"image/jpeg",
+					0.8,
+				);
 			};
+			img.onerror = reject;
 			img.src = ev.target?.result as string;
 		};
+		reader.onerror = reject;
 		reader.readAsDataURL(file);
-		// Reset so the same file can be re-selected
+	});
+}
+
+export function AvatarUpload({
+	firstName,
+	lastName,
+	currentAvatar,
+	currentImage,
+}: AvatarUploadProps) {
+	const router = useRouter();
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [preview, setPreview] = useState<Preview | null>(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const [isRemoving, setIsRemoving] = useState(false);
+
+	async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+		const file = e.target.files?.[0];
+		if (!file) return;
 		e.target.value = "";
+
+		try {
+			const compressed = await compressToBlob(file);
+			setPreview(compressed);
+		} catch {
+			toast.error("Failed to process image");
+		}
 	}
 
 	async function handleSave() {
 		if (!preview) return;
 		setIsSaving(true);
 		try {
-			const result = await updateAvatarAction(preview);
+			const formData = new FormData();
+			formData.append("file", preview.blob, "avatar.jpg");
+
+			const res = await fetch("/api/upload/avatar", {
+				method: "POST",
+				body: formData,
+			});
+			const result = await res.json();
+
 			if (result.success) {
 				toast.success("Photo updated");
 				setPreview(null);
 				router.refresh();
 			} else {
-				toast.error(typeof result.error === "string" ? result.error : "Failed to save photo");
+				toast.error(result.error ?? "Failed to save photo");
 			}
 		} catch {
 			toast.error("Something went wrong");
@@ -78,12 +111,12 @@ export function AvatarUpload({
 	async function handleRemove() {
 		setIsRemoving(true);
 		try {
-			const result = await updateAvatarAction(null);
+			const result = await removeAvatarAction();
 			if (result.success) {
 				toast.success("Photo removed");
 				router.refresh();
 			} else {
-				toast.error(typeof result.error === "string" ? result.error : "Failed to remove photo");
+				toast.error(result.error ?? "Failed to remove photo");
 			}
 		} catch {
 			toast.error("Something went wrong");
@@ -92,7 +125,7 @@ export function AvatarUpload({
 		}
 	}
 
-	const displayAvatar = preview ?? currentAvatar;
+	const displayAvatar = preview?.dataUrl ?? currentAvatar;
 	const hasPhoto = !!displayAvatar || !!currentImage;
 
 	return (
@@ -130,7 +163,7 @@ export function AvatarUpload({
 			<div className="flex flex-col gap-2">
 				<p className="text-sm font-medium text-foreground">Profile Photo</p>
 				<p className="text-xs text-muted-foreground">
-					JPG, PNG or GIF. Auto-resized to 200×200px.
+					JPG, PNG or WebP. Auto-resized to 200×200px.
 				</p>
 
 				<div className="flex gap-2 mt-1">

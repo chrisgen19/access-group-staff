@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth-utils";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { deleteFromR2, extractKeyFromUrl } from "@/lib/r2";
 
 const updateProfileSchema = z.object({
 	displayName: z.string().optional(),
@@ -14,28 +15,32 @@ const updateProfileSchema = z.object({
 	lastName: z.string().min(1, "Last name is required").optional(),
 });
 
-export async function updateAvatarAction(avatar: string | null) {
+/** Removes the user's avatar — deletes from R2 if applicable, clears DB. */
+export async function removeAvatarAction() {
 	try {
 		const session = await requireSession();
 
-		if (avatar !== null) {
-			if (!avatar.startsWith("data:image/") || !avatar.includes(";base64,")) {
-				return { success: false as const, error: "Invalid image format" };
-			}
-			if (avatar.length > 200_000) {
-				return { success: false as const, error: "Image too large. Please pick a smaller photo." };
+		const user = await prisma.user.findUnique({
+			where: { id: session.user.id },
+			select: { avatar: true },
+		});
+
+		if (user?.avatar) {
+			const key = extractKeyFromUrl(user.avatar);
+			if (key) {
+				await deleteFromR2(key).catch(() => {});
 			}
 		}
 
 		await prisma.user.update({
 			where: { id: session.user.id },
-			data: { avatar },
+			data: { avatar: null },
 		});
 
 		revalidatePath("/dashboard");
 		return { success: true as const, data: null };
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Failed to update photo";
+		const message = error instanceof Error ? error.message : "Failed to remove photo";
 		return { success: false as const, error: message };
 	}
 }
