@@ -4,7 +4,11 @@ import { getServerSession } from "@/lib/auth-utils";
 import { hasMinRole } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import type { Role } from "@/app/generated/prisma/client";
-import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
+import {
+	COMPANY_VALUES,
+	REACTION_EMOJIS,
+	formatRecognitionDate,
+} from "@/lib/recognition";
 import {
 	AccessGroupLogo,
 	AccessBusinessLogo,
@@ -14,6 +18,7 @@ import { Check, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FitText } from "@/components/shared/fit-text";
 import { FlipCard } from "@/app/recognition/[id]/flip-card";
+import { CardInteractionBar } from "../_components/card-interaction-bar";
 import { CardDetailActions } from "./_components/card-detail-actions";
 import { MarkNotificationsRead } from "./_components/mark-notifications-read";
 
@@ -95,6 +100,32 @@ export default async function RecognitionDetailPage({
 	const isSender = card.sender.id === session.user.id;
 	const isRecipient = card.recipient.id === session.user.id;
 	const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+	const canInteract = isSender || isRecipient || isAdmin;
+
+	const [reactionCounts, userReactions, commentCount] = canInteract
+		? await Promise.all([
+				prisma.cardReaction.groupBy({
+					by: ["emoji"],
+					where: { cardId: id },
+					_count: true,
+				}),
+				prisma.cardReaction.findMany({
+					where: { cardId: id, userId: session.user.id },
+					select: { emoji: true },
+				}),
+				prisma.cardComment.count({ where: { cardId: id } }),
+			])
+		: [[], [], 0];
+
+	const userReactionSet = new Set(userReactions.map((r) => r.emoji));
+	const reactionMap = new Map(
+		reactionCounts.map((r) => [r.emoji, r._count]),
+	);
+	const initialReactions = REACTION_EMOJIS.map((emoji) => ({
+		emoji,
+		count: reactionMap.get(emoji) ?? 0,
+		hasReacted: userReactionSet.has(emoji),
+	})).filter((r) => r.count > 0 || r.hasReacted);
 
 	if (!isSender && !isRecipient && !isAdmin) notFound();
 
@@ -229,6 +260,18 @@ export default async function RecognitionDetailPage({
 			<div className="flex justify-center">
 				<FlipCard front={card1Front} back={card2Back} />
 			</div>
+
+			{canInteract && (
+				<div className="max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+					<CardInteractionBar
+						cardId={id}
+						currentUserId={session.user.id}
+						isAdmin={isAdmin}
+						initialCommentCount={commentCount}
+						initialReactions={initialReactions}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }
