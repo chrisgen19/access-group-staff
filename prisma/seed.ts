@@ -413,6 +413,15 @@ async function seed() {
 	}
 
 	console.log(`Created ${allCards.length} notifications`);
+
+	console.log("Seeding app settings...");
+	await prisma.appSetting.upsert({
+		where: { key: "top_recognized_limit" },
+		update: {},
+		create: { key: "top_recognized_limit", value: "10" },
+	});
+	console.log("Set top_recognized_limit = 10");
+
 	console.log("Seed complete!");
 }
 

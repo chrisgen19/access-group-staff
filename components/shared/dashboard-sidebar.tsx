@@ -144,7 +144,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 export function DashboardSidebar() {
 	return (
-		<aside className="hidden w-72 flex-col p-4 pr-2 md:flex">
+		<aside className="hidden w-72 sticky top-0 h-screen flex-col p-4 pr-2 md:flex">
 			<SidebarNav />
 		</aside>
 	);

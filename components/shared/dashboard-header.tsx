@@ -34,7 +34,7 @@ export function DashboardHeader() {
 	}
 
 	return (
-		<header className="flex h-20 items-center justify-between px-4 sm:px-8">
+		<header className="sticky top-0 z-10 flex h-20 items-center justify-between bg-card px-4 sm:px-8">
 			<div className="flex items-center md:hidden">
 				<MobileSidebarTrigger />
 			</div>
