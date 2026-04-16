@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import {
 	Select,
 	SelectContent,
@@ -20,18 +21,25 @@ export function RecognitionSettingsPanel({
 }) {
 	const [limit, setLimit] = useState(initialLimit);
 	const [isPending, startTransition] = useTransition();
+	const queryClient = useQueryClient();
 
 	function handleChange(newValue: number) {
 		const previous = limit;
 		setLimit(newValue);
 
 		startTransition(async () => {
-			const result = await updateTopRecognizedLimit(newValue);
-			if (!result.success) {
+			try {
+				const result = await updateTopRecognizedLimit(newValue);
+				if (!result.success) {
+					setLimit(previous);
+					toast.error(result.error ?? "Failed to update setting");
+				} else {
+					toast.success(`Most Recognized limit updated to ${newValue}`);
+					queryClient.invalidateQueries({ queryKey: ["recognition-stats"] });
+				}
+			} catch {
 				setLimit(previous);
-				toast.error(result.error ?? "Failed to update setting");
-			} else {
-				toast.success(`Most Recognized limit updated to ${newValue}`);
+				toast.error("Failed to update setting");
 			}
 		});
 	}
