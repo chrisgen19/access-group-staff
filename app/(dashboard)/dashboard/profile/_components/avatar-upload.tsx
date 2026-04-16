@@ -133,7 +133,9 @@ export function AvatarUpload({
 			const result = await removeAvatarAction();
 			if (result.success) {
 				toast.success("Photo removed");
-				await authClient.updateUser({ avatar: "" });
+				// Trigger session broadcast with a no-op name update — avatar is
+				// already null from removeAvatarAction, so we must not overwrite it
+				await authClient.updateUser({ name: `${firstName} ${lastName}` });
 				router.refresh();
 			} else {
 				toast.error(result.error ?? "Failed to remove photo");
