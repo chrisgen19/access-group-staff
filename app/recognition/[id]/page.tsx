@@ -387,7 +387,7 @@ export default async function SharePage({
 			<FlipCard front={card1Front} back={card2Back} />
 
 			{canInteract && userId ? (
-				<div className="w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<div className="relative z-10 w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 					<CardInteractionBar
 						cardId={id}
 						currentUserId={userId}
@@ -397,7 +397,7 @@ export default async function SharePage({
 					/>
 				</div>
 			) : (publicReactions.length > 0 || commentCount > 0) ? (
-				<div className="w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<div className="relative z-10 w-full max-w-4xl mt-4 rounded-[2rem] border border-gray-200/60 bg-white px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 					<InteractionBarReadonly
 						reactions={publicReactions}
 						commentCount={commentCount}

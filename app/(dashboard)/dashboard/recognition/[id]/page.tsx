@@ -262,7 +262,7 @@ export default async function RecognitionDetailPage({
 			</div>
 
 			{canInteract && (
-				<div className="max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<div className="relative z-10 max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 					<CardInteractionBar
 						cardId={id}
 						currentUserId={session.user.id}
