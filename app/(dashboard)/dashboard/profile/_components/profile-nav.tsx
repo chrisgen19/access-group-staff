@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Settings, Link2 } from "lucide-react";
+import { User, Settings, Link2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -10,6 +10,11 @@ const NAV_ITEMS = [
 		label: "Profile",
 		href: "/dashboard/profile",
 		icon: User,
+	},
+	{
+		label: "Security",
+		href: "/dashboard/profile/security",
+		icon: Lock,
 	},
 	{
 		label: "Connected Accounts",
