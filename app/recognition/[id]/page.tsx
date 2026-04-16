@@ -6,11 +6,8 @@ import { getServerSession } from "@/lib/auth-utils";
 import { hasMinRole } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import type { Role } from "@/app/generated/prisma/client";
-import {
-	COMPANY_VALUES,
-	REACTION_EMOJIS,
-	formatRecognitionDate,
-} from "@/lib/recognition";
+import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
+import { getCardReactionSummary } from "@/lib/interactions";
 import {
 	AccessGroupLogo,
 	AccessBusinessLogo,
@@ -149,33 +146,8 @@ export default async function SharePage({
 		: false;
 	const canInteract = session && (isSender || isRecipient || isAdmin);
 
-	const [reactionCounts, userReactions, commentCount] = await Promise.all([
-		prisma.cardReaction.groupBy({
-			by: ["emoji"],
-			where: { cardId: id },
-			_count: true,
-		}),
-		canInteract && userId
-			? prisma.cardReaction.findMany({
-					where: { cardId: id, userId },
-					select: { emoji: true },
-				})
-			: Promise.resolve([]),
-		prisma.cardComment.count({ where: { cardId: id } }),
-	]);
-
-	const userReactionSet = new Set(userReactions.map((r) => r.emoji));
-	const reactionMap = new Map(
-		reactionCounts.map((r) => [r.emoji, r._count]),
-	);
-	const publicReactions = REACTION_EMOJIS.map((emoji) => ({
-		emoji,
-		count: reactionMap.get(emoji) ?? 0,
-	})).filter((r) => r.count > 0);
-	const initialReactions = publicReactions.map((r) => ({
-		...r,
-		hasReacted: userReactionSet.has(r.emoji),
-	}));
+	const { publicReactions, initialReactions, commentCount } =
+		await getCardReactionSummary(id, canInteract ? userId : undefined);
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;

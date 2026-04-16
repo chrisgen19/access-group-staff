@@ -4,11 +4,8 @@ import { getServerSession } from "@/lib/auth-utils";
 import { hasMinRole } from "@/lib/permissions";
 import { prisma } from "@/lib/db";
 import type { Role } from "@/app/generated/prisma/client";
-import {
-	COMPANY_VALUES,
-	REACTION_EMOJIS,
-	formatRecognitionDate,
-} from "@/lib/recognition";
+import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
+import { getCardReactionSummary } from "@/lib/interactions";
 import {
 	AccessGroupLogo,
 	AccessBusinessLogo,
@@ -102,30 +99,9 @@ export default async function RecognitionDetailPage({
 	const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
 	const canInteract = isSender || isRecipient || isAdmin;
 
-	const [reactionCounts, userReactions, commentCount] = canInteract
-		? await Promise.all([
-				prisma.cardReaction.groupBy({
-					by: ["emoji"],
-					where: { cardId: id },
-					_count: true,
-				}),
-				prisma.cardReaction.findMany({
-					where: { cardId: id, userId: session.user.id },
-					select: { emoji: true },
-				}),
-				prisma.cardComment.count({ where: { cardId: id } }),
-			])
-		: [[], [], 0];
-
-	const userReactionSet = new Set(userReactions.map((r) => r.emoji));
-	const reactionMap = new Map(
-		reactionCounts.map((r) => [r.emoji, r._count]),
-	);
-	const initialReactions = REACTION_EMOJIS.map((emoji) => ({
-		emoji,
-		count: reactionMap.get(emoji) ?? 0,
-		hasReacted: userReactionSet.has(emoji),
-	})).filter((r) => r.count > 0 || r.hasReacted);
+	const { initialReactions, commentCount } = canInteract
+		? await getCardReactionSummary(id, session.user.id)
+		: { initialReactions: [], commentCount: 0 };
 
 	if (!isSender && !isRecipient && !isAdmin) notFound();
 
