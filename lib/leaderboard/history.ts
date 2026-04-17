@@ -58,7 +58,7 @@ export async function getArchivedMonthKeys(): Promise<string[]> {
 export async function getMonthLeaderboard(
 	monthKey: string,
 	now: Date = new Date(),
-	liveLimit = 50,
+	limit = 50,
 ): Promise<MonthLeaderboard> {
 	const currentKey = getCurrentMonthBoundaries(now).monthKey;
 
@@ -68,7 +68,7 @@ export async function getMonthLeaderboard(
 		if (!visibility.visible) {
 			return { kind: "locked", monthKey, visibility };
 		}
-		const recipients = await computeMonthRecipients(monthKey, liveLimit);
+		const recipients = await computeMonthRecipients(monthKey, limit);
 		return { kind: "live", monthKey, recipients, visibility };
 	}
 
@@ -84,10 +84,12 @@ export async function getMonthLeaderboard(
 		return { kind: "missing", monthKey };
 	}
 
+	// Snapshots are written at TOP_RECOGNIZED_MAX; trim to the active limit so
+	// archive display matches the current admin setting.
 	return {
 		kind: "archived",
 		monthKey,
-		recipients: parsed.data,
+		recipients: parsed.data.slice(0, limit),
 		snapshotAt: snapshot.snapshotAt,
 	};
 }

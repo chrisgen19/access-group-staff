@@ -13,7 +13,6 @@ import {
 export interface MonthPickerItem {
 	key: string;
 	label: string;
-	isCurrent: boolean;
 }
 
 interface MonthPickerProps {
@@ -42,7 +41,6 @@ export function MonthPicker({ items, selected }: MonthPickerProps) {
 				{items.map((item) => (
 					<SelectItem key={item.key} value={item.key}>
 						{item.label}
-						{item.isCurrent ? " (live)" : ""}
 					</SelectItem>
 				))}
 			</SelectContent>

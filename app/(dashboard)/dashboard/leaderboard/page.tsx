@@ -78,13 +78,22 @@ export default async function LeaderboardHistoryPage({ searchParams }: PageProps
 	}
 
 	const requested = monthParam && isValidMonthKey(monthParam) ? monthParam : null;
-	const selectedKey =
-		requested && selectableKeys.includes(requested) ? requested : selectableKeys[0];
-	const items = selectableKeys.map((key) => ({
+	// Honor a valid requested month even if it isn't in the selectable list
+	// (e.g. pre-archive months, the just-finished month before its snapshot
+	// lands, or the current month while hidden). This lets locked/missing
+	// states surface for shared/bookmarked links instead of silently falling
+	// back to selectableKeys[0].
+	const selectedKey = requested ?? selectableKeys[0];
+	const baseItems = selectableKeys.map((key) => ({
 		key,
-		label: formatMonthLabel(key),
-		isCurrent: key === currentMonthKey,
+		label:
+			key === currentMonthKey && visibility.visible
+				? `${formatMonthLabel(key)} (live)`
+				: formatMonthLabel(key),
 	}));
+	const items = selectableKeys.includes(selectedKey)
+		? baseItems
+		: [{ key: selectedKey, label: formatMonthLabel(selectedKey) }, ...baseItems];
 	const data = await getMonthLeaderboard(selectedKey, now, topLimit);
 
 	return (
