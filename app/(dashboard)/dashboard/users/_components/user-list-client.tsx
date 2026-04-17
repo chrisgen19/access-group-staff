@@ -210,6 +210,12 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	const users = data?.data ?? [];
 	const pagination = data?.pagination;
 
+	useEffect(() => {
+		if (pagination && pagination.total > 0 && page > pagination.totalPages) {
+			setPage(pagination.totalPages);
+		}
+	}, [pagination, page]);
+
 	return (
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
