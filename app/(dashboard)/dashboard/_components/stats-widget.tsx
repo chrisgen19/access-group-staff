@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Heart, Inbox, Lock, Medal, Send, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +65,51 @@ function formatRevealRange(startIso: string, endIso: string): string {
 	return `${REVEAL_DATE_FORMATTER.format(start)} – ${REVEAL_DATE_FORMATTER.format(lastDay)}`;
 }
 
+function formatCountdown(msRemaining: number): string {
+	if (msRemaining <= 0) return "any moment";
+	const totalSeconds = Math.floor(msRemaining / 1000);
+	const days = Math.floor(totalSeconds / 86400);
+	const hours = Math.floor((totalSeconds % 86400) / 3600);
+	const minutes = Math.floor((totalSeconds % 3600) / 60);
+	const seconds = totalSeconds % 60;
+
+	if (days > 0) return `${days}d ${hours}h`;
+	if (hours > 0) return `${hours}h ${minutes}m`;
+	if (minutes > 0) return `${minutes}m ${seconds}s`;
+	return `${seconds}s`;
+}
+
+function useCountdown(targetIso: string | null) {
+	const [msRemaining, setMsRemaining] = useState<number | null>(() => {
+		if (!targetIso) return null;
+		return new Date(targetIso).getTime() - Date.now();
+	});
+	const queryClient = useQueryClient();
+
+	useEffect(() => {
+		if (!targetIso) {
+			setMsRemaining(null);
+			return;
+		}
+		const target = new Date(targetIso).getTime();
+
+		function tick() {
+			const remaining = target - Date.now();
+			setMsRemaining(remaining);
+			if (remaining <= 0) {
+				queryClient.invalidateQueries({ queryKey: ["recognition-stats"] });
+			}
+		}
+
+		tick();
+		const intervalMs = target - Date.now() > 60 * 60 * 1000 ? 60_000 : 1_000;
+		const id = window.setInterval(tick, intervalMs);
+		return () => window.clearInterval(id);
+	}, [targetIso, queryClient]);
+
+	return msRemaining;
+}
+
 function StatItem({
 	icon: Icon,
 	label,
@@ -122,6 +168,8 @@ function LockedLeaderboard({ visibility }: { visibility: LeaderboardVisibility }
 	const rangeLabel = hasRange
 		? formatRevealRange(visibility.revealStart as string, visibility.revealEnd as string)
 		: null;
+	const msRemaining = useCountdown(visibility.revealStart);
+	const showCountdown = msRemaining !== null && msRemaining > 0;
 
 	return (
 		<div className="flex flex-col min-h-0 flex-1">
@@ -140,6 +188,11 @@ function LockedLeaderboard({ visibility }: { visibility: LeaderboardVisibility }
 					</>
 				) : (
 					<p className="text-sm font-medium text-foreground">Rankings hidden</p>
+				)}
+				{showCountdown && (
+					<p className="mt-3 text-sm font-semibold tabular-nums text-primary" aria-live="polite">
+						in {formatCountdown(msRemaining)}
+					</p>
 				)}
 				<div className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
 					<Heart size={12} className="text-primary" />
