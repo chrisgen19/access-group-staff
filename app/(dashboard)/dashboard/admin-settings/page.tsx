@@ -1,6 +1,10 @@
-import { requireRole } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
-import { getTopRecognizedLimit } from "@/lib/actions/settings-actions";
+import {
+	getLeaderboardVisibilitySettings,
+	getTopRecognizedLimit,
+} from "@/lib/actions/settings-actions";
+import { requireRole } from "@/lib/auth-utils";
+import { LeaderboardVisibilityPanel } from "./_components/leaderboard-visibility";
 import { RecognitionSettingsPanel } from "./_components/recognition-settings";
 
 export default async function AdminSettingsPage() {
@@ -10,7 +14,10 @@ export default async function AdminSettingsPage() {
 		redirect("/dashboard");
 	}
 
-	const topLimit = await getTopRecognizedLimit();
+	const [topLimit, visibility] = await Promise.all([
+		getTopRecognizedLimit(),
+		getLeaderboardVisibilitySettings(),
+	]);
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -24,6 +31,13 @@ export default async function AdminSettingsPage() {
 			</div>
 
 			<RecognitionSettingsPanel initialLimit={topLimit} />
+
+			<LeaderboardVisibilityPanel
+				initialMode={visibility.mode}
+				initialDays={visibility.revealDays}
+				initialCustomStart={visibility.customStart}
+				initialCustomEnd={visibility.customEnd}
+			/>
 		</div>
 	);
 }

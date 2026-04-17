@@ -121,6 +121,16 @@ model AppSetting {
   @@map("app_settings")
 }
 
+model MonthlyLeaderboardSnapshot {
+  id         String   @id @default(cuid())
+  month      String   @unique
+  recipients Json
+  topLimit   Int      @map("top_limit")
+  snapshotAt DateTime @default(now()) @map("snapshot_at")
+
+  @@map("monthly_leaderboard_snapshots")
+}
+
 model RecognitionCard {
   id        String   @id @default(uuid())
   message   String
@@ -143,6 +153,8 @@ model RecognitionCard {
   reactions     CardReaction[]
   comments      CardComment[]
 
+  @@index([createdAt])
+  @@index([recipientId, createdAt])
   @@map("recognition_cards")
 }
 
