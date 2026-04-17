@@ -153,6 +153,8 @@ model RecognitionCard {
   reactions     CardReaction[]
   comments      CardComment[]
 
+  @@index([createdAt])
+  @@index([recipientId, createdAt])
   @@map("recognition_cards")
 }
 

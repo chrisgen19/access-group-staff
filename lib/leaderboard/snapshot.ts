@@ -1,12 +1,16 @@
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { TOP_RECOGNIZED_MAX } from "./constants";
 import { getMonthBoundariesForKey, getPreviousMonthKey } from "./month";
 
 // Archive up to the maximum possible top-N so the snapshot is authoritative
-// regardless of how admins change `top_recognized_limit` later. Must match
-// TOP_RECOGNIZED_MAX in lib/actions/settings-actions.ts. History consumers
-// should trim to the current limit at display time.
-const SNAPSHOT_TOP_N = 50;
+// regardless of how admins change `top_recognized_limit` later. History
+// consumers should trim to the current limit at display time.
+const SNAPSHOT_TOP_N = TOP_RECOGNIZED_MAX;
+
+// Remember the previous-month key we've already verified/written this process
+// lifetime, so the hot path skips a DB round-trip on every stats fetch.
+let resolvedMonthKey: string | null = null;
 
 export interface SnapshotRecipient {
 	userId: string;
@@ -53,15 +57,23 @@ export async function computeMonthRecipients(
 
 export async function maybeSnapshotPreviousMonth(now: Date = new Date()): Promise<void> {
 	const prevKey = getPreviousMonthKey(now);
+	if (resolvedMonthKey === prevKey) return;
 
 	const existing = await prisma.monthlyLeaderboardSnapshot.findUnique({
 		where: { month: prevKey },
 		select: { id: true },
 	});
-	if (existing) return;
+	if (existing) {
+		resolvedMonthKey = prevKey;
+		return;
+	}
 
 	const recipients = await computeMonthRecipients(prevKey, SNAPSHOT_TOP_N);
-	if (recipients.length === 0) return;
+	if (recipients.length === 0) {
+		// No data to archive — mark resolved so we don't re-query every request.
+		resolvedMonthKey = prevKey;
+		return;
+	}
 
 	await prisma.monthlyLeaderboardSnapshot.upsert({
 		where: { month: prevKey },
@@ -72,4 +84,5 @@ export async function maybeSnapshotPreviousMonth(now: Date = new Date()): Promis
 		},
 		update: {},
 	});
+	resolvedMonthKey = prevKey;
 }

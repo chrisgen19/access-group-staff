@@ -4,6 +4,11 @@ import { env } from "@/env";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
+	TOP_RECOGNIZED_DEFAULT,
+	TOP_RECOGNIZED_MAX,
+	TOP_RECOGNIZED_MIN,
+} from "@/lib/leaderboard/constants";
+import {
 	LEADERBOARD_VISIBILITY_MODES,
 	type LeaderboardVisibilityMode,
 	type LeaderboardVisibilitySettings,
@@ -22,9 +27,6 @@ let cacheExpiry = 0;
 const CACHE_TTL_MS = 30_000;
 
 const TOP_RECOGNIZED_KEY = "top_recognized_limit";
-const TOP_RECOGNIZED_DEFAULT = 10;
-const TOP_RECOGNIZED_MIN = 1;
-const TOP_RECOGNIZED_MAX = 50;
 
 let cachedTopLimit: number | null = null;
 let topLimitCacheExpiry = 0;
@@ -161,7 +163,10 @@ function invalidateLeaderboardCache() {
 }
 
 function isValidIsoDate(value: string): boolean {
-	return /^\d{4}-\d{2}-\d{2}$/.test(value);
+	if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+	// Round-trip to reject impossible calendar dates like 2026-02-31.
+	const parsed = new Date(`${value}T00:00:00Z`);
+	return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
 }
 
 function isLeaderboardMode(value: string): value is LeaderboardVisibilityMode {

@@ -113,7 +113,8 @@ export function LeaderboardVisibilityPanel({
 				</h3>
 				<p className="mt-2 text-sm text-muted-foreground">
 					Control when the "Most Recognized" leaderboard is revealed on the dashboard. The
-					leaderboard resets each calendar month.
+					leaderboard resets each calendar month. All dates and month boundaries are interpreted in
+					Asia/Manila time.
 				</p>
 			</div>
 

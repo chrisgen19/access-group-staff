@@ -73,9 +73,9 @@ function formatCountdown(msRemaining: number): string {
 	const minutes = Math.floor((totalSeconds % 3600) / 60);
 	const seconds = totalSeconds % 60;
 
-	if (days > 0) return `${days}d ${hours}h`;
-	if (hours > 0) return `${hours}h ${minutes}m`;
-	if (minutes > 0) return `${minutes}m ${seconds}s`;
+	if (days > 0) return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+	if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+	if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
 	return `${seconds}s`;
 }
 
@@ -112,8 +112,22 @@ function useCountdown(targetIso: string | null) {
 			timeoutId = window.setTimeout(tick, nextDelay);
 		}
 
+		// Re-tick immediately when the tab regains focus — browsers throttle
+		// timers in background tabs, so the scheduled tick may land well after
+		// the boundary otherwise.
+		function handleVisibility() {
+			if (document.visibilityState !== "visible") return;
+			if (timeoutId !== undefined) {
+				window.clearTimeout(timeoutId);
+				timeoutId = undefined;
+			}
+			tick();
+		}
+
 		tick();
+		document.addEventListener("visibilitychange", handleVisibility);
 		return () => {
+			document.removeEventListener("visibilitychange", handleVisibility);
 			if (timeoutId !== undefined) window.clearTimeout(timeoutId);
 		};
 	}, [targetIso, queryClient]);
@@ -264,6 +278,7 @@ export function StatsWidget() {
 	const resolvedVisibility = stats.leaderboardVisibility;
 	const showList = resolvedVisibility.visible && stats.topRecipients.length > 0;
 	const showLocked = !resolvedVisibility.visible;
+	const showEmpty = resolvedVisibility.visible && stats.topRecipients.length === 0;
 
 	return (
 		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6 h-full">
@@ -341,6 +356,18 @@ export function StatsWidget() {
 				</div>
 			) : showLocked ? (
 				<LockedLeaderboard visibility={resolvedVisibility} msRemaining={msRemaining} />
+			) : showEmpty ? (
+				<div className="flex flex-col min-h-0 flex-1">
+					<div className="flex items-center gap-2 mb-3 shrink-0">
+						<Trophy size={16} className="text-primary" />
+						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
+					</div>
+					<div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+						<p className="text-sm text-muted-foreground">
+							No recognitions yet this month — be the first!
+						</p>
+					</div>
+				</div>
 			) : null}
 		</div>
 	);
