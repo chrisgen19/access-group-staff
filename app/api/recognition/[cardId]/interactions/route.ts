@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import type { Role } from "@/app/generated/prisma/client";
 import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
 import { REACTION_EMOJIS } from "@/lib/recognition";
-import type { Role } from "@/app/generated/prisma/client";
 
-export async function GET(
-	_req: Request,
-	{ params }: { params: Promise<{ cardId: string }> },
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ cardId: string }> }) {
 	let session: Awaited<ReturnType<typeof requireSession>>;
 	try {
 		session = await requireSession();
 	} catch {
-		return NextResponse.json(
-			{ success: false, error: "Unauthorized" },
-			{ status: 401 },
-		);
+		return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 	}
 
 	try {
@@ -28,26 +22,32 @@ export async function GET(
 		});
 
 		if (!card) {
-			return NextResponse.json(
-				{ success: false, error: "Card not found" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ success: false, error: "Card not found" }, { status: 404 });
 		}
 
 		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isParticipant =
-			card.senderId === session.user.id || card.recipientId === session.user.id;
+		const isParticipant = card.senderId === session.user.id || card.recipientId === session.user.id;
 		if (!isParticipant && !isAdmin) {
-			return NextResponse.json(
-				{ success: false, error: "Forbidden" },
-				{ status: 403 },
-			);
+			return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 		}
 
 		const [allReactions, comments] = await Promise.all([
 			prisma.cardReaction.findMany({
 				where: { cardId },
-				select: { emoji: true, userId: true },
+				select: {
+					emoji: true,
+					userId: true,
+					createdAt: true,
+					user: {
+						select: {
+							id: true,
+							firstName: true,
+							lastName: true,
+							avatar: true,
+						},
+					},
+				},
+				orderBy: { createdAt: "asc" },
 			}),
 			prisma.cardComment.findMany({
 				where: { cardId },
@@ -71,20 +71,36 @@ export async function GET(
 			}),
 		]);
 
-		const reactionMap = new Map<string, { count: number; hasReacted: boolean }>();
+		type ReactorEntry = {
+			count: number;
+			hasReacted: boolean;
+			users: {
+				id: string;
+				firstName: string;
+				lastName: string;
+				avatar: string | null;
+			}[];
+		};
+		const reactionMap = new Map<string, ReactorEntry>();
 		for (const emoji of REACTION_EMOJIS) {
-			reactionMap.set(emoji, { count: 0, hasReacted: false });
+			reactionMap.set(emoji, { count: 0, hasReacted: false, users: [] });
 		}
 		for (const r of allReactions) {
 			const entry = reactionMap.get(r.emoji);
 			if (entry) {
 				entry.count += 1;
+				entry.users.push(r.user);
 				if (r.userId === session.user.id) entry.hasReacted = true;
 			}
 		}
 
 		const reactions = Array.from(reactionMap.entries()).map(
-			([emoji, { count, hasReacted }]) => ({ emoji, count, hasReacted }),
+			([emoji, { count, hasReacted, users }]) => ({
+				emoji,
+				count,
+				hasReacted,
+				users,
+			}),
 		);
 
 		return NextResponse.json({

@@ -1,20 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck, Heart, Pencil, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-	markNotificationReadAction,
-	markAllNotificationsReadAction,
-} from "@/lib/actions/notification-actions";
+import { Bell, CheckCheck, Heart, MessageCircle, Pencil, Smile, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
 	DropdownMenu,
-	DropdownMenuTrigger,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNotifications, type Notification } from "@/hooks/use-notifications";
+import { type Notification, useNotifications } from "@/hooks/use-notifications";
+import {
+	markAllNotificationsReadAction,
+	markNotificationReadAction,
+} from "@/lib/actions/notification-actions";
+import { cn } from "@/lib/utils";
 
 function formatRelativeTime(dateString: string) {
 	const now = Date.now();
@@ -39,6 +39,10 @@ function notificationIcon(type: Notification["type"]) {
 			return <Pencil size={14} className="text-blue-500" />;
 		case "CARD_DELETED":
 			return <Trash2 size={14} className="text-destructive" />;
+		case "CARD_REACTION":
+			return <Smile size={14} className="text-amber-500" />;
+		case "CARD_COMMENT":
+			return <MessageCircle size={14} className="text-blue-500" />;
 	}
 }
 
@@ -62,7 +66,8 @@ export function NotificationBell() {
 			});
 		}
 		if (notification.cardId) {
-			router.push(`/dashboard/recognition/${notification.cardId}`);
+			const focus = notification.type === "CARD_COMMENT" ? "?focus=comments" : "";
+			router.push(`/dashboard/recognition/${notification.cardId}${focus}`);
 		}
 	}
 
@@ -76,15 +81,9 @@ export function NotificationBell() {
 					</span>
 				)}
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				sideOffset={8}
-				className="w-80 p-0 overflow-hidden"
-			>
+			<DropdownMenuContent align="end" sideOffset={8} className="w-80 p-0 overflow-hidden">
 				<div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 px-4 py-3">
-					<span className="text-sm font-semibold text-foreground">
-						Notifications
-					</span>
+					<span className="text-sm font-semibold text-foreground">Notifications</span>
 					{unreadCount > 0 && (
 						<button
 							type="button"
@@ -120,9 +119,7 @@ export function NotificationBell() {
 									<p
 										className={cn(
 											"text-sm leading-snug",
-											notification.isRead
-												? "text-muted-foreground"
-												: "text-foreground font-medium",
+											notification.isRead ? "text-muted-foreground" : "text-foreground font-medium",
 										)}
 									>
 										{notification.message}

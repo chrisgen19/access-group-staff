@@ -1,10 +1,18 @@
 export const REACTION_EMOJIS = ["👏", "❤️", "🔥", "🎉", "💪", "😊"] as const;
 export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
 
+export interface CardReactionUser {
+	id: string;
+	firstName: string;
+	lastName: string;
+	avatar: string | null;
+}
+
 export interface CardReactionSummary {
 	emoji: string;
 	count: number;
 	hasReacted: boolean;
+	users?: CardReactionUser[];
 }
 
 export interface CardCommentUser {
@@ -84,11 +92,7 @@ export const VALUE_KEY_MAP: Record<string, string> = {
 
 export function formatRecognitionDate(dateString: string) {
 	const [year, month, day] = dateString.split("T")[0].split("-");
-	return new Date(
-		Number(year),
-		Number(month) - 1,
-		Number(day),
-	).toLocaleDateString("en-US", {
+	return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString("en-US", {
 		month: "short",
 		day: "numeric",
 		year: "numeric",
@@ -141,8 +145,7 @@ function getQuarter(dateString: string): string {
 }
 
 function escapeCsvField(value: string): string {
-	const needsQuoting =
-		value.includes(",") || value.includes('"') || value.includes("\n");
+	const needsQuoting = value.includes(",") || value.includes('"') || value.includes("\n");
 	const escaped = needsQuoting ? `"${value.replace(/"/g, '""')}"` : value;
 	if (/^[=+\-@\t\r]/.test(escaped)) {
 		return `\t${escaped}`;
@@ -185,10 +188,7 @@ export function generateRecognitionCsv(cards: ExportRecognitionCard[]): string {
 		getQuarter(card.date),
 	]);
 
-	const lines = [
-		CSV_HEADERS.join(","),
-		...rows.map((row) => row.map(escapeCsvField).join(",")),
-	];
+	const lines = [CSV_HEADERS.join(","), ...rows.map((row) => row.map(escapeCsvField).join(","))];
 
 	return lines.join("\n");
 }

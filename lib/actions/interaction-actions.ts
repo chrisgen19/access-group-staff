@@ -1,11 +1,11 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { z } from "zod";
+import type { Role } from "@/app/generated/prisma/client";
 import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
 import { REACTION_EMOJIS } from "@/lib/recognition";
-import type { Role } from "@/app/generated/prisma/client";
-import { z } from "zod";
 
 const reactionSchema = z.object({
 	cardId: z.string().min(1),
@@ -19,6 +19,39 @@ const commentBodySchema = z
 	.min(1, "Comment cannot be empty")
 	.max(500, "Comment cannot exceed 500 characters")
 	.trim();
+
+async function notifyCardInteraction({
+	card,
+	actorId,
+	actorName,
+	type,
+	emoji,
+}: {
+	card: { id: string; senderId: string; recipientId: string };
+	actorId: string;
+	actorName: string;
+	type: "CARD_REACTION" | "CARD_COMMENT";
+	emoji?: string;
+}) {
+	const recipients = Array.from(
+		new Set([card.senderId, card.recipientId].filter((id) => id !== actorId)),
+	);
+	if (recipients.length === 0) return;
+
+	const message =
+		type === "CARD_REACTION"
+			? `${actorName} reacted ${emoji ?? ""} to a recognition card`.trim()
+			: `${actorName} commented on a recognition card`;
+
+	await prisma.notification.createMany({
+		data: recipients.map((userId) => ({
+			userId,
+			type,
+			message,
+			cardId: card.id,
+		})),
+	});
+}
 
 export async function toggleReactionAction(cardId: string, emoji: string) {
 	try {
@@ -37,8 +70,7 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 		}
 
 		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isParticipant =
-			card.senderId === session.user.id || card.recipientId === session.user.id;
+		const isParticipant = card.senderId === session.user.id || card.recipientId === session.user.id;
 		if (!isParticipant && !isAdmin) {
 			return { success: false as const, error: "Forbidden" };
 		}
@@ -57,14 +89,17 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 			await prisma.cardReaction.create({
 				data: { cardId, userId: session.user.id, emoji },
 			});
+			await notifyCardInteraction({
+				card,
+				actorId: session.user.id,
+				actorName: session.user.name ?? "Someone",
+				type: "CARD_REACTION",
+				emoji,
+			});
 			return { success: true as const, action: "added" as const };
 		} catch (err) {
 			// Concurrent toggle already created it — treat as remove
-			if (
-				err instanceof Error &&
-				"code" in err &&
-				(err as { code: string }).code === "P2002"
-			) {
+			if (err instanceof Error && "code" in err && (err as { code: string }).code === "P2002") {
 				await prisma.cardReaction.deleteMany({
 					where: { cardId, userId: session.user.id, emoji },
 				});
@@ -95,8 +130,7 @@ export async function addCommentAction(cardId: string, body: string) {
 		}
 
 		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isParticipant =
-			card.senderId === session.user.id || card.recipientId === session.user.id;
+		const isParticipant = card.senderId === session.user.id || card.recipientId === session.user.id;
 		if (!isParticipant && !isAdmin) {
 			return { success: false as const, error: "Forbidden" };
 		}
@@ -119,6 +153,13 @@ export async function addCommentAction(cardId: string, body: string) {
 					},
 				},
 			},
+		});
+
+		await notifyCardInteraction({
+			card,
+			actorId: session.user.id,
+			actorName: session.user.name ?? "Someone",
+			type: "CARD_COMMENT",
 		});
 
 		return { success: true as const, data: comment };
@@ -150,8 +191,7 @@ export async function editCommentAction(commentId: string, body: string) {
 
 		const isEditAdmin = hasMinRole(session.user.role as Role, "ADMIN");
 		const isEditParticipant =
-			comment.card.senderId === session.user.id ||
-			comment.card.recipientId === session.user.id;
+			comment.card.senderId === session.user.id || comment.card.recipientId === session.user.id;
 		if (!isEditParticipant && !isEditAdmin) {
 			return { success: false as const, error: "Forbidden" };
 		}
@@ -206,8 +246,7 @@ export async function deleteCommentAction(commentId: string) {
 
 		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
 		const isDeleteParticipant =
-			comment.card.senderId === session.user.id ||
-			comment.card.recipientId === session.user.id;
+			comment.card.senderId === session.user.id || comment.card.recipientId === session.user.id;
 		if (!isDeleteParticipant && !isAdmin) {
 			return { success: false as const, error: "Forbidden" };
 		}
