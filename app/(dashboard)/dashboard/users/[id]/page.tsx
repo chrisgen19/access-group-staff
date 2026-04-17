@@ -1,11 +1,21 @@
-import { redirect, notFound } from "next/navigation";
+import { ArrowLeft, Pencil } from "lucide-react";
 import Link from "next/link";
-import { getServerSession } from "@/lib/auth-utils";
-import { canViewUsers } from "@/lib/permissions";
-import { prisma } from "@/lib/db";
+import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { getServerSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { canViewUsers } from "@/lib/permissions";
+
+const BRANCH_LABELS: Record<string, string> = {
+	ISO: "ISO",
+	PERTH: "Perth",
+};
+
+function formatBranch(branch: string | null): string | null {
+	if (!branch) return null;
+	return BRANCH_LABELS[branch] ?? branch;
+}
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const session = await getServerSession();
@@ -22,19 +32,20 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 	if (!user) notFound();
 
 	return (
-		<div className="max-w-5xl mx-auto space-y-8 mt-2">
+		<div className="max-w-7xl mx-auto space-y-8 mt-2">
 			<div className="flex items-center gap-4">
 				<Link
 					href="/dashboard/users"
+					aria-label="Back to staff directory"
 					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
 				>
 					<ArrowLeft className="h-5 w-5" />
 				</Link>
-				<div className="flex-1">
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
+				<div className="flex-1 min-w-0">
+					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight truncate">
 						{user.firstName} {user.lastName}
 					</h1>
-					<p className="mt-1 text-base text-muted-foreground">{user.email}</p>
+					<p className="mt-1 text-base text-muted-foreground truncate">{user.email}</p>
 				</div>
 				<Link
 					href={`/dashboard/users/${user.id}/edit`}
@@ -46,9 +57,9 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 			</div>
 
 			<div className="grid gap-6 md:grid-cols-2">
-				<div className="rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
 					<div className="px-8 pt-8 pb-2">
-						<h3 className="text-[1.25rem] font-medium text-foreground">Personal Info</h3>
+						<h2 className="text-[1.25rem] font-medium text-foreground">Personal Info</h2>
 					</div>
 					<div className="px-8 py-6 space-y-4">
 						<InfoRow label="First Name" value={user.firstName} />
@@ -59,14 +70,15 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 					</div>
 				</div>
 
-				<div className="rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
 					<div className="px-8 pt-8 pb-2">
-						<h3 className="text-[1.25rem] font-medium text-foreground">Work Info</h3>
+						<h2 className="text-[1.25rem] font-medium text-foreground">Work Info</h2>
 					</div>
 					<div className="px-8 py-6 space-y-4">
 						<InfoRow label="Position" value={user.position} />
 						<InfoRow label="Department" value={user.department?.name} />
-						<div className="flex justify-between py-1">
+						<InfoRow label="Branch" value={formatBranch(user.branch)} />
+						<div className="flex justify-between items-center py-1">
 							<span className="text-sm text-muted-foreground">Role</span>
 							<Badge
 								variant={
@@ -80,8 +92,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 								{user.role}
 							</Badge>
 						</div>
-						<div className="h-px bg-gray-100 dark:bg-white/5" />
-						<div className="flex justify-between py-1">
+						<div className="flex justify-between items-center py-1">
 							<span className="text-sm text-muted-foreground">Status</span>
 							<Badge variant={user.isActive ? "outline" : "destructive"}>
 								{user.isActive ? "Active" : "Inactive"}
@@ -97,9 +108,14 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
 	return (
-		<div className="flex justify-between py-1">
-			<span className="text-sm text-muted-foreground">{label}</span>
-			<span className="text-sm font-medium text-foreground">{value ?? "—"}</span>
+		<div className="flex justify-between items-center py-1 gap-4">
+			<span className="text-sm text-muted-foreground shrink-0">{label}</span>
+			<span
+				className="text-sm font-medium text-foreground text-right truncate"
+				title={value ?? undefined}
+			>
+				{value ?? "—"}
+			</span>
 		</div>
 	);
 }

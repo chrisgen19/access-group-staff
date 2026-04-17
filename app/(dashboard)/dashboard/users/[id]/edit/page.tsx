@@ -1,10 +1,12 @@
-import { redirect, notFound } from "next/navigation";
-import { getServerSession } from "@/lib/auth-utils";
-import { canManageUsers } from "@/lib/permissions";
-import { prisma } from "@/lib/db";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
-import { UserForm } from "../../_components/user-form";
+import { getServerSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { canManageUsers } from "@/lib/permissions";
 import { ResetPasswordForm } from "../../_components/reset-password-form";
+import { UserForm } from "../../_components/user-form";
 
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
 	const session = await getServerSession();
@@ -22,6 +24,22 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
+			<div className="flex items-center gap-4">
+				<Link
+					href={`/dashboard/users/${user.id}`}
+					aria-label="Back to user details"
+					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
+				>
+					<ArrowLeft className="h-5 w-5" />
+				</Link>
+				<div className="flex-1 min-w-0">
+					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight truncate">
+						Edit {user.firstName} {user.lastName}
+					</h1>
+					<p className="mt-1 text-base text-muted-foreground truncate">{user.email}</p>
+				</div>
+			</div>
+
 			<UserForm
 				mode="edit"
 				userId={user.id}
@@ -39,12 +57,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 					isActive: user.isActive,
 				}}
 			/>
-			<div className="max-w-2xl">
-				<ResetPasswordForm
-					userId={user.id}
-					userName={`${user.firstName} ${user.lastName}`}
-				/>
-			</div>
+			<ResetPasswordForm userId={user.id} userName={`${user.firstName} ${user.lastName}`} />
 		</div>
 	);
 }
