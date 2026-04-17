@@ -213,7 +213,7 @@ export default async function RecognitionDetailPage({
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">
-			{isRecipient && <MarkNotificationsRead cardId={id} />}
+			{canInteract && <MarkNotificationsRead cardId={id} />}
 			<div className="flex items-center gap-4">
 				<Link
 					href="/dashboard/recognition"

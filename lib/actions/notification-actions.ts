@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth-utils";
-import { revalidatePath } from "next/cache";
 
 export async function markNotificationReadAction(notificationId: string) {
 	try {
@@ -16,7 +15,6 @@ export async function markNotificationReadAction(notificationId: string) {
 			data: { isRead: true },
 		});
 
-		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
 		const message =
@@ -37,7 +35,6 @@ export async function markAllNotificationsReadAction() {
 			data: { isRead: true },
 		});
 
-		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
 		const message =
@@ -59,7 +56,6 @@ export async function markNotificationsReadByCardAction(cardId: string) {
 			data: { isRead: true },
 		});
 
-		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
 		const message =
