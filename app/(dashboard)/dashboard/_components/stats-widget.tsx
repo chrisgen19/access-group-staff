@@ -92,19 +92,30 @@ function useCountdown(targetIso: string | null) {
 			return;
 		}
 		const target = new Date(targetIso).getTime();
+		// Skip invalidation on the first tick if we mount already past the boundary
+		// — that state is authoritative from the server and doesn't need a refetch.
+		let startedPast = target - Date.now() <= 0;
+		let timeoutId: number | undefined;
 
 		function tick() {
 			const remaining = target - Date.now();
 			setMsRemaining(remaining);
 			if (remaining <= 0) {
-				queryClient.invalidateQueries({ queryKey: ["recognition-stats"] });
+				if (!startedPast) {
+					queryClient.invalidateQueries({ queryKey: ["recognition-stats"] });
+				}
+				return;
 			}
+			startedPast = false;
+			// Recompute delay every tick so the interval adapts as the boundary nears.
+			const nextDelay = remaining > 60 * 60 * 1000 ? 60_000 : 1_000;
+			timeoutId = window.setTimeout(tick, nextDelay);
 		}
 
 		tick();
-		const intervalMs = target - Date.now() > 60 * 60 * 1000 ? 60_000 : 1_000;
-		const id = window.setInterval(tick, intervalMs);
-		return () => window.clearInterval(id);
+		return () => {
+			if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+		};
 	}, [targetIso, queryClient]);
 
 	return msRemaining;
@@ -163,12 +174,17 @@ function StatsWidgetSkeleton() {
 	);
 }
 
-function LockedLeaderboard({ visibility }: { visibility: LeaderboardVisibility }) {
+function LockedLeaderboard({
+	visibility,
+	msRemaining,
+}: {
+	visibility: LeaderboardVisibility;
+	msRemaining: number | null;
+}) {
 	const hasRange = visibility.revealStart && visibility.revealEnd;
 	const rangeLabel = hasRange
 		? formatRevealRange(visibility.revealStart as string, visibility.revealEnd as string)
 		: null;
-	const msRemaining = useCountdown(visibility.revealStart);
 	const showCountdown = msRemaining !== null && msRemaining > 0;
 
 	return (
@@ -217,6 +233,16 @@ export function StatsWidget() {
 		staleTime: 30_000,
 	});
 
+	const visibility = data?.data?.leaderboardVisibility ?? null;
+	// Always watch the next boundary: revealEnd if the leaderboard is currently
+	// visible (so we hide it at month-end / range-end), otherwise revealStart.
+	const nextBoundaryIso = visibility
+		? visibility.visible
+			? visibility.revealEnd
+			: visibility.revealStart
+		: null;
+	const msRemaining = useCountdown(nextBoundaryIso);
+
 	if (isPending) {
 		return <StatsWidgetSkeleton />;
 	}
@@ -235,9 +261,9 @@ export function StatsWidget() {
 	}
 
 	const stats = data.data;
-	const visibility = stats.leaderboardVisibility;
-	const showList = visibility.visible && stats.topRecipients.length > 0;
-	const showLocked = !visibility.visible;
+	const resolvedVisibility = stats.leaderboardVisibility;
+	const showList = resolvedVisibility.visible && stats.topRecipients.length > 0;
+	const showLocked = !resolvedVisibility.visible;
 
 	return (
 		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6 h-full">
@@ -314,7 +340,7 @@ export function StatsWidget() {
 					</ol>
 				</div>
 			) : showLocked ? (
-				<LockedLeaderboard visibility={visibility} />
+				<LockedLeaderboard visibility={resolvedVisibility} msRemaining={msRemaining} />
 			) : null}
 		</div>
 	);

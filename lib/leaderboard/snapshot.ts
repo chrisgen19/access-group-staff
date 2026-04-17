@@ -1,7 +1,12 @@
 import type { Prisma } from "@/app/generated/prisma/client";
-import { getTopRecognizedLimit } from "@/lib/actions/settings-actions";
 import { prisma } from "@/lib/db";
 import { getMonthBoundariesForKey, getPreviousMonthKey } from "./month";
+
+// Archive up to the maximum possible top-N so the snapshot is authoritative
+// regardless of how admins change `top_recognized_limit` later. Must match
+// TOP_RECOGNIZED_MAX in lib/actions/settings-actions.ts. History consumers
+// should trim to the current limit at display time.
+const SNAPSHOT_TOP_N = 50;
 
 export interface SnapshotRecipient {
 	userId: string;
@@ -55,8 +60,7 @@ export async function maybeSnapshotPreviousMonth(now: Date = new Date()): Promis
 	});
 	if (existing) return;
 
-	const topLimit = await getTopRecognizedLimit();
-	const recipients = await computeMonthRecipients(prevKey, topLimit);
+	const recipients = await computeMonthRecipients(prevKey, SNAPSHOT_TOP_N);
 	if (recipients.length === 0) return;
 
 	await prisma.monthlyLeaderboardSnapshot.upsert({
@@ -64,7 +68,7 @@ export async function maybeSnapshotPreviousMonth(now: Date = new Date()): Promis
 		create: {
 			month: prevKey,
 			recipients: recipients as unknown as Prisma.InputJsonValue,
-			topLimit,
+			topLimit: SNAPSHOT_TOP_N,
 		},
 		update: {},
 	});
