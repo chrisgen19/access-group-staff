@@ -59,7 +59,7 @@ export interface RecognitionCard {
 	valuesCommunication: boolean;
 	valuesContinuousImprovement: boolean;
 	interactionCounts: { reactions: number; comments: number } | null;
-	reactionSummary?: { emoji: string; count: number; hasReacted: boolean }[];
+	reactionSummary?: CardReactionSummary[];
 }
 
 export const COMPANY_VALUES = [

@@ -89,9 +89,12 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 			await prisma.cardReaction.create({
 				data: { cardId, userId: session.user.id, emoji },
 			});
-			// Only notify if the reaction survives a concurrent double-tap.
-			// A racing sibling request that hits P2002 will delete the row —
-			// in that case the final state is "removed" and we must not notify.
+			// Best-effort race mitigation: re-read after the create so we skip the
+			// notification when a racing sibling already hit P2002 and deleted the row.
+			// This narrows the window but is not atomic with the create — a sibling
+			// delete that commits between the create and this read can still slip
+			// through. Full atomicity would require a queue or a retract step,
+			// which is out of scope for this PR.
 			const stillExists = await prisma.cardReaction.findUnique({
 				where: {
 					cardId_userId_emoji: { cardId, userId: session.user.id, emoji },
@@ -146,31 +149,42 @@ export async function addCommentAction(cardId: string, body: string) {
 			return { success: false as const, error: "Forbidden" };
 		}
 
-		const comment = await prisma.cardComment.create({
-			data: { cardId, userId: session.user.id, body: parsedBody.data },
-			select: {
-				id: true,
-				body: true,
-				createdAt: true,
-				updatedAt: true,
-				userId: true,
-				user: {
-					select: {
-						id: true,
-						firstName: true,
-						lastName: true,
-						avatar: true,
-						position: true,
+		const comment = await prisma.$transaction(async (tx) => {
+			const created = await tx.cardComment.create({
+				data: { cardId, userId: session.user.id, body: parsedBody.data },
+				select: {
+					id: true,
+					body: true,
+					createdAt: true,
+					updatedAt: true,
+					userId: true,
+					user: {
+						select: {
+							id: true,
+							firstName: true,
+							lastName: true,
+							avatar: true,
+							position: true,
+						},
 					},
 				},
-			},
-		});
+			});
 
-		await notifyCardInteraction({
-			card,
-			actorId: session.user.id,
-			actorName: session.user.name ?? "Someone",
-			type: "CARD_COMMENT",
+			const recipients = Array.from(
+				new Set([card.senderId, card.recipientId].filter((id) => id !== session.user.id)),
+			);
+			if (recipients.length > 0) {
+				await tx.notification.createMany({
+					data: recipients.map((userId) => ({
+						userId,
+						type: "CARD_COMMENT" as const,
+						message: `${session.user.name ?? "Someone"} commented on a recognition card`,
+						cardId: card.id,
+					})),
+				});
+			}
+
+			return created;
 		});
 
 		return { success: true as const, data: comment };

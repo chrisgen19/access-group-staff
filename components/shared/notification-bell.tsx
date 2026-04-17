@@ -66,8 +66,12 @@ export function NotificationBell() {
 			});
 		}
 		if (notification.cardId) {
-			const focus = notification.type === "CARD_COMMENT" ? "?focus=comments" : "";
-			router.push(`/dashboard/recognition/${notification.cardId}${focus}`);
+			const params = new URLSearchParams();
+			if (notification.type === "CARD_COMMENT") params.set("focus", "comments");
+			// Nonce: guarantees the URL changes per click so repeated notifications
+			// for the same card still trigger navigation and re-open the thread.
+			params.set("n", notification.id);
+			router.push(`/dashboard/recognition/${notification.cardId}?${params.toString()}`);
 		}
 	}
 

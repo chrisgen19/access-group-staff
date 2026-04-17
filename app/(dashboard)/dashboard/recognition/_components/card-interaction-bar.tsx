@@ -41,12 +41,15 @@ export function CardInteractionBar({
 	const pendingToggles = useRef(new Set<string>());
 	const rootRef = useRef<HTMLDivElement>(null);
 
+	// Read from searchParams inside so the effect re-runs on every navigation,
+	// not just when the raw focus value changes — repeated notification clicks
+	// to the same URL must still re-open the thread.
 	useEffect(() => {
-		if (focusTarget !== "comments") return;
+		if (searchParams?.get("focus") !== "comments") return;
 		setShowComments(true);
 		setFetchEnabled(true);
 		rootRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-	}, [focusTarget]);
+	}, [searchParams]);
 
 	const { data } = useQuery<{ success: boolean; data: CardInteractions }>({
 		queryKey: ["card-interactions", cardId, currentUserId],

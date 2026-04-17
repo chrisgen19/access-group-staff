@@ -191,36 +191,48 @@ export async function GET(request: NextRequest) {
 
 		const cardIds = cards.map((c) => c.id);
 
-		// Batch fetch per-emoji reaction counts + current user's reactions (2 queries, not N+1)
-		const [reactionCounts, userReactions] = await Promise.all([
-			prisma.cardReaction.groupBy({
-				by: ["cardId", "emoji"],
-				where: { cardId: { in: cardIds } },
-				_count: true,
-			}),
-			prisma.cardReaction.findMany({
-				where: { cardId: { in: cardIds }, userId: session.user.id },
-				select: { cardId: true, emoji: true },
-			}),
-		]);
+		// Single pass — fetch every reaction row with the reactor's public fields.
+		// Bounded per card (≤ 6 emojis × N participants), so joining the user is cheap
+		// and lets the ReactorPopover render on first paint without waiting for the lazy fetch.
+		const allReactions = await prisma.cardReaction.findMany({
+			where: { cardId: { in: cardIds } },
+			select: {
+				cardId: true,
+				emoji: true,
+				userId: true,
+				user: {
+					select: {
+						id: true,
+						firstName: true,
+						lastName: true,
+						avatar: true,
+					},
+				},
+			},
+			orderBy: { createdAt: "asc" },
+		});
 
-		const userReactionSet = new Set(
-			userReactions.map((r) => `${r.cardId}:${r.emoji}`),
-		);
-
-		const reactionsByCard = new Map<
-			string,
-			{ emoji: string; count: number; hasReacted: boolean }[]
-		>();
-		for (const rc of reactionCounts) {
-			if (!reactionsByCard.has(rc.cardId)) {
-				reactionsByCard.set(rc.cardId, []);
+		type ReactorEntry = {
+			emoji: string;
+			count: number;
+			hasReacted: boolean;
+			users: { id: string; firstName: string; lastName: string; avatar: string | null }[];
+		};
+		const reactionsByCard = new Map<string, Map<string, ReactorEntry>>();
+		for (const r of allReactions) {
+			let perCard = reactionsByCard.get(r.cardId);
+			if (!perCard) {
+				perCard = new Map();
+				reactionsByCard.set(r.cardId, perCard);
 			}
-			reactionsByCard.get(rc.cardId)!.push({
-				emoji: rc.emoji,
-				count: rc._count,
-				hasReacted: userReactionSet.has(`${rc.cardId}:${rc.emoji}`),
-			});
+			let entry = perCard.get(r.emoji);
+			if (!entry) {
+				entry = { emoji: r.emoji, count: 0, hasReacted: false, users: [] };
+				perCard.set(r.emoji, entry);
+			}
+			entry.count += 1;
+			entry.users.push(r.user);
+			if (r.userId === session.user.id) entry.hasReacted = true;
 		}
 
 		return Response.json({
@@ -234,7 +246,7 @@ export async function GET(request: NextRequest) {
 				return {
 					...mapped,
 					reactionSummary: isCardParticipant
-						? reactionsByCard.get(card.id) ?? []
+						? Array.from(reactionsByCard.get(card.id)?.values() ?? [])
 						: undefined,
 				};
 			}),
