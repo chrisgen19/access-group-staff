@@ -62,7 +62,13 @@ export default async function LeaderboardHistoryPage({ searchParams }: PageProps
 	const archived = archivedKeys.filter((k) => k !== currentMonthKey);
 	const selectableKeys = visibility.visible ? [currentMonthKey, ...archived] : archived;
 
-	if (selectableKeys.length === 0) {
+	const requested = monthParam && isValidMonthKey(monthParam) ? monthParam : null;
+
+	// Generic empty state only when there's truly nothing to show AND the user
+	// didn't deep-link a specific month. A valid ?month= flows through below so
+	// locked/missing states surface for shared or bookmarked links even before
+	// the first archive exists.
+	if (selectableKeys.length === 0 && !requested) {
 		return (
 			<div className="max-w-7xl mx-auto mt-2 space-y-8">
 				<PageHeader />
@@ -77,7 +83,6 @@ export default async function LeaderboardHistoryPage({ searchParams }: PageProps
 		);
 	}
 
-	const requested = monthParam && isValidMonthKey(monthParam) ? monthParam : null;
 	// Honor a valid requested month even if it isn't in the selectable list
 	// (e.g. pre-archive months, the just-finished month before its snapshot
 	// lands, or the current month while hidden). This lets locked/missing
