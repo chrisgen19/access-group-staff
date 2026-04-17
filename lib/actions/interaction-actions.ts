@@ -89,13 +89,24 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 			await prisma.cardReaction.create({
 				data: { cardId, userId: session.user.id, emoji },
 			});
-			await notifyCardInteraction({
-				card,
-				actorId: session.user.id,
-				actorName: session.user.name ?? "Someone",
-				type: "CARD_REACTION",
-				emoji,
+			// Only notify if the reaction survives a concurrent double-tap.
+			// A racing sibling request that hits P2002 will delete the row —
+			// in that case the final state is "removed" and we must not notify.
+			const stillExists = await prisma.cardReaction.findUnique({
+				where: {
+					cardId_userId_emoji: { cardId, userId: session.user.id, emoji },
+				},
+				select: { id: true },
 			});
+			if (stillExists) {
+				await notifyCardInteraction({
+					card,
+					actorId: session.user.id,
+					actorName: session.user.name ?? "Someone",
+					type: "CARD_REACTION",
+					emoji,
+				});
+			}
 			return { success: true as const, action: "added" as const };
 		} catch (err) {
 			// Concurrent toggle already created it — treat as remove

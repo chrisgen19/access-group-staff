@@ -42,9 +42,10 @@ export function CardInteractionBar({
 	const rootRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		if (focusTarget === "comments") {
-			rootRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-		}
+		if (focusTarget !== "comments") return;
+		setShowComments(true);
+		setFetchEnabled(true);
+		rootRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 	}, [focusTarget]);
 
 	const { data } = useQuery<{ success: boolean; data: CardInteractions }>({
@@ -174,17 +175,16 @@ export function CardInteractionBar({
 			<div className="flex flex-wrap items-center gap-1.5">
 				{/* Active reactions with counts */}
 				{activeReactions.map((r) => (
-					<ReactorPopover key={r.emoji} emoji={r.emoji} users={r.users ?? []}>
-						{(handlers) => (
+					<ReactorPopover
+						key={r.emoji}
+						emoji={r.emoji}
+						users={r.users ?? []}
+						onActivate={() => handleReaction(r.emoji)}
+					>
+						{(trigger) => (
 							<button
 								type="button"
-								onClick={() => handleReaction(r.emoji)}
-								onMouseEnter={handlers.onMouseEnter}
-								onMouseLeave={handlers.onMouseLeave}
-								onPointerDown={handlers.onPointerDown}
-								onPointerUp={handlers.onPointerUp}
-								onPointerCancel={handlers.onPointerCancel}
-								onClickCapture={handlers.onClickCapture}
+								{...trigger}
 								className={cn(
 									"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm transition-all select-none",
 									r.hasReacted
