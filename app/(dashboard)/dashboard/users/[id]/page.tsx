@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canViewUsers } from "@/lib/permissions";
+import { BRANCH_OPTIONS } from "../_components/user-filter-bar";
+
+function formatBranch(branch: string | null): string | null {
+	if (!branch) return null;
+	return BRANCH_OPTIONS.find((b) => b.value === branch)?.label ?? branch;
+}
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const session = await getServerSession();
@@ -67,7 +73,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 					<div className="px-8 py-6 space-y-4">
 						<InfoRow label="Position" value={user.position} />
 						<InfoRow label="Department" value={user.department?.name} />
-						<InfoRow label="Branch" value={user.branch} />
+						<InfoRow label="Branch" value={formatBranch(user.branch)} />
 						<div className="flex justify-between items-center py-1">
 							<span className="text-sm text-muted-foreground">Role</span>
 							<Badge
@@ -100,7 +106,10 @@ function InfoRow({ label, value }: { label: string; value: string | null | undef
 	return (
 		<div className="flex justify-between items-center py-1 gap-4">
 			<span className="text-sm text-muted-foreground shrink-0">{label}</span>
-			<span className="text-sm font-medium text-foreground text-right truncate">
+			<span
+				className="text-sm font-medium text-foreground text-right truncate"
+				title={value ?? undefined}
+			>
 				{value ?? "—"}
 			</span>
 		</div>

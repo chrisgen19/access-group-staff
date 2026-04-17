@@ -1,0 +1,904 @@
+[     260ms] [ERROR] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[     335ms] Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary name="preferences/" loading={null}>
+        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/dashboard..." tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                <SegmentViewNode type="page" pagePath="(dashboard...">
+                  <SegmentTrieNode>
+                  <ClientPageRoot Component={function PreferencesPage} serverProvidedParams={{...}}>
+                    <PreferencesPage params={Promise} searchParams={Promise}>
+                      <div className="rounded-[2...">
+                        <div>
+                        <div className="px-8 py-6 ...">
+                          <div className="space-y-4">
+                            <div>
+                              <h4>
+                              <p>
++                             <p className="mt-1.5 text-xs text-muted-foreground/70">
+                            ...
+                          ...
+                ...
+              ...
+
+    at throwOnHydrationMismatch (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3318:56)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6758:918)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopConcurrentByScheduler (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9551:58)
+    at renderRootConcurrent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9534:71)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:2647:64)
+[   87346ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=PvpmEo9DXtT2husqWS5A4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   88347ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=PvpmEo9DXtT2husqWS5A4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   89347ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=PvpmEo9DXtT2husqWS5A4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   90348ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=PvpmEo9DXtT2husqWS5A4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   91349ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=PvpmEo9DXtT2husqWS5A4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[   96353ms] [ERROR] WebSocket connection to 'ws://localhost:3000/_next/webpack-hmr?id=PvpmEo9DXtT2husqWS5A4' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:13299
+[  102903ms] [ERROR] Encountered a script tag while rendering React component. Scripts inside React components are never executed when rendering on the client. Consider using template tag instead (https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template). @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[  103009ms] Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary name="preferences/" loading={null}>
+        <HTTPAccessFallbackBoundary notFound={undefined} forbidden={undefined} unauthorized={undefined}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary router={{...}}>
+              <InnerLayoutRouter url="/dashboard..." tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                <SegmentViewNode type="page" pagePath="(dashboard...">
+                  <SegmentTrieNode>
+                  <ClientPageRoot Component={function PreferencesPage} serverProvidedParams={{...}}>
+                    <PreferencesPage params={Promise} searchParams={Promise}>
+                      <div className="rounded-[2...">
+                        <div>
+                        <div className="px-8 py-6 ...">
+                          <div className="space-y-4">
+                            <div>
+                              <h4>
+                              <p>
++                             <p className="mt-1.5 text-xs text-muted-foreground/70">
+                            ...
+                          ...
+                ...
+              ...
+
+    at throwOnHydrationMismatch (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:3318:56)
+    at beginWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:6758:918)
+    at runWithFiberInDEV (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:965:74)
+    at performUnitOfWork (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9555:97)
+    at workLoopConcurrentByScheduler (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9551:58)
+    at renderRootConcurrent (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9534:71)
+    at performWorkOnRoot (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:9061:150)
+    at performWorkOnRootViaSchedulerTask (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_react-dom_058-ah~._.js:10255:9)
+    at MessagePort.performWorkUntilDeadline (http://localhost:3000/_next/static/chunks/node_modules_next_dist_compiled_0rpq4pf._.js:2647:64)
+[ 4237685ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 4237845ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 4237974ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 4237978ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/dashboard/profile/preferences?_rsc=r0246:0
+[ 4238003ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/dashboard/profile/preferences?_rsc=r0246:0
+[ 4238071ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 4238131ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3272
+[ 4238283ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/dashboard/profile/preferences:0
+[ 4238475ms] Error: ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx
+
+
+    at <unknown> (Error: ./lib/actions/settings-actions.ts:25:17)
+    at Object.getCompilationErrors (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1189:59)
+    at DevBundlerService.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/base-server.js:1745:26)
+[ 4238460ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4238502ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4238715ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4239143ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4240106ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4245553ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4251223ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4257047ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4265243ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4276979ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4277118ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4289337ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4293052ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4309909ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4310429ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4310475ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4310516ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/dashboard/profile/preferences:0
+[ 4310562ms] Error: ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx
+
+
+    at <unknown> (Error: ./lib/actions/settings-actions.ts:25:17)
+    at Object.getCompilationErrors (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1189:59)
+    at DevBundlerService.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/base-server.js:1745:26)
+[ 4310589ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4310633ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4310769ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4310959ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4312340ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4322198ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4349142ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4599563ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4604532ms] [ERROR] ./lib/actions/settings-actions.ts:25:17
+Server Actions must be async functions.
+  23 | }
+  24 |
+> 25 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  26 | 	return {
+  27 | 		google: true,
+  28 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4619950ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4620419ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4620492ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/dashboard/profile/preferences:0
+[ 4620562ms] Error: ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx
+
+
+    at <unknown> (Error: ./lib/actions/settings-actions.ts:41:17)
+    at Object.getCompilationErrors (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1189:59)
+    at DevBundlerService.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/base-server.js:1745:26)
+[ 4620580ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4620622ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4620985ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4622478ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4624309ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4624692ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4624731ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/dashboard/profile/preferences:0
+[ 4624800ms] Error: ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx
+
+
+    at <unknown> (Error: ./lib/actions/settings-actions.ts:41:17)
+    at Object.getCompilationErrors (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/hot-reloader-turbopack.js:1189:59)
+    at DevBundlerService.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/lib/dev-bundler-service.js:44:55)
+    at DevServer.getCompilationError (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:719:42)
+    at DevServer.findPageComponents (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/dev/next-dev-server.js:689:43)
+    at async DevServer.renderErrorToResponseImpl (file:///Users/chrisgen19/projects/access-group-staff/node_modules/next/dist/server/base-server.js:1745:26)
+[ 4624805ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4624842ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4624916ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4625301ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4626783ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945
+[ 4663123ms] [ERROR] ./lib/actions/settings-actions.ts:41:17
+Server Actions must be async functions.
+  39 | }
+  40 |
+> 41 | export function getOAuthProviderAvailability() {
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  42 | 	return {
+  43 | 		google: true,
+  44 | 		microsoft: !!(env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET),
+
+Ecmascript file had an error
+
+Import trace:
+  Server Component:
+    ./lib/actions/settings-actions.ts
+    ./app/(dashboard)/dashboard/super-admin/page.tsx @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_0u_w_5s._.js:1945

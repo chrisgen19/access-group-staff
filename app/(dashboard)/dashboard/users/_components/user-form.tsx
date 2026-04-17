@@ -116,9 +116,9 @@ export function UserForm({
 		<div className="max-w-2xl">
 			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
 				<div className="px-8 pt-8 pb-2">
-					<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
+					<h2 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 						{isCreate ? "Add Staff Member" : "Edit Staff Details"}
-					</h3>
+					</h2>
 				</div>
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<div className="px-8 py-6 space-y-5">

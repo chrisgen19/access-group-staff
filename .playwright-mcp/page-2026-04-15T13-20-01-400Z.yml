@@ -1,0 +1,51 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - img [ref=e6]
+      - navigation [ref=e8]:
+        - link "Dashboard" [ref=e9] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e10]
+          - text: Dashboard
+        - link "Recognition Card" [ref=e15] [cursor=pointer]:
+          - /url: /dashboard/recognition
+          - img [ref=e16]
+          - text: Recognition Card
+        - link "My Profile" [ref=e18] [cursor=pointer]:
+          - /url: /dashboard/profile
+          - img [ref=e19]
+          - text: My Profile
+      - button "Sign Out" [ref=e23]:
+        - img [ref=e24]
+        - text: Sign Out
+    - generic [ref=e27]:
+      - banner [ref=e28]:
+        - button "Toggle theme" [ref=e30]:
+          - img
+          - generic [ref=e31]: Toggle theme
+      - main [ref=e32]:
+        - generic [ref=e33]:
+          - generic [ref=e34]:
+            - generic [ref=e35]:
+              - heading "Welcome back, Christian!" [level=1] [ref=e36]
+              - paragraph [ref=e37]: Here's what's happening at Access Group today.
+            - link "Send Recognition Card" [ref=e38] [cursor=pointer]:
+              - /url: /dashboard/recognition/create
+              - img [ref=e39]
+              - text: Send Recognition Card
+          - generic [ref=e40]:
+            - generic [ref=e42]:
+              - generic [ref=e43]:
+                - heading "Recognition Feed" [level=3] [ref=e44]
+                - tablist "Recognition feed filter" [ref=e45]:
+                  - tab "Public" [selected] [ref=e46]:
+                    - img [ref=e47]
+                    - text: Public
+                  - tab "My Department" [ref=e50]:
+                    - img [ref=e51]
+                    - text: My Department
+              - tabpanel [ref=e55]
+            - generic "Loading recognition stats" [ref=e94]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e127] [cursor=pointer]:
+    - img [ref=e128]

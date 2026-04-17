@@ -59,9 +59,9 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 	return (
 		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
 			<div className="px-8 pt-8 pb-2">
-				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
+				<h2 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Reset Password
-				</h3>
+				</h2>
 				<p className="mt-1 text-sm text-muted-foreground">
 					Set a new password for {userName}. They will need to use this password on their next login.
 				</p>
