@@ -1,24 +1,27 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, MessageCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import {
-	REACTION_EMOJIS,
-	type CardInteractions,
-	type CardComment,
-} from "@/lib/recognition";
 import { toggleReactionAction } from "@/lib/actions/interaction-actions";
+import { type CardComment, type CardInteractions, REACTION_EMOJIS } from "@/lib/recognition";
+import { cn } from "@/lib/utils";
 import { CommentThread } from "./comment-thread";
+import { ReactorPopover } from "./reactor-popover";
 
 interface CardInteractionBarProps {
 	cardId: string;
 	currentUserId: string;
 	isAdmin: boolean;
 	initialCommentCount?: number;
-	initialReactions?: { emoji: string; count: number; hasReacted: boolean }[];
+	initialReactions?: {
+		emoji: string;
+		count: number;
+		hasReacted: boolean;
+		users?: { id: string; firstName: string; lastName: string; avatar: string | null }[];
+	}[];
 }
 
 export function CardInteractionBar({
@@ -29,11 +32,24 @@ export function CardInteractionBar({
 	initialReactions,
 }: CardInteractionBarProps) {
 	const queryClient = useQueryClient();
-	const [showComments, setShowComments] = useState(false);
+	const searchParams = useSearchParams();
+	const focusTarget = searchParams?.get("focus");
+	const [showComments, setShowComments] = useState(focusTarget === "comments");
 	// Lazy: only fetch when user first hovers (desktop) or interacts (mobile)
-	const [fetchEnabled, setFetchEnabled] = useState(false);
+	const [fetchEnabled, setFetchEnabled] = useState(focusTarget === "comments");
 	// Track in-flight emoji toggles to prevent double-tap race
 	const pendingToggles = useRef(new Set<string>());
+	const rootRef = useRef<HTMLDivElement>(null);
+
+	// Read from searchParams inside so the effect re-runs on every navigation,
+	// not just when the raw focus value changes — repeated notification clicks
+	// to the same URL must still re-open the thread.
+	useEffect(() => {
+		if (searchParams?.get("focus") !== "comments") return;
+		setShowComments(true);
+		setFetchEnabled(true);
+		rootRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+	}, [searchParams]);
 
 	const { data } = useQuery<{ success: boolean; data: CardInteractions }>({
 		queryKey: ["card-interactions", cardId, currentUserId],
@@ -140,19 +156,21 @@ export function CardInteractionBar({
 	const totalComments = interactions?.totalComments ?? initialCommentCount;
 
 	// Use initialReactions from the feed before the lazy fetch fires
-	const displayReactions = interactions
-		? reactions
-		: initialReactions ?? [];
+	const displayReactions = interactions ? reactions : (initialReactions ?? []);
 
 	const activeReactions = displayReactions.filter((r) => r.count > 0);
 	// Build ghost buttons for emojis not already shown as active
 	const activeEmojis = new Set(activeReactions.map((r) => r.emoji));
-	const ghostReactions = REACTION_EMOJIS.filter((e) => !activeEmojis.has(e)).map(
-		(emoji) => ({ emoji, count: 0, hasReacted: false }),
-	);
+	const ghostReactions = REACTION_EMOJIS.filter((e) => !activeEmojis.has(e)).map((emoji) => ({
+		emoji,
+		count: 0,
+		hasReacted: false,
+	}));
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: mouseenter only used for lazy-fetch hint
 		<div
+			ref={rootRef}
 			className="pt-3 mt-3 border-t border-border/50"
 			onMouseEnter={() => setFetchEnabled(true)}
 		>
@@ -160,21 +178,29 @@ export function CardInteractionBar({
 			<div className="flex flex-wrap items-center gap-1.5">
 				{/* Active reactions with counts */}
 				{activeReactions.map((r) => (
-					<button
+					<ReactorPopover
 						key={r.emoji}
-						type="button"
-						onClick={() => handleReaction(r.emoji)}
-						className={cn(
-							"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm transition-all",
-							r.hasReacted
-								? "bg-primary/15 ring-1 ring-primary/40 text-foreground font-medium"
-								: "bg-muted/60 dark:bg-white/5 text-foreground/80 hover:bg-muted dark:hover:bg-white/10",
-						)}
-						aria-label={`React with ${r.emoji} (${r.count})`}
+						emoji={r.emoji}
+						users={r.users ?? []}
+						onActivate={() => handleReaction(r.emoji)}
 					>
-						<span>{r.emoji}</span>
-						<span className="text-xs tabular-nums">{r.count}</span>
-					</button>
+						{(trigger) => (
+							<button
+								type="button"
+								{...trigger}
+								className={cn(
+									"inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm transition-all select-none",
+									r.hasReacted
+										? "bg-primary/15 ring-1 ring-primary/40 text-foreground font-medium"
+										: "bg-muted/60 dark:bg-white/5 text-foreground/80 hover:bg-muted dark:hover:bg-white/10",
+								)}
+								aria-label={`React with ${r.emoji} (${r.count})`}
+							>
+								<span>{r.emoji}</span>
+								<span className="text-xs tabular-nums">{r.count}</span>
+							</button>
+						)}
+					</ReactorPopover>
 				))}
 
 				{/* Ghost buttons for zero-count emojis */}

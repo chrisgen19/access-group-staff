@@ -1,20 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck, Heart, Pencil, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-	markNotificationReadAction,
-	markAllNotificationsReadAction,
-} from "@/lib/actions/notification-actions";
+import { Bell, CheckCheck, Heart, MessageCircle, Pencil, Smile, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
 	DropdownMenu,
-	DropdownMenuTrigger,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useNotifications, type Notification } from "@/hooks/use-notifications";
+import { type Notification, useNotifications } from "@/hooks/use-notifications";
+import {
+	markAllNotificationsReadAction,
+	markNotificationReadAction,
+} from "@/lib/actions/notification-actions";
+import { cn } from "@/lib/utils";
 
 function formatRelativeTime(dateString: string) {
 	const now = Date.now();
@@ -34,11 +34,15 @@ function formatRelativeTime(dateString: string) {
 function notificationIcon(type: Notification["type"]) {
 	switch (type) {
 		case "CARD_RECEIVED":
-			return <Heart size={14} className="text-primary" />;
+			return <Heart size={14} className="text-primary group-focus:text-white" />;
 		case "CARD_EDITED":
-			return <Pencil size={14} className="text-blue-500" />;
+			return <Pencil size={14} className="text-blue-500 group-focus:text-white" />;
 		case "CARD_DELETED":
-			return <Trash2 size={14} className="text-destructive" />;
+			return <Trash2 size={14} className="text-destructive group-focus:text-white" />;
+		case "CARD_REACTION":
+			return <Smile size={14} className="text-amber-500 group-focus:text-white" />;
+		case "CARD_COMMENT":
+			return <MessageCircle size={14} className="text-blue-500 group-focus:text-white" />;
 	}
 }
 
@@ -62,7 +66,12 @@ export function NotificationBell() {
 			});
 		}
 		if (notification.cardId) {
-			router.push(`/dashboard/recognition/${notification.cardId}`);
+			const params = new URLSearchParams();
+			if (notification.type === "CARD_COMMENT") params.set("focus", "comments");
+			// Nonce: guarantees the URL changes per click so repeated notifications
+			// for the same card still trigger navigation and re-open the thread.
+			params.set("n", notification.id);
+			router.push(`/dashboard/recognition/${notification.cardId}?${params.toString()}`);
 		}
 	}
 
@@ -76,15 +85,9 @@ export function NotificationBell() {
 					</span>
 				)}
 			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				align="end"
-				sideOffset={8}
-				className="w-80 p-0 overflow-hidden"
-			>
+			<DropdownMenuContent align="end" sideOffset={8} className="w-80 p-0 overflow-hidden">
 				<div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 px-4 py-3">
-					<span className="text-sm font-semibold text-foreground">
-						Notifications
-					</span>
+					<span className="text-sm font-semibold text-foreground">Notifications</span>
 					{unreadCount > 0 && (
 						<button
 							type="button"
@@ -109,20 +112,18 @@ export function NotificationBell() {
 								key={notification.id}
 								onClick={() => handleNotificationClick(notification)}
 								className={cn(
-									"flex w-full items-start gap-3 px-4 py-3 text-left transition-colors rounded-none cursor-pointer",
+									"group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors rounded-none cursor-pointer",
 									!notification.isRead && "bg-primary/5",
 								)}
 							>
-								<div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10">
+								<div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 group-focus:bg-white/20">
 									{notificationIcon(notification.type)}
 								</div>
 								<div className="flex-1 min-w-0">
 									<p
 										className={cn(
 											"text-sm leading-snug",
-											notification.isRead
-												? "text-muted-foreground"
-												: "text-foreground font-medium",
+											notification.isRead ? "text-muted-foreground" : "text-foreground font-medium",
 										)}
 									>
 										{notification.message}

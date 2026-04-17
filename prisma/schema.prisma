@@ -22,6 +22,8 @@ enum NotificationType {
   CARD_RECEIVED
   CARD_EDITED
   CARD_DELETED
+  CARD_REACTION
+  CARD_COMMENT
 }
 
 model User {

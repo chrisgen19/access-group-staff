@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 interface Notification {
 	id: string;
-	type: "CARD_RECEIVED" | "CARD_EDITED" | "CARD_DELETED";
+	type: "CARD_RECEIVED" | "CARD_EDITED" | "CARD_DELETED" | "CARD_REACTION" | "CARD_COMMENT";
 	message: string;
 	isRead: boolean;
 	createdAt: string;
