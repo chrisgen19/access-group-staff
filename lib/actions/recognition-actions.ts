@@ -173,24 +173,33 @@ export async function deleteRecognitionCardAction(cardId: string) {
 
 		const card = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { id: true, recipientId: true },
+			select: { id: true, senderId: true, recipientId: true },
 		});
 
 		if (!card) {
 			return { success: false as const, error: "Card not found" };
 		}
 
+		const notifyUserIds = Array.from(
+			new Set([card.senderId, card.recipientId].filter((id) => id !== session.user.id)),
+		);
+
 		await prisma.$transaction(async (tx) => {
 			await tx.notification.deleteMany({ where: { cardId } });
 			await tx.recognitionCard.delete({ where: { id: cardId } });
-			await tx.notification.create({
-				data: {
-					userId: card.recipientId,
-					type: "CARD_DELETED",
-					message: "An admin deleted a recognition card you received",
-					cardId: null,
-				},
-			});
+			if (notifyUserIds.length > 0) {
+				await tx.notification.createMany({
+					data: notifyUserIds.map((userId) => ({
+						userId,
+						type: "CARD_DELETED" as const,
+						message:
+							userId === card.senderId
+								? "An admin deleted a recognition card you sent"
+								: "An admin deleted a recognition card you received",
+						cardId: null,
+					})),
+				});
+			}
 		});
 
 		revalidatePath("/dashboard/recognition");
