@@ -9,6 +9,7 @@ const VALID_ROLES: Role[] = ["STAFF", "ADMIN", "SUPERADMIN"];
 const VALID_BRANCHES: Branch[] = ["ISO", "PERTH"];
 const VALID_STATUSES = ["active", "inactive"] as const;
 const EXPORT_LIMIT = 10_000;
+const SEARCH_MAX_LENGTH = 200;
 
 function parseRoles(param: string | null): Role[] {
 	if (!param) return [];
@@ -53,8 +54,9 @@ export async function GET(request: NextRequest) {
 		return Response.json({ success: true, data: users });
 	}
 
-	const search = searchParams.get("search")?.trim();
-	const roles = parseRoles(searchParams.get("roles"));
+	const search = searchParams.get("search")?.trim().slice(0, SEARCH_MAX_LENGTH);
+	const userRole = session.user.role as Role;
+	const roles = userRole === "SUPERADMIN" ? parseRoles(searchParams.get("roles")) : [];
 	const statuses = parseStatuses(searchParams.get("statuses"));
 	const departmentId = searchParams.get("departmentId")?.trim();
 	const branch = parseBranch(searchParams.get("branch"));
