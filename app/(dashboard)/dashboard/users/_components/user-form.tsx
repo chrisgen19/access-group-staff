@@ -1,18 +1,18 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
 import {
-	createUserSchema,
-	updateUserSchema,
 	type CreateUserInput,
+	createUserSchema,
 	type UpdateUserInput,
+	updateUserSchema,
 } from "@/lib/validations/user";
 
 const inputClass =
@@ -68,9 +68,13 @@ export function UserForm({
 	const isActiveValue = watch("isActive");
 
 	const availableRoles =
-		currentUserRole === "SUPERADMIN"
-			? (["STAFF", "ADMIN"] as const)
-			: (["STAFF"] as const);
+		currentUserRole === "SUPERADMIN" ? (["STAFF", "ADMIN"] as const) : (["STAFF"] as const);
+
+	// When editing a user whose current role the viewer can't reassign (e.g.
+	// an admin editing another admin), lock the dropdown to the target's role
+	// and strip `role` from the submission so non-role edits still go through.
+	const canEditRole =
+		isCreate || (!!roleValue && (availableRoles as readonly string[]).includes(roleValue));
 
 	useEffect(() => {
 		if (defaultValues?.departmentId) {
@@ -84,9 +88,10 @@ export function UserForm({
 	async function onSubmit(data: CreateUserInput | UpdateUserInput) {
 		setIsLoading(true);
 		try {
+			const payload = canEditRole ? data : { ...data, role: undefined };
 			const result = isCreate
-				? await createUserAction(data)
-				: await updateUserAction(userId!, data);
+				? await createUserAction(payload as CreateUserInput)
+				: await updateUserAction(userId!, payload);
 
 			if (!result.success) {
 				const errorMsg =
@@ -119,7 +124,10 @@ export function UserForm({
 					<div className="px-8 py-6 space-y-5">
 						<div className="grid grid-cols-2 gap-5">
 							<div>
-								<label htmlFor="firstName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="firstName"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									First Name
 								</label>
 								<input id="firstName" className={inputClass} {...register("firstName")} />
@@ -128,7 +136,10 @@ export function UserForm({
 								)}
 							</div>
 							<div>
-								<label htmlFor="lastName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="lastName"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									Last Name
 								</label>
 								<input id="lastName" className={inputClass} {...register("lastName")} />
@@ -141,7 +152,10 @@ export function UserForm({
 						{isCreate && (
 							<>
 								<div>
-									<label htmlFor="email" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									<label
+										htmlFor="email"
+										className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+									>
 										Email
 									</label>
 									<input id="email" type="email" className={inputClass} {...register("email")} />
@@ -150,7 +164,10 @@ export function UserForm({
 									)}
 								</div>
 								<div>
-									<label htmlFor="password" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+									<label
+										htmlFor="password"
+										className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+									>
 										Password
 									</label>
 									<div className="relative">
@@ -177,7 +194,10 @@ export function UserForm({
 						)}
 
 						<div>
-							<label htmlFor="displayName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="displayName"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Display Name
 							</label>
 							<input id="displayName" className={inputClass} {...register("displayName")} />
@@ -185,13 +205,19 @@ export function UserForm({
 
 						<div className="grid grid-cols-2 gap-5">
 							<div>
-								<label htmlFor="phone" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="phone"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									Phone
 								</label>
 								<input id="phone" className={inputClass} {...register("phone")} />
 							</div>
 							<div>
-								<label htmlFor="position" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="position"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									Position
 								</label>
 								<input id="position" className={inputClass} {...register("position")} />
@@ -207,13 +233,25 @@ export function UserForm({
 									value={roleValue}
 									onChange={(e) => setValue("role", e.target.value as CreateUserInput["role"])}
 									className={selectClass}
+									disabled={!canEditRole}
 								>
-									{availableRoles.map((role) => (
-										<option key={role} value={role}>
-											{role}
-										</option>
-									))}
+									{canEditRole
+										? availableRoles.map((role) => (
+												<option key={role} value={role}>
+													{role}
+												</option>
+											))
+										: roleValue && (
+												<option key={roleValue} value={roleValue}>
+													{roleValue}
+												</option>
+											)}
 								</select>
+								{!canEditRole && (
+									<p className="mt-1 text-xs text-muted-foreground">
+										You don't have permission to change this user's role.
+									</p>
+								)}
 								{errors.role && (
 									<p className="mt-1 text-sm text-destructive">{errors.role.message}</p>
 								)}
@@ -224,7 +262,9 @@ export function UserForm({
 								</label>
 								<select
 									value={watch("departmentId") ?? "none"}
-									onChange={(e) => setValue("departmentId", e.target.value === "none" ? null : e.target.value)}
+									onChange={(e) =>
+										setValue("departmentId", e.target.value === "none" ? null : e.target.value)
+									}
 									className={selectClass}
 								>
 									<option value="none">No Department</option>
@@ -243,7 +283,12 @@ export function UserForm({
 							</label>
 							<select
 								value={watch("branch") ?? "none"}
-								onChange={(e) => setValue("branch", e.target.value === "none" ? null : e.target.value as "ISO" | "PERTH")}
+								onChange={(e) =>
+									setValue(
+										"branch",
+										e.target.value === "none" ? null : (e.target.value as "ISO" | "PERTH"),
+									)
+								}
 								className={selectClass}
 							>
 								<option value="none">No Branch</option>
