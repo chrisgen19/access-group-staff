@@ -6,11 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canViewUsers } from "@/lib/permissions";
-import { BRANCH_OPTIONS } from "../_components/user-filter-bar";
+
+const BRANCH_LABELS: Record<string, string> = {
+	ISO: "ISO",
+	PERTH: "Perth",
+};
 
 function formatBranch(branch: string | null): string | null {
 	if (!branch) return null;
-	return BRANCH_OPTIONS.find((b) => b.value === branch)?.label ?? branch;
+	return BRANCH_LABELS[branch] ?? branch;
 }
 
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
