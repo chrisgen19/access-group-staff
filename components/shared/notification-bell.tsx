@@ -34,15 +34,15 @@ function formatRelativeTime(dateString: string) {
 function notificationIcon(type: Notification["type"]) {
 	switch (type) {
 		case "CARD_RECEIVED":
-			return <Heart size={14} className="text-primary" />;
+			return <Heart size={14} className="text-primary group-focus:text-white" />;
 		case "CARD_EDITED":
-			return <Pencil size={14} className="text-blue-500" />;
+			return <Pencil size={14} className="text-blue-500 group-focus:text-white" />;
 		case "CARD_DELETED":
-			return <Trash2 size={14} className="text-destructive" />;
+			return <Trash2 size={14} className="text-destructive group-focus:text-white" />;
 		case "CARD_REACTION":
-			return <Smile size={14} className="text-amber-500" />;
+			return <Smile size={14} className="text-amber-500 group-focus:text-white" />;
 		case "CARD_COMMENT":
-			return <MessageCircle size={14} className="text-blue-500" />;
+			return <MessageCircle size={14} className="text-blue-500 group-focus:text-white" />;
 	}
 }
 
@@ -112,11 +112,11 @@ export function NotificationBell() {
 								key={notification.id}
 								onClick={() => handleNotificationClick(notification)}
 								className={cn(
-									"flex w-full items-start gap-3 px-4 py-3 text-left transition-colors rounded-none cursor-pointer",
+									"group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors rounded-none cursor-pointer",
 									!notification.isRead && "bg-primary/5",
 								)}
 							>
-								<div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10">
+								<div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10 group-focus:bg-white/20">
 									{notificationIcon(notification.type)}
 								</div>
 								<div className="flex-1 min-w-0">
