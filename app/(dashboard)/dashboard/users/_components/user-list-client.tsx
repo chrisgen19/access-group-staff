@@ -134,8 +134,9 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		setSelectedBranch("");
 	}
 
-	function buildParams(base: URLSearchParams) {
-		if (debouncedSearch) base.set("search", debouncedSearch);
+	function buildParams(base: URLSearchParams, searchOverride?: string) {
+		const effectiveSearch = searchOverride ?? debouncedSearch;
+		if (effectiveSearch) base.set("search", effectiveSearch);
 		if (selectedRoles.length > 0) base.set("roles", selectedRoles.join(","));
 		if (selectedStatuses.length > 0) base.set("statuses", selectedStatuses.join(","));
 		if (selectedDepartmentId) base.set("departmentId", selectedDepartmentId);
@@ -181,7 +182,7 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	async function exportUsers() {
 		setIsExporting(true);
 		try {
-			const params = buildParams(new URLSearchParams({ export: "true" }));
+			const params = buildParams(new URLSearchParams({ export: "true" }), search.trim());
 			const res = await fetch(`/api/users?${params}`);
 			if (!res.ok) throw new Error("Failed to fetch users");
 
