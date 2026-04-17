@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -97,6 +97,7 @@ interface UserListClientProps {
 
 export function UserListClient({ currentUserRole, departments }: UserListClientProps) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const showRoleFilter = currentUserRole === "SUPERADMIN";
 
 	const [page, setPage] = useState(1);
@@ -142,7 +143,7 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		return base;
 	}
 
-	const { data, isPending, isError, refetch } = useQuery<PaginatedResponse>({
+	const { data, isPending, isError } = useQuery<PaginatedResponse>({
 		queryKey: [
 			"users",
 			page,
@@ -171,7 +172,7 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		const result = await toggleUserActiveAction(userId);
 		if (result.success) {
 			toast.success("User status updated");
-			refetch();
+			queryClient.invalidateQueries({ queryKey: ["users"] });
 		} else {
 			toast.error(typeof result.error === "string" ? result.error : "Failed to update status");
 		}

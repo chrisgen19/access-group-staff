@@ -62,15 +62,18 @@ export async function GET(request: NextRequest) {
 	const conditions: Prisma.UserWhereInput[] = [];
 
 	if (search) {
-		conditions.push({
-			OR: [
-				{ firstName: { contains: search, mode: "insensitive" } },
-				{ lastName: { contains: search, mode: "insensitive" } },
-				{ email: { contains: search, mode: "insensitive" } },
-				{ position: { contains: search, mode: "insensitive" } },
-				{ department: { name: { contains: search, mode: "insensitive" } } },
-			],
-		});
+		const tokens = search.split(/\s+/).filter(Boolean);
+		for (const token of tokens) {
+			conditions.push({
+				OR: [
+					{ firstName: { contains: token, mode: "insensitive" } },
+					{ lastName: { contains: token, mode: "insensitive" } },
+					{ email: { contains: token, mode: "insensitive" } },
+					{ position: { contains: token, mode: "insensitive" } },
+					{ department: { name: { contains: token, mode: "insensitive" } } },
+				],
+			});
+		}
 	}
 
 	if (roles.length > 0) {
@@ -95,7 +98,7 @@ export async function GET(request: NextRequest) {
 		const users = await prisma.user.findMany({
 			where,
 			include: { department: { select: { name: true } } },
-			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { id: "asc" }],
 			take: EXPORT_LIMIT,
 		});
 		return Response.json({ success: true, data: users });
@@ -108,7 +111,7 @@ export async function GET(request: NextRequest) {
 		prisma.user.findMany({
 			where,
 			include: { department: true },
-			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { id: "asc" }],
 			skip: (page - 1) * pageSize,
 			take: pageSize,
 		}),

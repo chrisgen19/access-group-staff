@@ -10,12 +10,10 @@ export interface ExportUser {
 }
 
 function escapeCsvField(value: string): string {
-	const needsQuoting = value.includes(",") || value.includes('"') || value.includes("\n");
-	const escaped = needsQuoting ? `"${value.replace(/"/g, '""')}"` : value;
-	if (/^[=+\-@\t\r]/.test(escaped)) {
-		return `\t${escaped}`;
-	}
-	return escaped;
+	const safeValue = /^[=+\-@\t\r]/.test(value) ? `\t${value}` : value;
+	const needsQuoting =
+		safeValue.includes(",") || safeValue.includes('"') || safeValue.includes("\n");
+	return needsQuoting ? `"${safeValue.replace(/"/g, '""')}"` : safeValue;
 }
 
 const CSV_HEADERS = [
