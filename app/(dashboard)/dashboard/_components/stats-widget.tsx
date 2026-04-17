@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Send, Inbox, Calendar, Trophy, Medal } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Calendar, Heart, Inbox, Lock, Medal, Send, Trophy } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { cn } from "@/lib/utils";
 
 const PODIUM_STYLES = [
 	{
@@ -29,6 +29,15 @@ const PODIUM_STYLES = [
 	},
 ] as const;
 
+type LeaderboardVisibilityMode = "always" | "last_n_days_of_month" | "custom_range";
+
+interface LeaderboardVisibility {
+	visible: boolean;
+	mode: LeaderboardVisibilityMode;
+	revealStart: string | null;
+	revealEnd: string | null;
+}
+
 interface StatsData {
 	sent: number;
 	received: number;
@@ -39,8 +48,21 @@ interface StatsData {
 		avatar: string | null;
 		count: number;
 	}[];
+	leaderboardVisibility: LeaderboardVisibility;
 }
 
+const REVEAL_DATE_FORMATTER = new Intl.DateTimeFormat("en-AU", {
+	timeZone: "Asia/Manila",
+	month: "short",
+	day: "numeric",
+});
+
+function formatRevealRange(startIso: string, endIso: string): string {
+	const start = new Date(startIso);
+	// revealEnd is exclusive — subtract 1ms to display the inclusive last day
+	const lastDay = new Date(new Date(endIso).getTime() - 1);
+	return `${REVEAL_DATE_FORMATTER.format(start)} – ${REVEAL_DATE_FORMATTER.format(lastDay)}`;
+}
 
 function StatItem({
 	icon: Icon,
@@ -66,7 +88,11 @@ function StatItem({
 
 function StatsWidgetSkeleton() {
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6 h-full" aria-busy="true" aria-label="Loading recognition stats">
+		<div
+			className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6 h-full"
+			aria-busy="true"
+			aria-label="Loading recognition stats"
+		>
 			<div className="h-5 w-32 bg-gray-200 dark:bg-white/10 rounded" />
 			<div className="grid grid-cols-3 gap-4">
 				{[1, 2, 3].map((i) => (
@@ -86,6 +112,39 @@ function StatsWidgetSkeleton() {
 						<div className="h-4 w-24 bg-gray-200 dark:bg-white/10 rounded" />
 					</div>
 				))}
+			</div>
+		</div>
+	);
+}
+
+function LockedLeaderboard({ visibility }: { visibility: LeaderboardVisibility }) {
+	const hasRange = visibility.revealStart && visibility.revealEnd;
+	const rangeLabel = hasRange
+		? formatRevealRange(visibility.revealStart as string, visibility.revealEnd as string)
+		: null;
+
+	return (
+		<div className="flex flex-col min-h-0 flex-1">
+			<div className="flex items-center gap-2 mb-3 shrink-0">
+				<Lock size={16} className="text-muted-foreground" />
+				<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
+			</div>
+			<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 mb-3">
+					<Lock size={18} className="text-primary" />
+				</div>
+				{rangeLabel ? (
+					<>
+						<p className="text-sm font-medium text-foreground">Rankings revealed</p>
+						<p className="text-sm text-muted-foreground mt-0.5">{rangeLabel}</p>
+					</>
+				) : (
+					<p className="text-sm font-medium text-foreground">Rankings hidden</p>
+				)}
+				<div className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+					<Heart size={12} className="text-primary" />
+					<span>Keep recognizing</span>
+				</div>
 			</div>
 		</div>
 	);
@@ -123,6 +182,9 @@ export function StatsWidget() {
 	}
 
 	const stats = data.data;
+	const visibility = stats.leaderboardVisibility;
+	const showList = visibility.visible && stats.topRecipients.length > 0;
+	const showLocked = !visibility.visible;
 
 	return (
 		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6 h-full">
@@ -131,30 +193,16 @@ export function StatsWidget() {
 			</h3>
 
 			<div className="grid grid-cols-3 gap-4 shrink-0">
-				<StatItem
-					icon={Send}
-					label="Cards Sent"
-					value={stats?.sent ?? 0}
-				/>
-				<StatItem
-					icon={Inbox}
-					label="Cards Received"
-					value={stats?.received ?? 0}
-				/>
-				<StatItem
-					icon={Calendar}
-					label="This Month"
-					value={stats?.monthlyTotal ?? 0}
-				/>
+				<StatItem icon={Send} label="Cards Sent" value={stats?.sent ?? 0} />
+				<StatItem icon={Inbox} label="Cards Received" value={stats?.received ?? 0} />
+				<StatItem icon={Calendar} label="This Month" value={stats?.monthlyTotal ?? 0} />
 			</div>
 
-			{stats?.topRecipients && stats.topRecipients.length > 0 && (
+			{showList ? (
 				<div className="flex flex-col min-h-0 flex-1">
 					<div className="flex items-center gap-2 mb-3 shrink-0">
 						<Trophy size={16} className="text-primary" />
-						<h4 className="text-sm font-medium text-foreground/70">
-							Most Recognized
-						</h4>
+						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 					</div>
 					<ol className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
 						{stats.topRecipients.map((person, index) => {
@@ -172,10 +220,7 @@ export function StatsWidget() {
 									)}
 								>
 									{isPodium ? (
-										<Medal
-											size={18}
-											className={cn("shrink-0", style?.medal)}
-										/>
+										<Medal size={18} className={cn("shrink-0", style?.medal)} />
 									) : (
 										<span className="w-[18px] text-xs font-semibold text-muted-foreground text-center shrink-0">
 											{index + 1}
@@ -205,9 +250,7 @@ export function StatsWidget() {
 									<span
 										className={cn(
 											"shrink-0 text-sm font-bold tabular-nums",
-											isPodium
-												? cn("rounded-full px-2.5 py-0.5", style?.countBg)
-												: "text-primary",
+											isPodium ? cn("rounded-full px-2.5 py-0.5", style?.countBg) : "text-primary",
 										)}
 									>
 										{person.count}
@@ -217,7 +260,9 @@ export function StatsWidget() {
 						})}
 					</ol>
 				</div>
-			)}
+			) : showLocked ? (
+				<LockedLeaderboard visibility={visibility} />
+			) : null}
 		</div>
 	);
 }
