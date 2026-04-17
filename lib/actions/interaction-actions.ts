@@ -20,37 +20,8 @@ const commentBodySchema = z
 	.max(500, "Comment cannot exceed 500 characters")
 	.trim();
 
-async function notifyCardInteraction({
-	card,
-	actorId,
-	actorName,
-	type,
-	emoji,
-}: {
-	card: { id: string; senderId: string; recipientId: string };
-	actorId: string;
-	actorName: string;
-	type: "CARD_REACTION" | "CARD_COMMENT";
-	emoji?: string;
-}) {
-	const recipients = Array.from(
-		new Set([card.senderId, card.recipientId].filter((id) => id !== actorId)),
-	);
-	if (recipients.length === 0) return;
-
-	const message =
-		type === "CARD_REACTION"
-			? `${actorName} reacted ${emoji ?? ""} to a recognition card`.trim()
-			: `${actorName} commented on a recognition card`;
-
-	await prisma.notification.createMany({
-		data: recipients.map((userId) => ({
-			userId,
-			type,
-			message,
-			cardId: card.id,
-		})),
-	});
+function interactionRecipients(card: { senderId: string; recipientId: string }, actorId: string) {
+	return Array.from(new Set([card.senderId, card.recipientId].filter((id) => id !== actorId)));
 }
 
 export async function toggleReactionAction(cardId: string, emoji: string) {
@@ -75,8 +46,6 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 			return { success: false as const, error: "Forbidden" };
 		}
 
-		// Atomic toggle: attempt delete first, then create if nothing was removed.
-		// Catches unique constraint (P2002) from concurrent double-taps.
 		const deleted = await prisma.cardReaction.deleteMany({
 			where: { cardId, userId: session.user.id, emoji },
 		});
@@ -86,33 +55,29 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 		}
 
 		try {
-			await prisma.cardReaction.create({
-				data: { cardId, userId: session.user.id, emoji },
-			});
-			// Best-effort race mitigation: re-read after the create so we skip the
-			// notification when a racing sibling already hit P2002 and deleted the row.
-			// This narrows the window but is not atomic with the create — a sibling
-			// delete that commits between the create and this read can still slip
-			// through. Full atomicity would require a queue or a retract step,
-			// which is out of scope for this PR.
-			const stillExists = await prisma.cardReaction.findUnique({
-				where: {
-					cardId_userId_emoji: { cardId, userId: session.user.id, emoji },
-				},
-				select: { id: true },
-			});
-			if (stillExists) {
-				await notifyCardInteraction({
-					card,
-					actorId: session.user.id,
-					actorName: session.user.name ?? "Someone",
-					type: "CARD_REACTION",
-					emoji,
+			// Create + notify in one txn so the reaction and its notification are
+			// committed atomically. No window where we notify for a reaction that
+			// doesn't exist, and P2002 from a concurrent add rolls back cleanly.
+			await prisma.$transaction(async (tx) => {
+				await tx.cardReaction.create({
+					data: { cardId, userId: session.user.id, emoji },
 				});
-			}
+				const recipients = interactionRecipients(card, session.user.id);
+				if (recipients.length > 0) {
+					await tx.notification.createMany({
+						data: recipients.map((userId) => ({
+							userId,
+							type: "CARD_REACTION" as const,
+							message:
+								`${session.user.name ?? "Someone"} reacted ${emoji} to a recognition card`.trim(),
+							cardId: card.id,
+						})),
+					});
+				}
+			});
 			return { success: true as const, action: "added" as const };
 		} catch (err) {
-			// Concurrent toggle already created it — treat as remove
+			// A concurrent add already created the row — our click flips to remove.
 			if (err instanceof Error && "code" in err && (err as { code: string }).code === "P2002") {
 				await prisma.cardReaction.deleteMany({
 					where: { cardId, userId: session.user.id, emoji },
@@ -170,9 +135,7 @@ export async function addCommentAction(cardId: string, body: string) {
 				},
 			});
 
-			const recipients = Array.from(
-				new Set([card.senderId, card.recipientId].filter((id) => id !== session.user.id)),
-			);
+			const recipients = interactionRecipients(card, session.user.id);
 			if (recipients.length > 0) {
 				await tx.notification.createMany({
 					data: recipients.map((userId) => ({
