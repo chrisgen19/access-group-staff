@@ -1,25 +1,26 @@
 "use client";
 
+import {
+	Building2,
+	Heart,
+	LayoutDashboard,
+	LogOut,
+	Menu,
+	Settings,
+	ShieldCheck,
+	Trophy,
+	UserCircle,
+	Users,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-	LayoutDashboard,
-	Users,
-	Building2,
-	Heart,
-	UserCircle,
-	Settings,
-	ShieldCheck,
-	LogOut,
-	Menu,
-} from "lucide-react";
 import { toast } from "sonner";
-import { signOut, useSession } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { NotificationBadge } from "@/components/shared/notification-badge";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { signOut, useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
 type MinRole = "STAFF" | "ADMIN" | "SUPERADMIN";
 
@@ -39,6 +40,12 @@ const NAV_ITEMS: {
 		label: "Recognition Card",
 		href: "/dashboard/recognition",
 		icon: Heart,
+		minRole: "STAFF",
+	},
+	{
+		label: "Leaderboard",
+		href: "/dashboard/leaderboard",
+		icon: Trophy,
 		minRole: "STAFF",
 	},
 	{
@@ -85,9 +92,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 		SUPERADMIN: 2,
 	};
 
-	const filteredItems = NAV_ITEMS.filter(
-		(item) => roleLevel[userRole] >= roleLevel[item.minRole],
-	);
+	const filteredItems = NAV_ITEMS.filter((item) => roleLevel[userRole] >= roleLevel[item.minRole]);
 
 	async function handleSignOut() {
 		try {
