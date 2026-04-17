@@ -221,11 +221,15 @@ export async function updateLeaderboardVisibilitySettings(
 		return { success: false, error: "Invalid visibility mode" };
 	}
 
-	if (
-		!Number.isInteger(input.revealDays) ||
-		input.revealDays < REVEAL_DAYS_MIN ||
-		input.revealDays > REVEAL_DAYS_MAX
-	) {
+	const revealDaysIsValid =
+		Number.isInteger(input.revealDays) &&
+		input.revealDays >= REVEAL_DAYS_MIN &&
+		input.revealDays <= REVEAL_DAYS_MAX;
+
+	// Only block the save on revealDays errors when the chosen mode actually
+	// consumes that field. Otherwise an admin switching to `always` / `custom_range`
+	// with a still-editing Reveal days input would be blocked on a now-hidden field.
+	if (input.mode === "last_n_days_of_month" && !revealDaysIsValid) {
 		return {
 			success: false,
 			error: `Reveal days must be between ${REVEAL_DAYS_MIN} and ${REVEAL_DAYS_MAX}`,
@@ -252,6 +256,7 @@ export async function updateLeaderboardVisibilitySettings(
 		}
 	}
 
+	const normalizedDays = revealDaysIsValid ? input.revealDays : REVEAL_DAYS_DEFAULT;
 	const normalizedStart =
 		input.customStart && isValidIsoDate(input.customStart) ? input.customStart : "";
 	const normalizedEnd = input.customEnd && isValidIsoDate(input.customEnd) ? input.customEnd : "";
@@ -264,8 +269,8 @@ export async function updateLeaderboardVisibilitySettings(
 		}),
 		prisma.appSetting.upsert({
 			where: { key: LEADERBOARD_DAYS_KEY },
-			update: { value: String(input.revealDays) },
-			create: { key: LEADERBOARD_DAYS_KEY, value: String(input.revealDays) },
+			update: { value: String(normalizedDays) },
+			create: { key: LEADERBOARD_DAYS_KEY, value: String(normalizedDays) },
 		}),
 		prisma.appSetting.upsert({
 			where: { key: LEADERBOARD_CUSTOM_START_KEY },
