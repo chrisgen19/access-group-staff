@@ -1,14 +1,35 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
+	ChevronLeft,
+	ChevronRight,
+	Eye,
+	Pencil,
+	Plus,
+	Search,
+	UserCheck,
+	Users,
+	UserX,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Plus, Search, Eye, Pencil, UserX, UserCheck, Users } from "lucide-react";
-import { toggleUserActiveAction } from "@/lib/actions/user-actions";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { toggleUserActiveAction } from "@/lib/actions/user-actions";
+import { type ExportUser, generateUserCsv } from "@/lib/users";
+import { type DepartmentOption, UserFilterBar } from "./user-filter-bar";
+
+const PAGE_SIZE = 20;
 
 interface User {
 	id: string;
@@ -25,6 +46,17 @@ interface User {
 	department: { id: string; name: string; code: string } | null;
 }
 
+interface PaginatedResponse {
+	success: boolean;
+	data: User[];
+	pagination: {
+		page: number;
+		pageSize: number;
+		total: number;
+		totalPages: number;
+	};
+}
+
 function roleBadgeVariant(role: string) {
 	switch (role) {
 		case "SUPERADMIN":
@@ -36,17 +68,103 @@ function roleBadgeVariant(role: string) {
 	}
 }
 
-export function UserListClient({ currentUserRole }: { currentUserRole: string }) {
-	const router = useRouter();
-	const [searchQuery, setSearchQuery] = useState("");
+function TableSkeleton() {
+	return (
+		<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden">
+			<div className="animate-pulse">
+				<div className="h-10 bg-muted/30 border-b" />
+				{Array.from({ length: 5 }).map((_, i) => (
+					<div
+						key={`skeleton-row-${i}`}
+						className="flex items-center gap-4 px-4 py-3 border-b last:border-0"
+					>
+						<div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-white/10" />
+						<div className="h-4 w-48 bg-gray-200 dark:bg-white/10 rounded" />
+						<div className="h-4 w-32 bg-gray-200 dark:bg-white/10 rounded" />
+						<div className="h-4 w-20 bg-gray-200 dark:bg-white/10 rounded" />
+						<div className="h-4 w-20 bg-gray-200 dark:bg-white/10 rounded ml-auto" />
+					</div>
+				))}
+			</div>
+		</div>
+	);
+}
 
-	const { data, isPending, error, refetch } = useQuery<{ success: boolean; data: User[] }>({
-		queryKey: ["users"],
+interface UserListClientProps {
+	currentUserRole: string;
+	departments: DepartmentOption[];
+}
+
+export function UserListClient({ currentUserRole, departments }: UserListClientProps) {
+	const router = useRouter();
+	const showRoleFilter = currentUserRole === "SUPERADMIN";
+
+	const [page, setPage] = useState(1);
+	const [search, setSearch] = useState("");
+	const [debouncedSearch, setDebouncedSearch] = useState("");
+	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+	const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+	const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
+	const [selectedBranch, setSelectedBranch] = useState("");
+	const [isExporting, setIsExporting] = useState(false);
+
+	useEffect(() => {
+		const timer = setTimeout(() => setDebouncedSearch(search), 300);
+		return () => clearTimeout(timer);
+	}, [search]);
+
+	useEffect(() => {
+		setPage(1);
+	}, [debouncedSearch, selectedRoles, selectedStatuses, selectedDepartmentId, selectedBranch]);
+
+	const hasActiveFilters =
+		search.length > 0 ||
+		selectedRoles.length > 0 ||
+		selectedStatuses.length > 0 ||
+		selectedDepartmentId.length > 0 ||
+		selectedBranch.length > 0;
+
+	function clearFilters() {
+		setSearch("");
+		setDebouncedSearch("");
+		setSelectedRoles([]);
+		setSelectedStatuses([]);
+		setSelectedDepartmentId("");
+		setSelectedBranch("");
+	}
+
+	function buildParams(base: URLSearchParams) {
+		if (debouncedSearch) base.set("search", debouncedSearch);
+		if (selectedRoles.length > 0) base.set("roles", selectedRoles.join(","));
+		if (selectedStatuses.length > 0) base.set("statuses", selectedStatuses.join(","));
+		if (selectedDepartmentId) base.set("departmentId", selectedDepartmentId);
+		if (selectedBranch) base.set("branch", selectedBranch);
+		return base;
+	}
+
+	const { data, isPending, isError, refetch } = useQuery<PaginatedResponse>({
+		queryKey: [
+			"users",
+			page,
+			debouncedSearch,
+			selectedRoles,
+			selectedStatuses,
+			selectedDepartmentId,
+			selectedBranch,
+		],
 		queryFn: async () => {
-			const res = await fetch("/api/users");
+			const params = buildParams(
+				new URLSearchParams({
+					paginated: "true",
+					page: String(page),
+					pageSize: String(PAGE_SIZE),
+				}),
+			);
+			const res = await fetch(`/api/users?${params}`);
 			if (!res.ok) throw new Error("Failed to fetch users");
 			return res.json();
 		},
+		staleTime: 30_000,
 	});
 
 	async function handleToggleActive(userId: string) {
@@ -59,30 +177,40 @@ export function UserListClient({ currentUserRole }: { currentUserRole: string })
 		}
 	}
 
-	if (isPending) {
-		return (
-			<div className="space-y-4">
-				<Skeleton className="h-10 w-full" />
-				<Skeleton className="h-10 w-full" />
-				<Skeleton className="h-10 w-full" />
-			</div>
-		);
-	}
+	async function exportUsers() {
+		setIsExporting(true);
+		try {
+			const params = buildParams(new URLSearchParams({ export: "true" }));
+			const res = await fetch(`/api/users?${params}`);
+			if (!res.ok) throw new Error("Failed to fetch users");
 
-	if (error) {
-		return <p className="text-destructive">Failed to load users.</p>;
+			const json = (await res.json()) as {
+				success: boolean;
+				data: ExportUser[];
+			};
+			if (!json.success) throw new Error("Export failed");
+
+			const csv = generateUserCsv(json.data);
+			const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `users-export-${new Date().toISOString().split("T")[0]}.csv`;
+			link.click();
+			URL.revokeObjectURL(url);
+			toast.success(`Exported ${json.data.length} users`);
+		} catch {
+			toast.error("Failed to export users");
+		} finally {
+			setIsExporting(false);
+		}
 	}
 
 	const users = data?.data ?? [];
-	const filteredUsers = users.filter(
-		(user) =>
-			`${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			(user.department?.name ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-			(user.position ?? "").toLowerCase().includes(searchQuery.toLowerCase()),
-	);
+	const pagination = data?.pagination;
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
+		<div className="max-w-7xl mx-auto space-y-6 mt-2">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
 				<div>
 					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
@@ -102,52 +230,79 @@ export function UserListClient({ currentUserRole }: { currentUserRole: string })
 				</button>
 			</div>
 
-			<div className="overflow-hidden rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
-				<div className="border-b border-gray-200/60 dark:border-white/10 p-6">
-					<div className="relative max-w-md w-full">
-						<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-							<Search className="h-5 w-5 text-muted-foreground" />
-						</div>
-						<input
-							type="text"
-							className="block w-full rounded-full border-transparent bg-background py-3.5 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-card focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-							placeholder="Search staff members..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
-					</div>
-				</div>
+			<UserFilterBar
+				search={search}
+				onSearchChange={setSearch}
+				selectedRoles={selectedRoles}
+				onSelectedRolesChange={setSelectedRoles}
+				selectedStatuses={selectedStatuses}
+				onSelectedStatusesChange={setSelectedStatuses}
+				selectedDepartmentId={selectedDepartmentId}
+				onDepartmentChange={setSelectedDepartmentId}
+				selectedBranch={selectedBranch}
+				onBranchChange={setSelectedBranch}
+				departments={departments}
+				showRoleFilter={showRoleFilter}
+				hasActiveFilters={hasActiveFilters}
+				onClear={clearFilters}
+				onExport={exportUsers}
+				isExporting={isExporting}
+			/>
 
-				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
-						<thead>
-							<tr>
-								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
-									Employee
-								</th>
-								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
-									Position / Dept
-								</th>
-								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
-									Branch
-								</th>
-								<th className="px-8 py-4 text-left text-[0.75rem] font-semibold uppercase tracking-widest text-muted-foreground">
-									Status
-								</th>
-								<th className="relative px-8 py-4">
-									<span className="sr-only">Actions</span>
-								</th>
-							</tr>
-						</thead>
-						<tbody className="divide-y divide-gray-200/60 dark:divide-white/10">
-							{filteredUsers.length > 0 ? (
-								filteredUsers.map((user) => (
-									<tr
-										key={user.id}
-										className="group transition-colors hover:bg-background"
-									>
-										<td className="whitespace-nowrap px-8 py-5">
-											<div className="flex items-center">
+			{isPending ? (
+				<TableSkeleton />
+			) : isError ? (
+				<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
+					<p className="text-[1.5rem] font-medium text-foreground">Something went wrong</p>
+					<p className="mt-2 text-base text-muted-foreground">
+						Failed to load staff. Please try again later.
+					</p>
+				</div>
+			) : users.length === 0 ? (
+				<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
+					<div className="mb-6 rounded-full bg-background p-6">
+						{hasActiveFilters ? (
+							<Search size={48} className="text-muted-foreground opacity-40" />
+						) : (
+							<Users size={48} className="text-muted-foreground opacity-40" />
+						)}
+					</div>
+					<p className="text-[1.5rem] font-medium text-foreground">
+						{hasActiveFilters ? "No matching staff" : "No staff yet"}
+					</p>
+					<p className="mt-2 text-base text-muted-foreground">
+						{hasActiveFilters
+							? "No staff match your current filters."
+							: "Add your first staff member to get started."}
+					</p>
+					{hasActiveFilters && (
+						<button
+							type="button"
+							onClick={clearFilters}
+							className="mt-4 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+						>
+							Clear all filters
+						</button>
+					)}
+				</div>
+			) : (
+				<>
+					<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+						<Table>
+							<TableHeader>
+								<TableRow className="bg-muted/30 hover:bg-muted/30">
+									<TableHead>Employee</TableHead>
+									<TableHead>Position / Dept</TableHead>
+									<TableHead>Branch</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
+								</TableRow>
+							</TableHeader>
+							<TableBody>
+								{users.map((user) => (
+									<TableRow key={user.id} className="group">
+										<TableCell>
+											<div className="flex items-center gap-3">
 												<UserAvatar
 													firstName={user.firstName}
 													lastName={user.lastName}
@@ -156,108 +311,101 @@ export function UserListClient({ currentUserRole }: { currentUserRole: string })
 													size="lg"
 													className="border border-gray-100 dark:border-white/10 bg-background text-primary"
 												/>
-												<div className="ml-4">
-													<div className="text-sm font-medium text-foreground">
+												<div className="min-w-0">
+													<p className="text-sm font-medium text-foreground truncate">
 														{user.firstName} {user.lastName}
-													</div>
-													<div className="mt-0.5 text-sm text-muted-foreground">
-														{user.email}
-													</div>
+													</p>
+													<p className="text-xs text-muted-foreground truncate">{user.email}</p>
 												</div>
 											</div>
-										</td>
-										<td className="whitespace-nowrap px-8 py-5">
-											<div className="text-sm font-medium text-foreground">
-												{user.position ?? "—"}
-											</div>
-											<div className="mt-0.5 text-sm text-muted-foreground">
+										</TableCell>
+										<TableCell>
+											<p className="text-sm font-medium text-foreground">{user.position ?? "—"}</p>
+											<p className="text-xs text-muted-foreground">
 												{user.department?.name ?? "—"}
-											</div>
-										</td>
-										<td className="whitespace-nowrap px-8 py-5">
-											<span className="text-sm text-foreground">
-												{user.branch ?? "—"}
-											</span>
-										</td>
-										<td className="whitespace-nowrap px-8 py-5">
+											</p>
+										</TableCell>
+										<TableCell>
+											<span className="text-sm text-foreground">{user.branch ?? "—"}</span>
+										</TableCell>
+										<TableCell>
 											<div className="flex flex-col gap-1.5">
 												{currentUserRole === "SUPERADMIN" && (
-													<Badge variant={roleBadgeVariant(user.role)}>
-														{user.role}
-													</Badge>
+													<Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
 												)}
-												<Badge
-													variant={user.isActive ? "outline" : "destructive"}
-												>
+												<Badge variant={user.isActive ? "outline" : "destructive"}>
 													{user.isActive ? "Active" : "Inactive"}
 												</Badge>
 											</div>
-										</td>
-										<td className="whitespace-nowrap px-8 py-5 text-right text-sm font-medium">
+										</TableCell>
+										<TableCell className="text-right">
 											<div className="flex justify-end gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100 focus-within:opacity-100">
 												<button
 													type="button"
 													onClick={() => router.push(`/dashboard/users/${user.id}`)}
 													className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-													title="View"
+													aria-label="View user"
 												>
-													<Eye size={18} />
+													<Eye size={16} />
 												</button>
 												<button
 													type="button"
 													onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
 													className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-													title="Edit"
+													aria-label="Edit user"
 												>
-													<Pencil size={18} />
+													<Pencil size={16} />
 												</button>
 												<button
 													type="button"
 													onClick={() => handleToggleActive(user.id)}
 													className="rounded-full p-2 text-muted-foreground hover:bg-[oklch(0.96_0.03_18)] hover:text-primary dark:hover:bg-primary/10 transition-colors"
-													title={user.isActive ? "Deactivate" : "Activate"}
+													aria-label={user.isActive ? "Deactivate user" : "Activate user"}
 												>
-													{user.isActive ? (
-														<UserX size={18} />
-													) : (
-														<UserCheck size={18} />
-													)}
+													{user.isActive ? <UserX size={16} /> : <UserCheck size={16} />}
 												</button>
 											</div>
-										</td>
-									</tr>
-								))
-							) : (
-								<tr>
-									<td colSpan={5} className="px-8 py-16 text-center">
-										<div className="flex flex-col items-center justify-center text-muted-foreground">
-											<Users size={40} className="mb-3 opacity-20" />
-											<p className="text-base font-medium text-foreground">
-												No staff found
-											</p>
-											<p className="mt-1 text-sm">
-												We couldn&apos;t find anyone matching your search.
-											</p>
-										</div>
-									</td>
-								</tr>
-							)}
-						</tbody>
-					</table>
-				</div>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					</div>
 
-				<div className="border-t border-gray-200/60 dark:border-white/10 bg-card px-8 py-4">
-					<p className="text-sm text-muted-foreground">
-						Showing{" "}
-						<span className="font-medium text-foreground">
-							{filteredUsers.length}
-						</span>{" "}
-						of{" "}
-						<span className="font-medium text-foreground">{users.length}</span>{" "}
-						results
-					</p>
-				</div>
-			</div>
+					{pagination && pagination.totalPages > 1 && (
+						<div className="flex items-center justify-between pt-2">
+							<p className="text-sm text-muted-foreground">
+								Showing {(pagination.page - 1) * pagination.pageSize + 1}–
+								{Math.min(pagination.page * pagination.pageSize, pagination.total)} of{" "}
+								{pagination.total} staff
+							</p>
+							<div className="flex items-center gap-2">
+								<button
+									type="button"
+									disabled={page === 1}
+									onClick={() => setPage((p) => p - 1)}
+									className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-gray-100 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+								>
+									<ChevronLeft size={16} />
+									Previous
+								</button>
+								<span className="text-sm font-medium text-foreground">
+									{pagination.page} / {pagination.totalPages}
+								</span>
+								<button
+									type="button"
+									disabled={page >= pagination.totalPages}
+									onClick={() => setPage((p) => p + 1)}
+									className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-gray-100 dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
+								>
+									Next
+									<ChevronRight size={16} />
+								</button>
+							</div>
+						</div>
+					)}
+				</>
+			)}
 		</div>
 	);
 }
