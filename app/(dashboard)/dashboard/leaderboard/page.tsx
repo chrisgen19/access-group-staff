@@ -11,6 +11,7 @@ import {
 	isValidMonthKey,
 } from "@/lib/leaderboard/history";
 import { getCurrentMonthBoundaries } from "@/lib/leaderboard/month";
+import { maybeSnapshotPreviousMonth } from "@/lib/leaderboard/snapshot";
 import { computeLeaderboardVisibility } from "@/lib/leaderboard/visibility";
 import { LeaderboardList } from "./_components/leaderboard-list";
 import { MonthPicker } from "./_components/month-picker";
@@ -41,6 +42,11 @@ export default async function LeaderboardHistoryPage({ searchParams }: PageProps
 
 	const { month: monthParam } = await searchParams;
 	const now = new Date();
+
+	// Self-heal the archive when a user lands here before anyone hits
+	// /dashboard post-rollover. Swallow errors so snapshot failures don't
+	// break the page render.
+	await maybeSnapshotPreviousMonth(now).catch(() => {});
 
 	const [archivedKeys, settings, topLimit] = await Promise.all([
 		getArchivedMonthKeys(),
