@@ -1,14 +1,14 @@
 "use server";
 
-import { prisma } from "@/lib/db";
+import { hashPassword } from "better-auth/crypto";
+import { revalidatePath } from "next/cache";
+import type { Role } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
 import { requireRole, requireSession } from "@/lib/auth-utils";
-import { hashPassword } from "better-auth/crypto";
+import { prisma } from "@/lib/db";
 import { canAssignRole } from "@/lib/permissions";
-import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
 import { adminResetPasswordSchema } from "@/lib/validations/auth";
-import type { Role } from "@/app/generated/prisma/client";
-import { revalidatePath } from "next/cache";
+import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
 
 export async function createUserAction(formData: unknown) {
 	try {
@@ -69,7 +69,21 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			return { success: false as const, error: parsed.error.flatten().fieldErrors };
 		}
 
-		if (parsed.data.role && !canAssignRole(session.user.role as Role, parsed.data.role as Role)) {
+		const targetUser = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { role: true },
+		});
+
+		if (!targetUser) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		// Only gate on role-assignment permissions when the role is actually
+		// changing. An admin editing another admin's name (or any non-role
+		// field) submits the target's existing role as a no-op — rejecting
+		// that would block benign edits.
+		const roleIsChanging = !!parsed.data.role && parsed.data.role !== targetUser.role;
+		if (roleIsChanging && !canAssignRole(session.user.role as Role, parsed.data.role as Role)) {
 			return { success: false as const, error: "Insufficient permissions to assign this role" };
 		}
 
@@ -77,7 +91,7 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			where: { id: userId },
 			data: {
 				...parsed.data,
-				role: parsed.data.role ? (parsed.data.role as Role) : undefined,
+				role: roleIsChanging ? (parsed.data.role as Role) : undefined,
 				name:
 					parsed.data.firstName && parsed.data.lastName
 						? `${parsed.data.firstName} ${parsed.data.lastName}`
