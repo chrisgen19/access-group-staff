@@ -95,13 +95,22 @@ export async function GET(request: NextRequest) {
 	const where: Prisma.UserWhereInput = conditions.length > 0 ? { AND: conditions } : {};
 
 	if (isExport) {
-		const users = await prisma.user.findMany({
-			where,
-			include: { department: { select: { name: true } } },
-			orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { id: "asc" }],
-			take: EXPORT_LIMIT,
+		const [users, total] = await Promise.all([
+			prisma.user.findMany({
+				where,
+				include: { department: { select: { name: true } } },
+				orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { id: "asc" }],
+				take: EXPORT_LIMIT,
+			}),
+			prisma.user.count({ where }),
+		]);
+		return Response.json({
+			success: true,
+			data: users,
+			total,
+			truncated: total > users.length,
+			limit: EXPORT_LIMIT,
 		});
-		return Response.json({ success: true, data: users });
 	}
 
 	const page = Math.max(1, Number(searchParams.get("page")) || 1);

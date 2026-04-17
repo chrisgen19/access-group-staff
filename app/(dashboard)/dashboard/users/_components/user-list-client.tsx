@@ -189,6 +189,9 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 			const json = (await res.json()) as {
 				success: boolean;
 				data: ExportUser[];
+				total?: number;
+				truncated?: boolean;
+				limit?: number;
 			};
 			if (!json.success) throw new Error("Export failed");
 
@@ -200,7 +203,13 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 			link.download = `users-export-${new Date().toISOString().split("T")[0]}.csv`;
 			link.click();
 			URL.revokeObjectURL(url);
-			toast.success(`Exported ${json.data.length} users`);
+			if (json.truncated && json.total && json.limit) {
+				toast.warning(
+					`Exported first ${json.data.length} of ${json.total} users. Apply filters to narrow the result set.`,
+				);
+			} else {
+				toast.success(`Exported ${json.data.length} users`);
+			}
 		} catch {
 			toast.error("Failed to export users");
 		} finally {
