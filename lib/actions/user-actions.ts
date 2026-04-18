@@ -119,11 +119,15 @@ export async function updateUserAction(userId: string, formData: unknown) {
 
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { role: true },
+			select: { role: true, deletedAt: true },
 		});
 
 		if (!targetUser) {
 			return { success: false as const, error: "User not found" };
+		}
+
+		if (targetUser.deletedAt !== null) {
+			return { success: false as const, error: "Cannot edit a deleted user. Restore them first." };
 		}
 
 		// Only gate on role-assignment permissions when the role is actually
@@ -198,7 +202,13 @@ export async function softDeleteUserAction(userId: string) {
 		const updated = await prisma.$transaction(async (tx) => {
 			const user = await tx.user.update({
 				where: { id: userId },
-				data: { deletedAt: new Date(), deletedById: session.user.id },
+				data: {
+					deletedAt: new Date(),
+					deletedById: session.user.id,
+					// Mirror into the deprecated `isActive` column so any
+					// still-running old release renders them correctly.
+					isActive: false,
+				},
 			});
 			await tx.session.deleteMany({ where: { userId } });
 			return user;
@@ -231,7 +241,7 @@ export async function restoreUserAction(userId: string) {
 
 		const updated = await prisma.user.update({
 			where: { id: userId },
-			data: { deletedAt: null, deletedById: null },
+			data: { deletedAt: null, deletedById: null, isActive: true },
 		});
 
 		revalidatePath("/dashboard/users");
@@ -268,11 +278,18 @@ export async function adminResetPasswordAction(userId: string, formData: unknown
 
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { role: true },
+			select: { role: true, deletedAt: true },
 		});
 
 		if (!targetUser) {
 			return { success: false as const, error: "User not found" };
+		}
+
+		if (targetUser.deletedAt !== null) {
+			return {
+				success: false as const,
+				error: "Cannot reset password for a deleted user. Restore them first.",
+			};
 		}
 
 		if (!canAssignRole(session.user.role as Role, targetUser.role)) {
