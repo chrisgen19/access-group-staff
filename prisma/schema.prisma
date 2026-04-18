@@ -27,23 +27,24 @@ enum NotificationType {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String   @unique
-  emailVerified Boolean  @default(false) @map("email_verified")
+  email         String    @unique
+  emailVerified Boolean   @default(false) @map("email_verified")
   image         String?
-  firstName     String   @map("first_name")
-  lastName      String   @map("last_name")
-  displayName   String?  @map("display_name")
+  firstName     String    @map("first_name")
+  lastName      String    @map("last_name")
+  displayName   String?   @map("display_name")
   phone         String?
   position      String?
   avatar        String?
-  role          Role     @default(STAFF)
-  branch        Branch?  @map("branch")
-  isActive      Boolean  @default(true) @map("is_active")
-  departmentId  String?  @map("department_id")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  role          Role      @default(STAFF)
+  branch        Branch?   @map("branch")
+  isActive      Boolean   @default(true) @map("is_active")
+  departmentId  String?   @map("department_id")
+  hireDate      DateTime? @map("hire_date") @db.Date
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
 
   department           Department?       @relation(fields: [departmentId], references: [id])
   sessions             Session[]
@@ -53,8 +54,37 @@ model User {
   notifications        Notification[]
   cardReactions        CardReaction[]
   cardComments         CardComment[]
+  shiftSchedule        ShiftSchedule?
 
   @@map("users")
+}
+
+model ShiftSchedule {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  timezone  String   @default("Asia/Manila")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  days ShiftDay[]
+
+  @@map("shift_schedules")
+}
+
+model ShiftDay {
+  id         String  @id @default(cuid())
+  scheduleId String  @map("schedule_id")
+  dayOfWeek  Int     @map("day_of_week")
+  isWorking  Boolean @default(true) @map("is_working")
+  startTime  String? @map("start_time")
+  endTime    String? @map("end_time")
+  breakMins  Int     @default(0) @map("break_mins")
+
+  schedule ShiftSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, dayOfWeek])
+  @@map("shift_days")
 }
 
 model Session {

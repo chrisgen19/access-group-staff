@@ -11,9 +11,21 @@ import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
 import {
 	type CreateUserInput,
 	createUserSchema,
+	type ShiftScheduleInput,
 	type UpdateUserInput,
 	updateUserSchema,
 } from "@/lib/validations/user";
+import { DEFAULT_SHIFT_SCHEDULE, ShiftScheduleEditor } from "./shift-schedule-editor";
+
+function toDateInputValue(value: Date | string | null | undefined): string {
+	if (!value) return "";
+	const date = value instanceof Date ? value : new Date(value);
+	if (Number.isNaN(date.getTime())) return "";
+	const year = date.getUTCFullYear();
+	const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+	const day = String(date.getUTCDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+}
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -66,6 +78,8 @@ export function UserForm({
 
 	const roleValue = watch("role");
 	const isActiveValue = watch("isActive");
+	const hireDateValue = watch("hireDate");
+	const shiftScheduleValue = watch("shiftSchedule");
 
 	const availableRoles =
 		currentUserRole === "SUPERADMIN" ? (["STAFF", "ADMIN"] as const) : (["STAFF"] as const);
@@ -311,6 +325,68 @@ export function UserForm({
 								<option value="ISO">ISO</option>
 								<option value="PERTH">Perth</option>
 							</select>
+						</div>
+
+						<div>
+							<label
+								htmlFor="hireDate"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Date Hired
+							</label>
+							<input
+								id="hireDate"
+								type="date"
+								value={toDateInputValue(hireDateValue)}
+								onChange={(e) =>
+									setValue("hireDate", e.target.value ? new Date(e.target.value) : null)
+								}
+								className={inputClass}
+							/>
+						</div>
+
+						<div className="space-y-3">
+							<div className="flex items-center justify-between gap-3 px-1">
+								<div>
+									<div className="text-sm font-medium text-foreground/70">Shift Schedule</div>
+									<p className="text-xs text-muted-foreground">
+										Weekly working hours. Leave empty to clear.
+									</p>
+								</div>
+								{shiftScheduleValue ? (
+									<button
+										type="button"
+										onClick={() => setValue("shiftSchedule", null)}
+										className="text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
+									>
+										Clear
+									</button>
+								) : (
+									<button
+										type="button"
+										onClick={() => setValue("shiftSchedule", DEFAULT_SHIFT_SCHEDULE)}
+										className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+									>
+										Add schedule
+									</button>
+								)}
+							</div>
+							{shiftScheduleValue && (
+								<ShiftScheduleEditor
+									value={shiftScheduleValue}
+									onChange={(next: ShiftScheduleInput) => setValue("shiftSchedule", next)}
+									errors={
+										errors.shiftSchedule as
+											| {
+													days?: Array<{
+														startTime?: { message?: string };
+														endTime?: { message?: string };
+													}>;
+											  }
+											| undefined
+									}
+								/>
+							)}
 						</div>
 
 						<div className="flex items-center gap-2 px-1">
