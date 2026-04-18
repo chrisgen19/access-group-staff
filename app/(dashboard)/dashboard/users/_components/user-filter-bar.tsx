@@ -25,8 +25,6 @@ interface UserFilterBarProps {
 	onSearchChange: (value: string) => void;
 	selectedRoles: string[];
 	onSelectedRolesChange: (values: string[]) => void;
-	showDeleted: boolean;
-	onShowDeletedChange: (value: boolean) => void;
 	selectedDepartmentId: string;
 	onDepartmentChange: (value: string) => void;
 	selectedBranch: string;
@@ -44,8 +42,6 @@ export function UserFilterBar({
 	onSearchChange,
 	selectedRoles,
 	onSelectedRolesChange,
-	showDeleted,
-	onShowDeletedChange,
 	selectedDepartmentId,
 	onDepartmentChange,
 	selectedBranch,
@@ -104,16 +100,6 @@ export function UserFilterBar({
 						})}
 					</div>
 				)}
-
-				<label className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground select-none cursor-pointer">
-					<input
-						type="checkbox"
-						checked={showDeleted}
-						onChange={(e) => onShowDeletedChange(e.target.checked)}
-						className="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-primary"
-					/>
-					Show deleted
-				</label>
 
 				<div className="flex items-center gap-2 lg:ml-auto">
 					<select

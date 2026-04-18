@@ -36,10 +36,17 @@ export async function GET(request: NextRequest) {
 	const isExport = searchParams.get("export") === "true";
 
 	const includeDeleted = searchParams.get("includeDeleted") === "true";
+	const onlyDeleted = searchParams.get("onlyDeleted") === "true";
+
+	const deletedFilter: Prisma.UserWhereInput | null = onlyDeleted
+		? { deletedAt: { not: null } }
+		: includeDeleted
+			? null
+			: { deletedAt: null };
 
 	if (!paginated && !isExport) {
 		const users = await prisma.user.findMany({
-			where: includeDeleted ? undefined : { deletedAt: null },
+			where: deletedFilter ?? undefined,
 			include: { department: true },
 			orderBy: { createdAt: "desc" },
 		});
@@ -54,8 +61,8 @@ export async function GET(request: NextRequest) {
 
 	const conditions: Prisma.UserWhereInput[] = [];
 
-	if (!includeDeleted) {
-		conditions.push({ deletedAt: null });
+	if (deletedFilter) {
+		conditions.push(deletedFilter);
 	}
 
 	if (search) {

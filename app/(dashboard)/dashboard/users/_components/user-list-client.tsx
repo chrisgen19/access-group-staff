@@ -99,20 +99,21 @@ function TableSkeleton() {
 }
 
 interface UserListClientProps {
+	mode: "active" | "deleted";
 	currentUserRole: string;
 	departments: DepartmentOption[];
 }
 
-export function UserListClient({ currentUserRole, departments }: UserListClientProps) {
+export function UserListClient({ mode, currentUserRole, departments }: UserListClientProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const showRoleFilter = currentUserRole === "SUPERADMIN";
+	const isDeletedView = mode === "deleted";
 
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-	const [showDeleted, setShowDeleted] = useState(false);
 	const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
 	const [selectedBranch, setSelectedBranch] = useState("");
 	const [isExporting, setIsExporting] = useState(false);
@@ -127,12 +128,11 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	// biome-ignore lint/correctness/useExhaustiveDependencies: filter values are triggers, not read inside effect
 	useEffect(() => {
 		setPage(1);
-	}, [debouncedSearch, selectedRoles, showDeleted, selectedDepartmentId, selectedBranch]);
+	}, [debouncedSearch, selectedRoles, selectedDepartmentId, selectedBranch]);
 
 	const hasActiveFilters =
 		search.length > 0 ||
 		selectedRoles.length > 0 ||
-		showDeleted ||
 		selectedDepartmentId.length > 0 ||
 		selectedBranch.length > 0;
 
@@ -140,7 +140,6 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		setSearch("");
 		setDebouncedSearch("");
 		setSelectedRoles([]);
-		setShowDeleted(false);
 		setSelectedDepartmentId("");
 		setSelectedBranch("");
 	}
@@ -149,7 +148,7 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		const effectiveSearch = searchOverride ?? debouncedSearch;
 		if (effectiveSearch) base.set("search", effectiveSearch);
 		if (selectedRoles.length > 0) base.set("roles", selectedRoles.join(","));
-		if (showDeleted) base.set("includeDeleted", "true");
+		if (isDeletedView) base.set("onlyDeleted", "true");
 		if (selectedDepartmentId) base.set("departmentId", selectedDepartmentId);
 		if (selectedBranch) base.set("branch", selectedBranch);
 		return base;
@@ -158,10 +157,10 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	const { data, isPending, isError } = useQuery<PaginatedResponse>({
 		queryKey: [
 			"users",
+			mode,
 			page,
 			debouncedSearch,
 			selectedRoles,
-			showDeleted,
 			selectedDepartmentId,
 			selectedBranch,
 		],
@@ -255,32 +254,36 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	}, [pagination, page]);
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-6 mt-2">
+		<div className="space-y-6">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
 				<div>
 					<div className="flex items-baseline gap-3 flex-wrap">
 						<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-							Staff Directory
+							{isDeletedView ? "Deleted Staff" : "Staff Directory"}
 						</h1>
 						{pagination && (
 							<span className="text-base font-medium text-muted-foreground">
-								{pagination.total} {pagination.total === 1 ? "staff" : "staff"}
+								{pagination.total} staff
 								{hasActiveFilters && " matching"}
 							</span>
 						)}
 					</div>
 					<p className="mt-2 text-base text-muted-foreground">
-						Manage staff accounts, roles, and department assignments.
+						{isDeletedView
+							? "Restore removed accounts. Their recognition history has been preserved."
+							: "Manage staff accounts, roles, and department assignments."}
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={() => router.push("/dashboard/users/new")}
-					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-				>
-					<Plus className="-ml-1 h-5 w-5" />
-					Add Staff Member
-				</button>
+				{!isDeletedView && (
+					<button
+						type="button"
+						onClick={() => router.push("/dashboard/users/new")}
+						className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
+					>
+						<Plus className="-ml-1 h-5 w-5" />
+						Add Staff Member
+					</button>
+				)}
 			</div>
 
 			<UserFilterBar
@@ -288,8 +291,6 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 				onSearchChange={setSearch}
 				selectedRoles={selectedRoles}
 				onSelectedRolesChange={setSelectedRoles}
-				showDeleted={showDeleted}
-				onShowDeletedChange={setShowDeleted}
 				selectedDepartmentId={selectedDepartmentId}
 				onDepartmentChange={setSelectedDepartmentId}
 				selectedBranch={selectedBranch}
@@ -321,12 +322,18 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 						)}
 					</div>
 					<p className="text-[1.5rem] font-medium text-foreground">
-						{hasActiveFilters ? "No matching staff" : "No staff yet"}
+						{hasActiveFilters
+							? "No matching staff"
+							: isDeletedView
+								? "No deleted staff"
+								: "No staff yet"}
 					</p>
 					<p className="mt-2 text-base text-muted-foreground">
 						{hasActiveFilters
 							? "No staff match your current filters."
-							: "Add your first staff member to get started."}
+							: isDeletedView
+								? "Deleted staff will appear here."
+								: "Add your first staff member to get started."}
 					</p>
 					{hasActiveFilters && (
 						<button
