@@ -10,6 +10,8 @@
     "lint": "bunx @biomejs/biome check .",
     "lint:fix": "bunx @biomejs/biome check --fix .",
     "format": "bunx @biomejs/biome format --write .",
+    "test": "vitest",
+    "test:run": "vitest run",
     "db:push": "bunx prisma db push",
     "db:seed": "bunx prisma db seed",
     "db:studio": "bunx prisma studio",
@@ -55,7 +57,8 @@
     "dotenv": "^17.3.1",
     "prisma": "^7.6.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.4"
   },
   "ignoreScripts": [
     "sharp",
