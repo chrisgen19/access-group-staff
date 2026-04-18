@@ -4,7 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
 import type { Prisma, Role } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
-import { requireRole, requireSession } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canAssignRole } from "@/lib/permissions";
 import { adminResetPasswordSchema } from "@/lib/validations/auth";
@@ -13,6 +13,13 @@ import {
 	type ShiftScheduleInput,
 	updateUserSchema,
 } from "@/lib/validations/user";
+
+class LastSuperadminError extends Error {
+	constructor() {
+		super("Cannot delete the last super admin");
+		this.name = "LastSuperadminError";
+	}
+}
 
 async function upsertShiftSchedule(
 	tx: Prisma.TransactionClient,
@@ -90,7 +97,6 @@ export async function createUserAction(formData: unknown) {
 					position: rest.position,
 					branch: rest.branch ?? null,
 					departmentId: rest.departmentId ?? null,
-					isActive: rest.isActive,
 					hireDate: rest.hireDate ?? null,
 					birthday: rest.birthday ?? null,
 				},
@@ -101,7 +107,7 @@ export async function createUserAction(formData: unknown) {
 			return user;
 		});
 
-		revalidatePath("/dashboard/users");
+		revalidatePath("/dashboard/users", "layout");
 		return { success: true as const, data: updated };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to create user";
@@ -120,11 +126,15 @@ export async function updateUserAction(userId: string, formData: unknown) {
 
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { role: true },
+			select: { role: true, deletedAt: true },
 		});
 
 		if (!targetUser) {
 			return { success: false as const, error: "User not found" };
+		}
+
+		if (targetUser.deletedAt !== null) {
+			return { success: false as const, error: "Cannot edit a deleted user. Restore them first." };
 		}
 
 		// Only gate on role-assignment permissions when the role is actually
@@ -157,7 +167,7 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			return user;
 		});
 
-		revalidatePath("/dashboard/users");
+		revalidatePath("/dashboard/users", "layout");
 		revalidatePath(`/dashboard/users/${userId}`);
 		return { success: true as const, data: updated };
 	} catch (error) {
@@ -166,19 +176,96 @@ export async function updateUserAction(userId: string, formData: unknown) {
 	}
 }
 
-export async function toggleUserActiveAction(userId: string) {
+export async function softDeleteUserAction(userId: string) {
 	try {
-		await requireRole("ADMIN");
-		const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-		const updated = await prisma.user.update({
+		const session = await requireRole("ADMIN");
+
+		if (userId === session.user.id) {
+			return { success: false as const, error: "You cannot delete your own account" };
+		}
+
+		const target = await prisma.user.findUnique({
 			where: { id: userId },
-			data: { isActive: !user.isActive },
+			select: { id: true, role: true, deletedAt: true },
 		});
 
-		revalidatePath("/dashboard/users");
+		if (!target) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		if (target.deletedAt !== null) {
+			return { success: false as const, error: "User is already deleted" };
+		}
+
+		const updated = await prisma.$transaction(
+			async (tx) => {
+				// Re-check guard inside the transaction so two concurrent deletes
+				// can't both observe `count === 2` and then both succeed, leaving
+				// zero active superadmins. Serializable isolation turns any such
+				// race into a serialization failure on one of the transactions.
+				if (target.role === "SUPERADMIN") {
+					const activeSuperadmins = await tx.user.count({
+						where: { role: "SUPERADMIN", deletedAt: null },
+					});
+					if (activeSuperadmins <= 1) {
+						throw new LastSuperadminError();
+					}
+				}
+				const user = await tx.user.update({
+					where: { id: userId },
+					data: {
+						deletedAt: new Date(),
+						deletedById: session.user.id,
+						// Mirror into the deprecated `isActive` column so any
+						// still-running old release renders them correctly.
+						isActive: false,
+					},
+				});
+				await tx.session.deleteMany({ where: { userId } });
+				return user;
+			},
+			{ isolationLevel: "Serializable" },
+		);
+
+		revalidatePath("/dashboard/users", "layout");
+		revalidatePath(`/dashboard/users/${userId}`);
 		return { success: true as const, data: updated };
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Failed to update user status";
+		if (error instanceof LastSuperadminError) {
+			return { success: false as const, error: error.message };
+		}
+		const message = error instanceof Error ? error.message : "Failed to delete user";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function restoreUserAction(userId: string) {
+	try {
+		await requireRole("ADMIN");
+
+		const target = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { deletedAt: true },
+		});
+
+		if (!target) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		if (target.deletedAt === null) {
+			return { success: false as const, error: "User is not deleted" };
+		}
+
+		const updated = await prisma.user.update({
+			where: { id: userId },
+			data: { deletedAt: null, deletedById: null, isActive: true },
+		});
+
+		revalidatePath("/dashboard/users", "layout");
+		revalidatePath(`/dashboard/users/${userId}`);
+		return { success: true as const, data: updated };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to restore user";
 		return { success: false as const, error: message };
 	}
 }
@@ -187,6 +274,7 @@ export async function getUsersAction() {
 	try {
 		await requireRole("ADMIN");
 		const users = await prisma.user.findMany({
+			where: { deletedAt: null },
 			include: { department: true },
 			orderBy: { createdAt: "desc" },
 		});
@@ -208,11 +296,18 @@ export async function adminResetPasswordAction(userId: string, formData: unknown
 
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { role: true },
+			select: { role: true, deletedAt: true },
 		});
 
 		if (!targetUser) {
 			return { success: false as const, error: "User not found" };
+		}
+
+		if (targetUser.deletedAt !== null) {
+			return {
+				success: false as const,
+				error: "Cannot reset password for a deleted user. Restore them first.",
+			};
 		}
 
 		if (!canAssignRole(session.user.role as Role, targetUser.role)) {
@@ -245,20 +340,6 @@ export async function adminResetPasswordAction(userId: string, formData: unknown
 		return { success: true as const, data: null };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to reset password";
-		return { success: false as const, error: message };
-	}
-}
-
-export async function getUserByIdAction(userId: string) {
-	try {
-		await requireSession();
-		const user = await prisma.user.findUniqueOrThrow({
-			where: { id: userId },
-			include: { department: true },
-		});
-		return { success: true as const, data: user };
-	} catch (error) {
-		const message = error instanceof Error ? error.message : "User not found";
 		return { success: false as const, error: message };
 	}
 }

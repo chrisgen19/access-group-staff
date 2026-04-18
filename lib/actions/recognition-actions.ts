@@ -27,14 +27,14 @@ export async function createRecognitionCardAction(formData: unknown) {
 		}
 
 		const recipient = await prisma.user.findUnique({
-			where: { id: recipientId, isActive: true },
+			where: { id: recipientId, deletedAt: null },
 			select: { id: true },
 		});
 
 		if (!recipient) {
 			return {
 				success: false as const,
-				error: "Recipient not found or inactive",
+				error: "Recipient not found or deleted",
 			};
 		}
 
@@ -103,14 +103,14 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 		}
 
 		const recipient = await prisma.user.findUnique({
-			where: { id: recipientId, isActive: true },
+			where: { id: recipientId, deletedAt: null },
 			select: { id: true },
 		});
 
 		if (!recipient) {
 			return {
 				success: false as const,
-				error: "Recipient not found or inactive",
+				error: "Recipient not found or deleted",
 			};
 		}
 

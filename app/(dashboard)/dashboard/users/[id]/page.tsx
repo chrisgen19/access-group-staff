@@ -77,13 +77,15 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 					</h1>
 					<p className="mt-1 text-base text-muted-foreground truncate">{user.email}</p>
 				</div>
-				<Link
-					href={`/dashboard/users/${user.id}/edit`}
-					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-				>
-					<Pencil className="h-4 w-4" />
-					Edit User
-				</Link>
+				{user.deletedAt === null && (
+					<Link
+						href={`/dashboard/users/${user.id}/edit`}
+						className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
+					>
+						<Pencil className="h-4 w-4" />
+						Edit User
+					</Link>
+				)}
 			</div>
 
 			<div className="grid gap-6 md:grid-cols-2">
@@ -125,8 +127,8 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 						</div>
 						<div className="flex justify-between items-center py-1">
 							<span className="text-sm text-muted-foreground">Status</span>
-							<Badge variant={user.isActive ? "outline" : "destructive"}>
-								{user.isActive ? "Active" : "Inactive"}
+							<Badge variant={user.deletedAt ? "destructive" : "outline"}>
+								{user.deletedAt ? "Deleted" : "Active"}
 							</Badge>
 						</div>
 						<InfoRow label="Date Hired" value={formatDate(user.hireDate)} />

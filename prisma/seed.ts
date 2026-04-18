@@ -172,7 +172,6 @@ async function seed() {
 				branch: userData.branch,
 				departmentId: userData.departmentId,
 				position: userData.position ?? null,
-				isActive: true,
 			},
 		});
 

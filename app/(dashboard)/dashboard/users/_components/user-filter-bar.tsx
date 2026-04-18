@@ -15,11 +15,6 @@ export const ROLE_OPTIONS = [
 	{ value: "SUPERADMIN", label: "Super Admin" },
 ] as const;
 
-export const STATUS_OPTIONS = [
-	{ value: "active", label: "Active" },
-	{ value: "inactive", label: "Inactive" },
-] as const;
-
 export const BRANCH_OPTIONS = [
 	{ value: "ISO", label: "ISO" },
 	{ value: "PERTH", label: "Perth" },
@@ -30,8 +25,6 @@ interface UserFilterBarProps {
 	onSearchChange: (value: string) => void;
 	selectedRoles: string[];
 	onSelectedRolesChange: (values: string[]) => void;
-	selectedStatuses: string[];
-	onSelectedStatusesChange: (values: string[]) => void;
 	selectedDepartmentId: string;
 	onDepartmentChange: (value: string) => void;
 	selectedBranch: string;
@@ -49,8 +42,6 @@ export function UserFilterBar({
 	onSearchChange,
 	selectedRoles,
 	onSelectedRolesChange,
-	selectedStatuses,
-	onSelectedStatusesChange,
 	selectedDepartmentId,
 	onDepartmentChange,
 	selectedBranch,
@@ -109,27 +100,6 @@ export function UserFilterBar({
 						})}
 					</div>
 				)}
-
-				<div className="flex flex-wrap items-center gap-1.5">
-					{STATUS_OPTIONS.map((status) => {
-						const isActive = selectedStatuses.includes(status.value);
-						return (
-							<button
-								key={status.value}
-								type="button"
-								onClick={() => toggle(selectedStatuses, onSelectedStatusesChange, status.value)}
-								className={cn(
-									"inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
-									isActive
-										? "border-primary/20 bg-primary/5 text-primary dark:bg-primary/10"
-										: "border-gray-200 dark:border-white/10 bg-transparent text-muted-foreground hover:border-gray-300 dark:hover:border-white/20",
-								)}
-							>
-								{status.label}
-							</button>
-						);
-					})}
-				</div>
 
 				<div className="flex items-center gap-2 lg:ml-auto">
 					<select

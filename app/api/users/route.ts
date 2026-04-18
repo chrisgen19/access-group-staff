@@ -1,13 +1,11 @@
-import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import type { Branch, Prisma, Role } from "@/app/generated/prisma/client";
-import { auth } from "@/lib/auth";
+import { AuthError, requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canViewUsers } from "@/lib/permissions";
 
 const VALID_ROLES: Role[] = ["STAFF", "ADMIN", "SUPERADMIN"];
 const VALID_BRANCHES: Branch[] = ["ISO", "PERTH"];
-const VALID_STATUSES = ["active", "inactive"] as const;
 const EXPORT_LIMIT = 10_000;
 const SEARCH_MAX_LENGTH = 200;
 
@@ -19,16 +17,6 @@ function parseRoles(param: string | null): Role[] {
 		.filter((r): r is Role => VALID_ROLES.includes(r as Role));
 }
 
-function parseStatuses(param: string | null): (typeof VALID_STATUSES)[number][] {
-	if (!param) return [];
-	return param
-		.split(",")
-		.map((s) => s.trim().toLowerCase())
-		.filter((s): s is (typeof VALID_STATUSES)[number] =>
-			VALID_STATUSES.includes(s as (typeof VALID_STATUSES)[number]),
-		);
-}
-
 function parseBranch(param: string | null): Branch | null {
 	if (!param) return null;
 	const upper = param.toUpperCase();
@@ -36,9 +24,17 @@ function parseBranch(param: string | null): Branch | null {
 }
 
 export async function GET(request: NextRequest) {
-	const session = await auth.api.getSession({ headers: await headers() });
+	let session: Awaited<ReturnType<typeof requireSession>>;
+	try {
+		session = await requireSession();
+	} catch (error) {
+		if (error instanceof AuthError) {
+			return Response.json({ success: false, error: error.message }, { status: error.status });
+		}
+		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
+	}
 
-	if (!session || !canViewUsers(session.user.role as Role)) {
+	if (!canViewUsers(session.user.role as Role)) {
 		return Response.json({ success: false, error: "Forbidden" }, { status: 403 });
 	}
 
@@ -46,8 +42,18 @@ export async function GET(request: NextRequest) {
 	const paginated = searchParams.get("paginated") === "true";
 	const isExport = searchParams.get("export") === "true";
 
+	const includeDeleted = searchParams.get("includeDeleted") === "true";
+	const onlyDeleted = searchParams.get("onlyDeleted") === "true";
+
+	const deletedFilter: Prisma.UserWhereInput | null = onlyDeleted
+		? { deletedAt: { not: null } }
+		: includeDeleted
+			? null
+			: { deletedAt: null };
+
 	if (!paginated && !isExport) {
 		const users = await prisma.user.findMany({
+			where: deletedFilter ?? undefined,
 			include: { department: true },
 			orderBy: { createdAt: "desc" },
 		});
@@ -57,11 +63,14 @@ export async function GET(request: NextRequest) {
 	const search = searchParams.get("search")?.trim().slice(0, SEARCH_MAX_LENGTH);
 	const userRole = session.user.role as Role;
 	const roles = userRole === "SUPERADMIN" ? parseRoles(searchParams.get("roles")) : [];
-	const statuses = parseStatuses(searchParams.get("statuses"));
 	const departmentId = searchParams.get("departmentId")?.trim();
 	const branch = parseBranch(searchParams.get("branch"));
 
 	const conditions: Prisma.UserWhereInput[] = [];
+
+	if (deletedFilter) {
+		conditions.push(deletedFilter);
+	}
 
 	if (search) {
 		const tokens = search.split(/\s+/).filter(Boolean);
@@ -80,10 +89,6 @@ export async function GET(request: NextRequest) {
 
 	if (roles.length > 0) {
 		conditions.push({ role: { in: roles } });
-	}
-
-	if (statuses.length === 1) {
-		conditions.push({ isActive: statuses[0] === "active" });
 	}
 
 	if (departmentId) {

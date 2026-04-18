@@ -79,11 +79,6 @@ export const auth = betterAuth({
 				defaultValue: "STAFF",
 				input: false,
 			},
-			isActive: {
-				type: "boolean",
-				defaultValue: true,
-				input: false,
-			},
 			departmentId: {
 				type: "string",
 				required: false,

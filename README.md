@@ -130,7 +130,7 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 - ADMIN can manage users, departments, and access Admin Settings
 - All authenticated users can send and view recognition cards
 - STAFF can view dashboard, recognition inbox, and edit own profile
-- Deactivated users (`isActive: false`) are blocked at proxy and session level
+- Soft-deleted users (`deletedAt != null`) are blocked at proxy and session level and hidden from the default staff directory; admins can toggle "Show deleted" to view and restore them
 
 ### Dashboard
 

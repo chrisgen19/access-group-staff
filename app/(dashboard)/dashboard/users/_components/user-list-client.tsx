@@ -6,16 +6,25 @@ import {
 	ChevronRight,
 	Eye,
 	Pencil,
-	Plus,
+	RotateCcw,
 	Search,
-	UserCheck,
+	Trash2,
 	Users,
-	UserX,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
 	Table,
@@ -25,8 +34,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { toggleUserActiveAction } from "@/lib/actions/user-actions";
+import { restoreUserAction, softDeleteUserAction } from "@/lib/actions/user-actions";
 import { type ExportUser, generateUserCsv } from "@/lib/users";
+import { cn } from "@/lib/utils";
 import { type DepartmentOption, UserFilterBar } from "./user-filter-bar";
 
 const PAGE_SIZE = 20;
@@ -40,7 +50,7 @@ interface User {
 	avatar: string | null;
 	image: string | null;
 	role: string;
-	isActive: boolean;
+	deletedAt: string | null;
 	position: string | null;
 	branch: string | null;
 	department: { id: string; name: string; code: string } | null;
@@ -88,23 +98,26 @@ function TableSkeleton() {
 }
 
 interface UserListClientProps {
+	mode: "active" | "deleted";
 	currentUserRole: string;
 	departments: DepartmentOption[];
 }
 
-export function UserListClient({ currentUserRole, departments }: UserListClientProps) {
+export function UserListClient({ mode, currentUserRole, departments }: UserListClientProps) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const showRoleFilter = currentUserRole === "SUPERADMIN";
+	const isDeletedView = mode === "deleted";
 
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const [debouncedSearch, setDebouncedSearch] = useState("");
 	const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-	const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 	const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
 	const [selectedBranch, setSelectedBranch] = useState("");
 	const [isExporting, setIsExporting] = useState(false);
+	const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+	const [isMutating, setIsMutating] = useState(false);
 
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(search), 300);
@@ -114,12 +127,11 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	// biome-ignore lint/correctness/useExhaustiveDependencies: filter values are triggers, not read inside effect
 	useEffect(() => {
 		setPage(1);
-	}, [debouncedSearch, selectedRoles, selectedStatuses, selectedDepartmentId, selectedBranch]);
+	}, [debouncedSearch, selectedRoles, selectedDepartmentId, selectedBranch]);
 
 	const hasActiveFilters =
 		search.length > 0 ||
 		selectedRoles.length > 0 ||
-		selectedStatuses.length > 0 ||
 		selectedDepartmentId.length > 0 ||
 		selectedBranch.length > 0;
 
@@ -127,7 +139,6 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		setSearch("");
 		setDebouncedSearch("");
 		setSelectedRoles([]);
-		setSelectedStatuses([]);
 		setSelectedDepartmentId("");
 		setSelectedBranch("");
 	}
@@ -136,7 +147,7 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		const effectiveSearch = searchOverride ?? debouncedSearch;
 		if (effectiveSearch) base.set("search", effectiveSearch);
 		if (selectedRoles.length > 0) base.set("roles", selectedRoles.join(","));
-		if (selectedStatuses.length > 0) base.set("statuses", selectedStatuses.join(","));
+		if (isDeletedView) base.set("onlyDeleted", "true");
 		if (selectedDepartmentId) base.set("departmentId", selectedDepartmentId);
 		if (selectedBranch) base.set("branch", selectedBranch);
 		return base;
@@ -145,10 +156,10 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	const { data, isPending, isError } = useQuery<PaginatedResponse>({
 		queryKey: [
 			"users",
+			mode,
 			page,
 			debouncedSearch,
 			selectedRoles,
-			selectedStatuses,
 			selectedDepartmentId,
 			selectedBranch,
 		],
@@ -167,13 +178,30 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		staleTime: 30_000,
 	});
 
-	async function handleToggleActive(userId: string) {
-		const result = await toggleUserActiveAction(userId);
+	async function handleConfirmDelete() {
+		if (!deleteTarget) return;
+		setIsMutating(true);
+		try {
+			const result = await softDeleteUserAction(deleteTarget.id);
+			if (result.success) {
+				toast.success(`${deleteTarget.firstName} ${deleteTarget.lastName} deleted`);
+				queryClient.invalidateQueries({ queryKey: ["users"] });
+				setDeleteTarget(null);
+			} else {
+				toast.error(typeof result.error === "string" ? result.error : "Failed to delete user");
+			}
+		} finally {
+			setIsMutating(false);
+		}
+	}
+
+	async function handleRestore(user: User) {
+		const result = await restoreUserAction(user.id);
 		if (result.success) {
-			toast.success("User status updated");
+			toast.success(`${user.firstName} ${user.lastName} restored`);
 			queryClient.invalidateQueries({ queryKey: ["users"] });
 		} else {
-			toast.error(typeof result.error === "string" ? result.error : "Failed to update status");
+			toast.error(typeof result.error === "string" ? result.error : "Failed to restore user");
 		}
 	}
 
@@ -225,33 +253,12 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 	}, [pagination, page]);
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-6 mt-2">
-			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-						Staff Directory
-					</h1>
-					<p className="mt-2 text-base text-muted-foreground">
-						Manage staff accounts, roles, and department assignments.
-					</p>
-				</div>
-				<button
-					type="button"
-					onClick={() => router.push("/dashboard/users/new")}
-					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-				>
-					<Plus className="-ml-1 h-5 w-5" />
-					Add Staff Member
-				</button>
-			</div>
-
+		<div className="space-y-6">
 			<UserFilterBar
 				search={search}
 				onSearchChange={setSearch}
 				selectedRoles={selectedRoles}
 				onSelectedRolesChange={setSelectedRoles}
-				selectedStatuses={selectedStatuses}
-				onSelectedStatusesChange={setSelectedStatuses}
 				selectedDepartmentId={selectedDepartmentId}
 				onDepartmentChange={setSelectedDepartmentId}
 				selectedBranch={selectedBranch}
@@ -283,12 +290,18 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 						)}
 					</div>
 					<p className="text-[1.5rem] font-medium text-foreground">
-						{hasActiveFilters ? "No matching staff" : "No staff yet"}
+						{hasActiveFilters
+							? "No matching staff"
+							: isDeletedView
+								? "No deleted staff"
+								: "No staff yet"}
 					</p>
 					<p className="mt-2 text-base text-muted-foreground">
 						{hasActiveFilters
 							? "No staff match your current filters."
-							: "Add your first staff member to get started."}
+							: isDeletedView
+								? "Deleted staff will appear here."
+								: "Add your first staff member to get started."}
 					</p>
 					{hasActiveFilters && (
 						<button
@@ -314,75 +327,91 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{users.map((user) => (
-									<TableRow key={user.id} className="group">
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<UserAvatar
-													firstName={user.firstName}
-													lastName={user.lastName}
-													avatar={user.avatar}
-													image={user.image}
-													size="lg"
-													className="border border-gray-100 dark:border-white/10 bg-background text-primary"
-												/>
-												<div className="min-w-0">
-													<p className="text-sm font-medium text-foreground truncate">
-														{user.firstName} {user.lastName}
-													</p>
-													<p className="text-xs text-muted-foreground truncate">{user.email}</p>
+								{users.map((user) => {
+									const isDeleted = user.deletedAt !== null;
+									return (
+										<TableRow key={user.id} className={cn("group", isDeleted && "opacity-60")}>
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<UserAvatar
+														firstName={user.firstName}
+														lastName={user.lastName}
+														avatar={user.avatar}
+														image={user.image}
+														size="lg"
+														className="border border-gray-100 dark:border-white/10 bg-background text-primary"
+													/>
+													<div className="min-w-0">
+														<p className="text-sm font-medium text-foreground truncate">
+															{user.firstName} {user.lastName}
+														</p>
+														<p className="text-xs text-muted-foreground truncate">{user.email}</p>
+													</div>
 												</div>
-											</div>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm font-medium text-foreground">{user.position ?? "—"}</p>
-											<p className="text-xs text-muted-foreground">
-												{user.department?.name ?? "—"}
-											</p>
-										</TableCell>
-										<TableCell>
-											<span className="text-sm text-foreground">{user.branch ?? "—"}</span>
-										</TableCell>
-										<TableCell>
-											<div className="flex flex-col gap-1.5">
-												{currentUserRole === "SUPERADMIN" && (
-													<Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
-												)}
-												<Badge variant={user.isActive ? "outline" : "destructive"}>
-													{user.isActive ? "Active" : "Inactive"}
-												</Badge>
-											</div>
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex justify-end gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100 focus-within:opacity-100">
-												<button
-													type="button"
-													onClick={() => router.push(`/dashboard/users/${user.id}`)}
-													className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-													aria-label="View user"
-												>
-													<Eye size={16} />
-												</button>
-												<button
-													type="button"
-													onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
-													className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
-													aria-label="Edit user"
-												>
-													<Pencil size={16} />
-												</button>
-												<button
-													type="button"
-													onClick={() => handleToggleActive(user.id)}
-													className="rounded-full p-2 text-muted-foreground hover:bg-[oklch(0.96_0.03_18)] hover:text-primary dark:hover:bg-primary/10 transition-colors"
-													aria-label={user.isActive ? "Deactivate user" : "Activate user"}
-												>
-													{user.isActive ? <UserX size={16} /> : <UserCheck size={16} />}
-												</button>
-											</div>
-										</TableCell>
-									</TableRow>
-								))}
+											</TableCell>
+											<TableCell>
+												<p className="text-sm font-medium text-foreground">
+													{user.position ?? "—"}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													{user.department?.name ?? "—"}
+												</p>
+											</TableCell>
+											<TableCell>
+												<span className="text-sm text-foreground">{user.branch ?? "—"}</span>
+											</TableCell>
+											<TableCell>
+												<div className="flex flex-col gap-1.5">
+													{currentUserRole === "SUPERADMIN" && (
+														<Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
+													)}
+													{isDeleted && <Badge variant="destructive">Deleted</Badge>}
+												</div>
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex justify-end gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover:opacity-100 focus-within:opacity-100">
+													<button
+														type="button"
+														onClick={() => router.push(`/dashboard/users/${user.id}`)}
+														className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
+														aria-label="View user"
+													>
+														<Eye size={16} />
+													</button>
+													{!isDeleted && (
+														<button
+															type="button"
+															onClick={() => router.push(`/dashboard/users/${user.id}/edit`)}
+															className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
+															aria-label="Edit user"
+														>
+															<Pencil size={16} />
+														</button>
+													)}
+													{isDeleted ? (
+														<button
+															type="button"
+															onClick={() => handleRestore(user)}
+															className="rounded-full p-2 text-muted-foreground hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/10 transition-colors"
+															aria-label="Restore user"
+														>
+															<RotateCcw size={16} />
+														</button>
+													) : (
+														<button
+															type="button"
+															onClick={() => setDeleteTarget(user)}
+															className="rounded-full p-2 text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 transition-colors"
+															aria-label="Delete user"
+														>
+															<Trash2 size={16} />
+														</button>
+													)}
+												</div>
+											</TableCell>
+										</TableRow>
+									);
+								})}
 							</TableBody>
 						</Table>
 					</div>
@@ -421,6 +450,32 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 					)}
 				</>
 			)}
+
+			<AlertDialog
+				open={deleteTarget !== null}
+				onOpenChange={(open) => !open && setDeleteTarget(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete this user?</AlertDialogTitle>
+						<AlertDialogDescription>
+							{deleteTarget
+								? `${deleteTarget.firstName} ${deleteTarget.lastName} will lose access and be hidden from the staff directory. Their recognition history stays intact. You can restore them later.`
+								: ""}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel disabled={isMutating}>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleConfirmDelete}
+							disabled={isMutating}
+							className="bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/50"
+						>
+							{isMutating ? "Deleting..." : "Delete"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }

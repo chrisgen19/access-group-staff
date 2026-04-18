@@ -24,6 +24,9 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 	]);
 
 	if (!user) notFound();
+	if (user.deletedAt !== null) {
+		redirect(`/dashboard/users/${user.id}`);
+	}
 
 	const scheduleDefault = user.shiftSchedule
 		? {
@@ -73,7 +76,6 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 					branch: user.branch ?? null,
 					role: user.role,
 					departmentId: user.departmentId,
-					isActive: user.isActive,
 					hireDate: user.hireDate,
 					birthday: user.birthday,
 					shiftSchedule: scheduleDefault,

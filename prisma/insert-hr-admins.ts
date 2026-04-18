@@ -108,7 +108,6 @@ async function insertHrAdmins() {
 				branch: "ISO",
 				departmentId: hrDepartment.id,
 				position: userData.position,
-				isActive: true,
 			},
 		});
 

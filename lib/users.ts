@@ -5,7 +5,7 @@ export interface ExportUser {
 	role: string;
 	position: string | null;
 	branch: string | null;
-	isActive: boolean;
+	deletedAt: Date | string | null;
 	department: { name: string } | null;
 }
 
@@ -36,7 +36,7 @@ export function generateUserCsv(users: ExportUser[]): string {
 		user.department?.name ?? "",
 		user.branch ?? "",
 		user.position ?? "",
-		user.isActive ? "Active" : "Inactive",
+		user.deletedAt ? "Deleted" : "Active",
 	]);
 
 	const lines = [CSV_HEADERS.join(","), ...rows.map((row) => row.map(escapeCsvField).join(","))];
