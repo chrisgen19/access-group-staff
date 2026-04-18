@@ -24,20 +24,31 @@ export async function proxy(request: NextRequest) {
 		const session = await auth.api.getSession({
 			headers: request.headers,
 		});
-		if (session) {
-			const user = await prisma.user.findUnique({
-				where: { id: session.user.id },
-				select: { isActive: true },
-			});
-			if (!user?.isActive) {
-				const response = NextResponse.redirect(new URL("/login", request.url));
-				response.cookies.delete(sessionToken.name);
-				return response;
-			}
+		if (!session) {
+			const response = NextResponse.redirect(new URL("/login", request.url));
+			response.cookies.delete(sessionToken.name);
+			return response;
+		}
+		const user = await prisma.user.findUnique({
+			where: { id: session.user.id },
+			select: { isActive: true },
+		});
+		if (!user?.isActive) {
+			const response = NextResponse.redirect(new URL("/login", request.url));
+			response.cookies.delete(sessionToken.name);
+			return response;
 		}
 	}
 
 	if ((pathname === "/login" || pathname === "/register") && sessionCookie) {
+		const session = await auth.api.getSession({
+			headers: request.headers,
+		});
+		if (!session) {
+			const response = NextResponse.next();
+			response.cookies.delete(sessionToken.name);
+			return response;
+		}
 		const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
 		const safeCallback = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
 		return NextResponse.redirect(new URL(safeCallback, request.url));
