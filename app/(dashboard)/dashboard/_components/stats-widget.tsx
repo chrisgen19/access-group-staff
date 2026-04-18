@@ -161,6 +161,7 @@ function StatsWidgetSkeleton() {
 	return (
 		<div
 			className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6 h-full"
+			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition stats"
 		>

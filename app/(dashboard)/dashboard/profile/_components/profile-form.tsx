@@ -122,10 +122,14 @@ export function ProfileForm({ user }: ProfileFormProps) {
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+						<label
+							htmlFor="branch"
+							className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+						>
 							Branch
 						</label>
 						<select
+							id="branch"
 							value={watch("branch") ?? "none"}
 							onChange={(e) =>
 								setValue("branch", e.target.value === "none" ? null : e.target.value)

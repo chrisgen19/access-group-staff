@@ -15,7 +15,7 @@ export function ForceLight() {
 				setTheme(savedTheme.current);
 			}
 		};
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [setTheme, theme]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return null;
 }

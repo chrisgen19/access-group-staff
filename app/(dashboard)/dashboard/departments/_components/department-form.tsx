@@ -48,7 +48,7 @@ export function DepartmentFormDialog({
 			const result =
 				mode === "create"
 					? await createDepartmentAction(data)
-					: await updateDepartmentAction(department!.id, data);
+					: await updateDepartmentAction(department?.id, data);
 
 			if (!result.success) {
 				const errorMsg = typeof result.error === "string" ? result.error : "Validation failed";

@@ -8,7 +8,7 @@ export default async function RecognitionReceivedPage() {
 	return (
 		<RecognitionFeedClient
 			filter="received"
-			currentUserId={session!.user.id}
+			currentUserId={session?.user.id}
 			isAdmin={hasMinRole(getUserRole(session), "ADMIN")}
 			emptyTitle="No recognition cards received yet"
 			emptyDescription="When a colleague recognizes you, it will appear here."

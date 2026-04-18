@@ -42,7 +42,7 @@ export function FitText({ children, className, minFontSize = 11 }: FitTextProps)
 			ro.disconnect();
 			el.style.fontSize = "";
 		};
-	}, [children, minFontSize]);
+	}, [minFontSize]);
 
 	return (
 		<span

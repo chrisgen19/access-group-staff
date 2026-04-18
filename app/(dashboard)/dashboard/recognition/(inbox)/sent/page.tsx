@@ -8,7 +8,7 @@ export default async function RecognitionSentPage() {
 	return (
 		<RecognitionFeedClient
 			filter="sent"
-			currentUserId={session!.user.id}
+			currentUserId={session?.user.id}
 			isAdmin={hasMinRole(getUserRole(session), "ADMIN")}
 			emptyTitle="You haven't sent any cards yet"
 			emptyDescription="Recognize a colleague to get started!"

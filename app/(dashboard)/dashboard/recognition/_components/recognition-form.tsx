@@ -166,6 +166,7 @@ function RecipientCombobox({
 			role="combobox"
 			aria-expanded={isDropdownOpen && !selectedUser}
 			aria-haspopup="listbox"
+			tabIndex={-1}
 		>
 			{selectedUser ? (
 				<div className="flex items-center justify-between h-full">
@@ -345,8 +346,12 @@ export function RecognitionForm({
 	async function onSubmit(data: CreateRecognitionCardInput) {
 		setIsLoading(true);
 		try {
+			if (isEdit && !cardId) {
+				toast.error("Missing card id");
+				return;
+			}
 			const result = isEdit
-				? await updateRecognitionCardAction(cardId!, data)
+				? await updateRecognitionCardAction(cardId as string, data)
 				: await createRecognitionCardAction(data);
 
 			if (!result.success) {

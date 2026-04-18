@@ -8,6 +8,7 @@ export default function DashboardLoading() {
 	return (
 		<div
 			className="max-w-7xl mx-auto mt-2 space-y-8 animate-pulse"
+			role="status"
 			aria-busy="true"
 			aria-label="Loading dashboard"
 		>

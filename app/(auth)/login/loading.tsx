@@ -2,7 +2,12 @@ import { SkeletonLine } from "@/components/shared/skeleton-primitives";
 
 export default function LoginLoading() {
 	return (
-		<div className="w-full max-w-md animate-pulse" aria-busy="true" aria-label="Loading login form">
+		<div
+			className="w-full max-w-md animate-pulse"
+			role="status"
+			aria-busy="true"
+			aria-label="Loading login form"
+		>
 			{/* Logo + heading */}
 			<div className="flex flex-col items-center mb-8">
 				<SkeletonLine className="h-10 w-32" />
