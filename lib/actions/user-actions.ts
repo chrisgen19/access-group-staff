@@ -14,6 +14,13 @@ import {
 	updateUserSchema,
 } from "@/lib/validations/user";
 
+class LastSuperadminError extends Error {
+	constructor() {
+		super("Cannot delete the last super admin");
+		this.name = "LastSuperadminError";
+	}
+}
+
 async function upsertShiftSchedule(
 	tx: Prisma.TransactionClient,
 	userId: string,
@@ -100,7 +107,7 @@ export async function createUserAction(formData: unknown) {
 			return user;
 		});
 
-		revalidatePath("/dashboard/users");
+		revalidatePath("/dashboard/users", "layout");
 		return { success: true as const, data: updated };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to create user";
@@ -160,7 +167,7 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			return user;
 		});
 
-		revalidatePath("/dashboard/users");
+		revalidatePath("/dashboard/users", "layout");
 		revalidatePath(`/dashboard/users/${userId}`);
 		return { success: true as const, data: updated };
 	} catch (error) {
@@ -190,33 +197,42 @@ export async function softDeleteUserAction(userId: string) {
 			return { success: false as const, error: "User is already deleted" };
 		}
 
-		if (target.role === "SUPERADMIN") {
-			const activeSuperadmins = await prisma.user.count({
-				where: { role: "SUPERADMIN", deletedAt: null },
-			});
-			if (activeSuperadmins <= 1) {
-				return { success: false as const, error: "Cannot delete the last super admin" };
-			}
-		}
-
-		const updated = await prisma.$transaction(async (tx) => {
-			const user = await tx.user.update({
-				where: { id: userId },
-				data: {
-					deletedAt: new Date(),
-					deletedById: session.user.id,
-					// Mirror into the deprecated `isActive` column so any
-					// still-running old release renders them correctly.
-					isActive: false,
-				},
-			});
-			await tx.session.deleteMany({ where: { userId } });
-			return user;
-		});
+		const updated = await prisma.$transaction(
+			async (tx) => {
+				// Re-check guard inside the transaction so two concurrent deletes
+				// can't both observe `count === 2` and then both succeed, leaving
+				// zero active superadmins. Serializable isolation turns any such
+				// race into a serialization failure on one of the transactions.
+				if (target.role === "SUPERADMIN") {
+					const activeSuperadmins = await tx.user.count({
+						where: { role: "SUPERADMIN", deletedAt: null },
+					});
+					if (activeSuperadmins <= 1) {
+						throw new LastSuperadminError();
+					}
+				}
+				const user = await tx.user.update({
+					where: { id: userId },
+					data: {
+						deletedAt: new Date(),
+						deletedById: session.user.id,
+						// Mirror into the deprecated `isActive` column so any
+						// still-running old release renders them correctly.
+						isActive: false,
+					},
+				});
+				await tx.session.deleteMany({ where: { userId } });
+				return user;
+			},
+			{ isolationLevel: "Serializable" },
+		);
 
 		revalidatePath("/dashboard/users", "layout");
 		return { success: true as const, data: updated };
 	} catch (error) {
+		if (error instanceof LastSuperadminError) {
+			return { success: false as const, error: error.message };
+		}
 		const message = error instanceof Error ? error.message : "Failed to delete user";
 		return { success: false as const, error: message };
 	}
