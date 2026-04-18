@@ -214,7 +214,7 @@ export async function softDeleteUserAction(userId: string) {
 			return user;
 		});
 
-		revalidatePath("/dashboard/users");
+		revalidatePath("/dashboard/users", "layout");
 		return { success: true as const, data: updated };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to delete user";
@@ -244,7 +244,7 @@ export async function restoreUserAction(userId: string) {
 			data: { deletedAt: null, deletedById: null, isActive: true },
 		});
 
-		revalidatePath("/dashboard/users");
+		revalidatePath("/dashboard/users", "layout");
 		return { success: true as const, data: updated };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to restore user";
