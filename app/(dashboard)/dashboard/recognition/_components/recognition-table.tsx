@@ -100,9 +100,10 @@ export function RecognitionTable() {
 		return () => clearTimeout(timer);
 	}, [search]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: filter values are triggers, not read inside effect
 	useEffect(() => {
 		setPage(1);
-	}, []);
+	}, [debouncedSearch, selectedValues, selectedMonth, selectedYear]);
 
 	const hasActiveFilters =
 		search.length > 0 ||

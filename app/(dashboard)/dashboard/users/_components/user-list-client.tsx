@@ -111,9 +111,10 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		return () => clearTimeout(timer);
 	}, [search]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: filter values are triggers, not read inside effect
 	useEffect(() => {
 		setPage(1);
-	}, []);
+	}, [debouncedSearch, selectedRoles, selectedStatuses, selectedDepartmentId, selectedBranch]);
 
 	const hasActiveFilters =
 		search.length > 0 ||
