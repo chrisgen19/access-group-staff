@@ -494,7 +494,7 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 						<AlertDialogAction
 							onClick={handleConfirmDelete}
 							disabled={isMutating}
-							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+							className="bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/50"
 						>
 							{isMutating ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
