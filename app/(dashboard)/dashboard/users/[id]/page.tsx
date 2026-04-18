@@ -1,4 +1,4 @@
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Clock, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
@@ -6,6 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canViewUsers } from "@/lib/permissions";
+import { DISPLAY_DAY_ORDER, SHIFT_DAY_LABELS_SHORT } from "@/lib/validations/user";
+
+function hhmmToMinutes(value: string): number {
+	const [h, m] = value.split(":").map((n) => Number.parseInt(n, 10));
+	return h * 60 + m;
+}
+
+function formatWeeklyHours(minutes: number): string {
+	const hours = minutes / 60;
+	return `${hours.toFixed(hours % 1 === 0 ? 0 : 1)}h / week`;
+}
 
 const BRANCH_LABELS: Record<string, string> = {
 	ISO: "ISO",
@@ -17,6 +28,16 @@ function formatBranch(branch: string | null): string | null {
 	return BRANCH_LABELS[branch] ?? branch;
 }
 
+function formatDate(value: Date | null): string | null {
+	if (!value) return null;
+	return new Intl.DateTimeFormat("en-AU", {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+		timeZone: "UTC",
+	}).format(value);
+}
+
 export default async function UserDetailPage({ params }: { params: Promise<{ id: string }> }) {
 	const session = await getServerSession();
 	if (!session || !canViewUsers(session.user.role as Role)) {
@@ -26,10 +47,19 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 	const { id } = await params;
 	const user = await prisma.user.findUnique({
 		where: { id },
-		include: { department: true },
+		include: {
+			department: true,
+			shiftSchedule: { include: { days: { orderBy: { dayOfWeek: "asc" } } } },
+		},
 	});
 
 	if (!user) notFound();
+
+	const orderedDays = user.shiftSchedule
+		? Array.from({ length: 7 }, (_, dayOfWeek) =>
+				user.shiftSchedule?.days.find((d) => d.dayOfWeek === dayOfWeek),
+			)
+		: null;
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -67,6 +97,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 						<InfoRow label="Display Name" value={user.displayName} />
 						<InfoRow label="Email" value={user.email} />
 						<InfoRow label="Phone" value={user.phone} />
+						<InfoRow label="Birthday" value={formatDate(user.birthday)} />
 					</div>
 				</div>
 
@@ -98,8 +129,101 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 								{user.isActive ? "Active" : "Inactive"}
 							</Badge>
 						</div>
+						<InfoRow label="Date Hired" value={formatDate(user.hireDate)} />
 						<InfoRow label="Joined" value={user.createdAt.toLocaleDateString()} />
 					</div>
+				</div>
+			</div>
+
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="px-8 pt-8 pb-4 flex items-center justify-between gap-4">
+					<div className="flex items-center gap-3">
+						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+							<Clock className="h-5 w-5" />
+						</div>
+						<div>
+							<h2 className="text-[1.25rem] font-medium text-foreground leading-tight">
+								Shift Schedule
+							</h2>
+							{user.shiftSchedule && (
+								<p className="text-xs text-muted-foreground mt-0.5">
+									{user.shiftSchedule.timezone}
+								</p>
+							)}
+						</div>
+					</div>
+					{orderedDays &&
+						(() => {
+							const totalMins = orderedDays.reduce((sum, day) => {
+								if (!day?.isWorking || !day.startTime || !day.endTime) return sum;
+								return (
+									sum + (hhmmToMinutes(day.endTime) - hhmmToMinutes(day.startTime)) - day.breakMins
+								);
+							}, 0);
+							const workingCount = orderedDays.filter((d) => d?.isWorking).length;
+							return (
+								<div className="text-right">
+									<div className="text-lg font-semibold text-foreground">
+										{formatWeeklyHours(totalMins)}
+									</div>
+									<div className="text-xs text-muted-foreground">
+										{workingCount} working {workingCount === 1 ? "day" : "days"}
+									</div>
+								</div>
+							);
+						})()}
+				</div>
+				<div className="px-8 pb-8">
+					{!orderedDays && (
+						<div className="rounded-2xl border border-dashed border-gray-200 dark:border-white/10 px-6 py-8 text-center">
+							<p className="text-sm text-muted-foreground">No shift schedule configured.</p>
+						</div>
+					)}
+					{orderedDays && (
+						<div className="grid grid-cols-7 gap-2">
+							{DISPLAY_DAY_ORDER.map((dayOfWeek) => {
+								const day = orderedDays[dayOfWeek];
+								const isWorking = !!(day?.isWorking && day.startTime && day.endTime);
+								return (
+									<div
+										key={dayOfWeek}
+										className={`rounded-2xl border px-3 py-3 text-center transition-colors ${
+											isWorking
+												? "border-primary/20 bg-primary/5"
+												: "border-gray-200/60 dark:border-white/10 bg-gray-50/40 dark:bg-white/[0.02]"
+										}`}
+									>
+										<div
+											className={`text-[11px] font-semibold uppercase tracking-wider ${
+												isWorking ? "text-primary" : "text-muted-foreground"
+											}`}
+										>
+											{SHIFT_DAY_LABELS_SHORT[dayOfWeek]}
+										</div>
+										<div
+											className={`mt-2 text-sm font-medium ${
+												isWorking ? "text-foreground" : "text-muted-foreground/70"
+											}`}
+										>
+											{isWorking ? day?.startTime : "—"}
+										</div>
+										<div
+											className={`text-sm ${
+												isWorking ? "text-foreground" : "text-muted-foreground/70"
+											}`}
+										>
+											{isWorking ? day?.endTime : "Off"}
+										</div>
+										{isWorking && day?.breakMins ? (
+											<div className="mt-1 text-[10px] text-muted-foreground">
+												{day.breakMins}m break
+											</div>
+										) : null}
+									</div>
+								);
+							})}
+						</div>
+					)}
 				</div>
 			</div>
 		</div>

@@ -16,11 +16,30 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 
 	const { id } = await params;
 	const [user, departments] = await Promise.all([
-		prisma.user.findUnique({ where: { id } }),
+		prisma.user.findUnique({
+			where: { id },
+			include: { shiftSchedule: { include: { days: { orderBy: { dayOfWeek: "asc" } } } } },
+		}),
 		prisma.department.findMany({ orderBy: { name: "asc" } }),
 	]);
 
 	if (!user) notFound();
+
+	const scheduleDefault = user.shiftSchedule
+		? {
+				timezone: user.shiftSchedule.timezone,
+				days: Array.from({ length: 7 }, (_, dayOfWeek) => {
+					const existing = user.shiftSchedule?.days.find((d) => d.dayOfWeek === dayOfWeek);
+					return {
+						dayOfWeek,
+						isWorking: existing?.isWorking ?? false,
+						startTime: existing?.startTime ?? null,
+						endTime: existing?.endTime ?? null,
+						breakMins: existing?.breakMins ?? 0,
+					};
+				}),
+			}
+		: null;
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -55,6 +74,9 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 					role: user.role,
 					departmentId: user.departmentId,
 					isActive: user.isActive,
+					hireDate: user.hireDate,
+					birthday: user.birthday,
+					shiftSchedule: scheduleDefault,
 				}}
 			/>
 			<ResetPasswordForm userId={user.id} userName={`${user.firstName} ${user.lastName}`} />

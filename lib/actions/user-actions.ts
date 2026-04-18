@@ -2,13 +2,53 @@
 
 import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
-import type { Role } from "@/app/generated/prisma/client";
+import type { Prisma, Role } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
 import { requireRole, requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canAssignRole } from "@/lib/permissions";
 import { adminResetPasswordSchema } from "@/lib/validations/auth";
-import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
+import {
+	createUserSchema,
+	type ShiftScheduleInput,
+	updateUserSchema,
+} from "@/lib/validations/user";
+
+async function upsertShiftSchedule(
+	tx: Prisma.TransactionClient,
+	userId: string,
+	schedule: ShiftScheduleInput | null,
+) {
+	if (schedule === null) {
+		await tx.shiftSchedule.deleteMany({ where: { userId } });
+		return;
+	}
+	const existing = await tx.shiftSchedule.findUnique({ where: { userId } });
+	const scheduleId = existing
+		? (
+				await tx.shiftSchedule.update({
+					where: { userId },
+					data: { timezone: schedule.timezone },
+				})
+			).id
+		: (
+				await tx.shiftSchedule.create({
+					data: { userId, timezone: schedule.timezone },
+				})
+			).id;
+
+	await tx.shiftDay.deleteMany({ where: { scheduleId } });
+	await tx.shiftDay.createMany({
+		data: schedule.days.map((day) => ({
+			scheduleId,
+			dayOfWeek: day.dayOfWeek,
+			isWorking: day.isWorking,
+			startTime: day.isWorking ? (day.startTime ?? null) : null,
+			endTime: day.isWorking ? (day.endTime ?? null) : null,
+			breakMins: day.isWorking ? day.breakMins : 0,
+		})),
+	});
+}
 
 export async function createUserAction(formData: unknown) {
 	try {
@@ -19,7 +59,7 @@ export async function createUserAction(formData: unknown) {
 			return { success: false as const, error: parsed.error.flatten().fieldErrors };
 		}
 
-		const { role, email, password, firstName, lastName, ...rest } = parsed.data;
+		const { role, email, password, firstName, lastName, shiftSchedule, ...rest } = parsed.data;
 
 		if (!canAssignRole(session.user.role as Role, role as Role)) {
 			return { success: false as const, error: "Insufficient permissions to assign this role" };
@@ -39,17 +79,26 @@ export async function createUserAction(formData: unknown) {
 			return { success: false as const, error: "Failed to create user" };
 		}
 
-		const updated = await prisma.user.update({
-			where: { id: result.user.id },
-			data: {
-				role: role as Role,
-				displayName: rest.displayName,
-				phone: rest.phone,
-				position: rest.position,
-				branch: rest.branch ?? null,
-				departmentId: rest.departmentId ?? null,
-				isActive: rest.isActive,
-			},
+		const userId = result.user.id;
+		const updated = await prisma.$transaction(async (tx) => {
+			const user = await tx.user.update({
+				where: { id: userId },
+				data: {
+					role: role as Role,
+					displayName: rest.displayName,
+					phone: rest.phone,
+					position: rest.position,
+					branch: rest.branch ?? null,
+					departmentId: rest.departmentId ?? null,
+					isActive: rest.isActive,
+					hireDate: rest.hireDate ?? null,
+					birthday: rest.birthday ?? null,
+				},
+			});
+			if (shiftSchedule !== undefined) {
+				await upsertShiftSchedule(tx, userId, shiftSchedule ?? null);
+			}
+			return user;
 		});
 
 		revalidatePath("/dashboard/users");
@@ -87,16 +136,25 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			return { success: false as const, error: "Insufficient permissions to assign this role" };
 		}
 
-		const updated = await prisma.user.update({
-			where: { id: userId },
-			data: {
-				...parsed.data,
-				role: roleIsChanging ? (parsed.data.role as Role) : undefined,
-				name:
-					parsed.data.firstName && parsed.data.lastName
-						? `${parsed.data.firstName} ${parsed.data.lastName}`
-						: undefined,
-			},
+		const { shiftSchedule, hireDate, birthday, ...userFields } = parsed.data;
+		const updated = await prisma.$transaction(async (tx) => {
+			const user = await tx.user.update({
+				where: { id: userId },
+				data: {
+					...userFields,
+					role: roleIsChanging ? (parsed.data.role as Role) : undefined,
+					hireDate: hireDate === undefined ? undefined : (hireDate ?? null),
+					birthday: birthday === undefined ? undefined : (birthday ?? null),
+					name:
+						parsed.data.firstName && parsed.data.lastName
+							? `${parsed.data.firstName} ${parsed.data.lastName}`
+							: undefined,
+				},
+			});
+			if (shiftSchedule !== undefined) {
+				await upsertShiftSchedule(tx, userId, shiftSchedule ?? null);
+			}
+			return user;
 		});
 
 		revalidatePath("/dashboard/users");

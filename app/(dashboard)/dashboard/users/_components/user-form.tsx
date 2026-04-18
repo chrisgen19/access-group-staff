@@ -8,12 +8,17 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
+import { parseDateInputValue, toDateInputValue } from "@/lib/date-input";
 import {
 	type CreateUserInput,
 	createUserSchema,
+	DEFAULT_SHIFT_SCHEDULE,
+	type ShiftScheduleFieldErrors,
+	type ShiftScheduleInput,
 	type UpdateUserInput,
 	updateUserSchema,
 } from "@/lib/validations/user";
+import { ShiftScheduleEditor } from "./shift-schedule-editor";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -53,6 +58,7 @@ export function UserForm({
 		handleSubmit,
 		setValue,
 		watch,
+		getValues,
 		formState: { errors },
 	} = useForm<CreateUserInput>({
 		// biome-ignore lint/suspicious/noExplicitAny: schemas diverge on optional fields; resolver union narrows at runtime
@@ -66,6 +72,9 @@ export function UserForm({
 
 	const roleValue = watch("role");
 	const isActiveValue = watch("isActive");
+	const hireDateValue = watch("hireDate");
+	const birthdayValue = watch("birthday");
+	const shiftScheduleValue = watch("shiftSchedule");
 
 	const availableRoles =
 		currentUserRole === "SUPERADMIN" ? (["STAFF", "ADMIN"] as const) : (["STAFF"] as const);
@@ -311,6 +320,79 @@ export function UserForm({
 								<option value="ISO">ISO</option>
 								<option value="PERTH">Perth</option>
 							</select>
+						</div>
+
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label
+									htmlFor="hireDate"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
+									Date Hired
+								</label>
+								<input
+									id="hireDate"
+									type="date"
+									value={toDateInputValue(hireDateValue)}
+									onChange={(e) => setValue("hireDate", parseDateInputValue(e.target.value))}
+									className={inputClass}
+								/>
+							</div>
+							<div>
+								<label
+									htmlFor="birthday"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
+									Birthday
+								</label>
+								<input
+									id="birthday"
+									type="date"
+									value={toDateInputValue(birthdayValue)}
+									onChange={(e) => setValue("birthday", parseDateInputValue(e.target.value))}
+									className={inputClass}
+								/>
+							</div>
+						</div>
+
+						<div className="space-y-3">
+							<div className="flex items-center justify-between gap-3 px-1">
+								<div>
+									<div className="text-sm font-medium text-foreground/70">Shift Schedule</div>
+									<p className="text-xs text-muted-foreground">
+										Weekly working hours. Leave empty to clear.
+									</p>
+								</div>
+								{shiftScheduleValue ? (
+									<button
+										type="button"
+										onClick={() => setValue("shiftSchedule", null)}
+										className="text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
+									>
+										Clear
+									</button>
+								) : (
+									<button
+										type="button"
+										onClick={() => {
+											const branch = getValues("branch");
+											const timezone =
+												branch === "PERTH" ? "Australia/Perth" : DEFAULT_SHIFT_SCHEDULE.timezone;
+											setValue("shiftSchedule", { ...DEFAULT_SHIFT_SCHEDULE, timezone });
+										}}
+										className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+									>
+										Add schedule
+									</button>
+								)}
+							</div>
+							{shiftScheduleValue && (
+								<ShiftScheduleEditor
+									value={shiftScheduleValue}
+									onChange={(next: ShiftScheduleInput) => setValue("shiftSchedule", next)}
+									errors={errors.shiftSchedule as ShiftScheduleFieldErrors | undefined}
+								/>
+							)}
 						</div>
 
 						<div className="flex items-center gap-2 px-1">
