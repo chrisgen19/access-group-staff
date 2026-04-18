@@ -2,15 +2,10 @@ import { getCookies } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { sanitizeCallbackUrl } from "@/lib/auth/safe-callback";
 import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
-
-function sanitizeCallback(callbackUrl: string | null): string | null {
-	if (!callbackUrl) return null;
-	if (!callbackUrl.startsWith("/") || callbackUrl.startsWith("//")) return null;
-	return callbackUrl;
-}
 
 async function resolveSession(request: NextRequest) {
 	try {
@@ -56,7 +51,7 @@ export async function proxy(request: NextRequest) {
 		const session = await resolveSession(request);
 		if (!session) {
 			const authUrl = new URL(pathname, request.url);
-			const safeCallback = sanitizeCallback(request.nextUrl.searchParams.get("callbackUrl"));
+			const safeCallback = sanitizeCallbackUrl(request.nextUrl.searchParams.get("callbackUrl"));
 			if (safeCallback) {
 				authUrl.searchParams.set("callbackUrl", safeCallback);
 			}
@@ -65,7 +60,7 @@ export async function proxy(request: NextRequest) {
 			return response;
 		}
 		const safeCallback =
-			sanitizeCallback(request.nextUrl.searchParams.get("callbackUrl")) ?? "/dashboard";
+			sanitizeCallbackUrl(request.nextUrl.searchParams.get("callbackUrl")) ?? "/dashboard";
 		return NextResponse.redirect(new URL(safeCallback, request.url));
 	}
 
