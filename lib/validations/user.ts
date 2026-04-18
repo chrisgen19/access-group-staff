@@ -108,6 +108,30 @@ export interface ShiftScheduleFieldErrors {
 	days?: ShiftDayFieldErrors[];
 }
 
+export const TIMEZONE_OPTIONS = [
+	"Asia/Manila",
+	"Australia/Perth",
+	"Australia/Sydney",
+	"Australia/Melbourne",
+	"Australia/Brisbane",
+	"Australia/Adelaide",
+	"Pacific/Auckland",
+	"UTC",
+] as const;
+
+export const DEFAULT_SHIFT_SCHEDULE: z.infer<typeof shiftScheduleSchema> = {
+	timezone: "Asia/Manila",
+	days: [
+		{ dayOfWeek: 0, isWorking: false, startTime: null, endTime: null, breakMins: 0 },
+		{ dayOfWeek: 1, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
+		{ dayOfWeek: 2, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
+		{ dayOfWeek: 3, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
+		{ dayOfWeek: 4, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
+		{ dayOfWeek: 5, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
+		{ dayOfWeek: 6, isWorking: false, startTime: null, endTime: null, breakMins: 0 },
+	],
+};
+
 export const createUserSchema = z.object({
 	email: z.string().email("Invalid email address"),
 	password: z.string().min(8, "Password must be at least 8 characters"),

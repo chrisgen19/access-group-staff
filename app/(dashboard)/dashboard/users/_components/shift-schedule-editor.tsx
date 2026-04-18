@@ -5,6 +5,7 @@ import {
 	SHIFT_DAY_LABELS,
 	type ShiftScheduleFieldErrors,
 	type ShiftScheduleInput,
+	TIMEZONE_OPTIONS,
 } from "@/lib/validations/user";
 
 const timeInputClass =
@@ -15,30 +16,6 @@ const breakInputClass =
 
 const timezoneSelectClass =
 	"rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all";
-
-export const TIMEZONE_OPTIONS = [
-	"Asia/Manila",
-	"Australia/Perth",
-	"Australia/Sydney",
-	"Australia/Melbourne",
-	"Australia/Brisbane",
-	"Australia/Adelaide",
-	"Pacific/Auckland",
-	"UTC",
-] as const;
-
-export const DEFAULT_SHIFT_SCHEDULE: ShiftScheduleInput = {
-	timezone: "Asia/Manila",
-	days: [
-		{ dayOfWeek: 0, isWorking: false, startTime: null, endTime: null, breakMins: 0 },
-		{ dayOfWeek: 1, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
-		{ dayOfWeek: 2, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
-		{ dayOfWeek: 3, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
-		{ dayOfWeek: 4, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
-		{ dayOfWeek: 5, isWorking: true, startTime: "09:00", endTime: "17:00", breakMins: 60 },
-		{ dayOfWeek: 6, isWorking: false, startTime: null, endTime: null, breakMins: 0 },
-	],
-};
 
 interface ShiftScheduleEditorProps {
 	value: ShiftScheduleInput;
@@ -140,9 +117,10 @@ export function ShiftScheduleEditor({ value, onChange, errors }: ShiftScheduleEd
 
 			<div className="space-y-1.5">
 				{DISPLAY_DAY_ORDER.map((dayOfWeek) => {
-					const day = value.days.find((d) => d.dayOfWeek === dayOfWeek);
+					const dayIndex = value.days.findIndex((d) => d.dayOfWeek === dayOfWeek);
+					const day = value.days[dayIndex];
 					if (!day) return null;
-					const dayError = errors?.days?.[value.days.indexOf(day)];
+					const dayError = errors?.days?.[dayIndex];
 					const dayMins =
 						day.isWorking && day.startTime && day.endTime
 							? hhmmToMinutes(day.endTime) - hhmmToMinutes(day.startTime) - day.breakMins
