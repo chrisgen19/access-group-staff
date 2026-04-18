@@ -90,7 +90,6 @@ export async function createUserAction(formData: unknown) {
 					position: rest.position,
 					branch: rest.branch ?? null,
 					departmentId: rest.departmentId ?? null,
-					isActive: rest.isActive,
 					hireDate: rest.hireDate ?? null,
 					birthday: rest.birthday ?? null,
 				},
@@ -166,19 +165,79 @@ export async function updateUserAction(userId: string, formData: unknown) {
 	}
 }
 
-export async function toggleUserActiveAction(userId: string) {
+export async function softDeleteUserAction(userId: string) {
 	try {
-		await requireRole("ADMIN");
-		const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
-		const updated = await prisma.user.update({
+		const session = await requireRole("ADMIN");
+
+		if (userId === session.user.id) {
+			return { success: false as const, error: "You cannot delete your own account" };
+		}
+
+		const target = await prisma.user.findUnique({
 			where: { id: userId },
-			data: { isActive: !user.isActive },
+			select: { id: true, role: true, deletedAt: true },
+		});
+
+		if (!target) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		if (target.deletedAt !== null) {
+			return { success: false as const, error: "User is already deleted" };
+		}
+
+		if (target.role === "SUPERADMIN") {
+			const activeSuperadmins = await prisma.user.count({
+				where: { role: "SUPERADMIN", deletedAt: null },
+			});
+			if (activeSuperadmins <= 1) {
+				return { success: false as const, error: "Cannot delete the last super admin" };
+			}
+		}
+
+		const updated = await prisma.$transaction(async (tx) => {
+			const user = await tx.user.update({
+				where: { id: userId },
+				data: { deletedAt: new Date(), deletedById: session.user.id },
+			});
+			await tx.session.deleteMany({ where: { userId } });
+			return user;
 		});
 
 		revalidatePath("/dashboard/users");
 		return { success: true as const, data: updated };
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Failed to update user status";
+		const message = error instanceof Error ? error.message : "Failed to delete user";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function restoreUserAction(userId: string) {
+	try {
+		await requireRole("ADMIN");
+
+		const target = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { deletedAt: true },
+		});
+
+		if (!target) {
+			return { success: false as const, error: "User not found" };
+		}
+
+		if (target.deletedAt === null) {
+			return { success: false as const, error: "User is not deleted" };
+		}
+
+		const updated = await prisma.user.update({
+			where: { id: userId },
+			data: { deletedAt: null, deletedById: null },
+		});
+
+		revalidatePath("/dashboard/users");
+		return { success: true as const, data: updated };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to restore user";
 		return { success: false as const, error: message };
 	}
 }
@@ -187,6 +246,7 @@ export async function getUsersAction() {
 	try {
 		await requireRole("ADMIN");
 		const users = await prisma.user.findMany({
+			where: { deletedAt: null },
 			include: { department: true },
 			orderBy: { createdAt: "desc" },
 		});

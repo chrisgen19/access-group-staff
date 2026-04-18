@@ -125,8 +125,8 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 						</div>
 						<div className="flex justify-between items-center py-1">
 							<span className="text-sm text-muted-foreground">Status</span>
-							<Badge variant={user.isActive ? "outline" : "destructive"}>
-								{user.isActive ? "Active" : "Inactive"}
+							<Badge variant={user.deletedAt ? "destructive" : "outline"}>
+								{user.deletedAt ? "Deleted" : "Active"}
 							</Badge>
 						</div>
 						<InfoRow label="Date Hired" value={formatDate(user.hireDate)} />

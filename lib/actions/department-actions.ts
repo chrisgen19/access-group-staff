@@ -68,7 +68,9 @@ export async function updateDepartmentAction(id: string, formData: unknown) {
 export async function deleteDepartmentAction(id: string) {
 	try {
 		await requireRole("ADMIN");
-		const userCount = await prisma.user.count({ where: { departmentId: id } });
+		const userCount = await prisma.user.count({
+			where: { departmentId: id, deletedAt: null },
+		});
 
 		if (userCount > 0) {
 			return {

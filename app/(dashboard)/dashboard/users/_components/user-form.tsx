@@ -65,13 +65,11 @@ export function UserForm({
 		resolver: zodResolver((isCreate ? createUserSchema : updateUserSchema) as any),
 		defaultValues: {
 			role: "STAFF",
-			isActive: true,
 			...defaultValues,
 		},
 	});
 
 	const roleValue = watch("role");
-	const isActiveValue = watch("isActive");
 	const hireDateValue = watch("hireDate");
 	const birthdayValue = watch("birthday");
 	const shiftScheduleValue = watch("shiftSchedule");
@@ -355,19 +353,6 @@ export function UserForm({
 								onChange={(e) => setValue("hireDate", parseDateInputValue(e.target.value))}
 								className={inputClass}
 							/>
-						</div>
-
-						<div className="flex items-center gap-2 pt-1 px-1">
-							<input
-								id="isActive"
-								type="checkbox"
-								checked={isActiveValue}
-								onChange={(e) => setValue("isActive", e.target.checked)}
-								className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-							/>
-							<label htmlFor="isActive" className="text-sm font-medium text-foreground/70">
-								Active
-							</label>
 						</div>
 					</div>
 				</section>

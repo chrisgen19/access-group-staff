@@ -19,10 +19,10 @@ export async function requireSession() {
 	}
 	const user = await prisma.user.findUnique({
 		where: { id: session.user.id },
-		select: { isActive: true },
+		select: { deletedAt: true },
 	});
-	if (!user?.isActive) {
-		throw new Error("Account deactivated");
+	if (!user || user.deletedAt !== null) {
+		throw new Error("Account removed");
 	}
 	return session;
 }

@@ -15,7 +15,6 @@ export const authClient = createAuthClient({
 				position: { type: "string", required: false },
 				avatar: { type: "string", required: false },
 				role: { type: "string", required: false },
-				isActive: { type: "boolean", required: false },
 				departmentId: { type: "string", required: false },
 			},
 		}),

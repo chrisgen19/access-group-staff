@@ -38,9 +38,9 @@ export async function proxy(request: NextRequest) {
 		}
 		const user = await prisma.user.findUnique({
 			where: { id: session.user.id },
-			select: { isActive: true },
+			select: { deletedAt: true },
 		});
-		if (!user?.isActive) {
+		if (!user || user.deletedAt !== null) {
 			const response = NextResponse.redirect(new URL("/login", request.url));
 			response.cookies.delete(sessionToken.name);
 			return response;

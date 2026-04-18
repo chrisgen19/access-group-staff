@@ -7,7 +7,6 @@ import { canViewUsers } from "@/lib/permissions";
 
 const VALID_ROLES: Role[] = ["STAFF", "ADMIN", "SUPERADMIN"];
 const VALID_BRANCHES: Branch[] = ["ISO", "PERTH"];
-const VALID_STATUSES = ["active", "inactive"] as const;
 const EXPORT_LIMIT = 10_000;
 const SEARCH_MAX_LENGTH = 200;
 
@@ -17,16 +16,6 @@ function parseRoles(param: string | null): Role[] {
 		.split(",")
 		.map((r) => r.trim().toUpperCase())
 		.filter((r): r is Role => VALID_ROLES.includes(r as Role));
-}
-
-function parseStatuses(param: string | null): (typeof VALID_STATUSES)[number][] {
-	if (!param) return [];
-	return param
-		.split(",")
-		.map((s) => s.trim().toLowerCase())
-		.filter((s): s is (typeof VALID_STATUSES)[number] =>
-			VALID_STATUSES.includes(s as (typeof VALID_STATUSES)[number]),
-		);
 }
 
 function parseBranch(param: string | null): Branch | null {
@@ -46,8 +35,11 @@ export async function GET(request: NextRequest) {
 	const paginated = searchParams.get("paginated") === "true";
 	const isExport = searchParams.get("export") === "true";
 
+	const includeDeleted = searchParams.get("includeDeleted") === "true";
+
 	if (!paginated && !isExport) {
 		const users = await prisma.user.findMany({
+			where: includeDeleted ? undefined : { deletedAt: null },
 			include: { department: true },
 			orderBy: { createdAt: "desc" },
 		});
@@ -57,11 +49,14 @@ export async function GET(request: NextRequest) {
 	const search = searchParams.get("search")?.trim().slice(0, SEARCH_MAX_LENGTH);
 	const userRole = session.user.role as Role;
 	const roles = userRole === "SUPERADMIN" ? parseRoles(searchParams.get("roles")) : [];
-	const statuses = parseStatuses(searchParams.get("statuses"));
 	const departmentId = searchParams.get("departmentId")?.trim();
 	const branch = parseBranch(searchParams.get("branch"));
 
 	const conditions: Prisma.UserWhereInput[] = [];
+
+	if (!includeDeleted) {
+		conditions.push({ deletedAt: null });
+	}
 
 	if (search) {
 		const tokens = search.split(/\s+/).filter(Boolean);
@@ -80,10 +75,6 @@ export async function GET(request: NextRequest) {
 
 	if (roles.length > 0) {
 		conditions.push({ role: { in: roles } });
-	}
-
-	if (statuses.length === 1) {
-		conditions.push({ isActive: statuses[0] === "active" });
 	}
 
 	if (departmentId) {

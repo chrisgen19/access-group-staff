@@ -40,10 +40,11 @@ model User {
   avatar        String?
   role          Role      @default(STAFF)
   branch        Branch?   @map("branch")
-  isActive      Boolean   @default(true) @map("is_active")
   departmentId  String?   @map("department_id")
   hireDate      DateTime? @map("hire_date") @db.Date
   birthday      DateTime? @map("birthday") @db.Date
+  deletedAt     DateTime? @map("deleted_at")
+  deletedById   String?   @map("deleted_by_id")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
