@@ -4,7 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
 import type { Prisma, Role } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
-import { requireRole, requireSession } from "@/lib/auth-utils";
+import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canAssignRole } from "@/lib/permissions";
 import { adminResetPasswordSchema } from "@/lib/validations/auth";
@@ -340,20 +340,6 @@ export async function adminResetPasswordAction(userId: string, formData: unknown
 		return { success: true as const, data: null };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to reset password";
-		return { success: false as const, error: message };
-	}
-}
-
-export async function getUserByIdAction(userId: string) {
-	try {
-		await requireSession();
-		const user = await prisma.user.findUniqueOrThrow({
-			where: { id: userId },
-			include: { department: true },
-		});
-		return { success: true as const, data: user };
-	} catch (error) {
-		const message = error instanceof Error ? error.message : "User not found";
 		return { success: false as const, error: message };
 	}
 }
