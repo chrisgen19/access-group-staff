@@ -14,6 +14,7 @@ interface FitTextProps {
 export function FitText({ children, className, minFontSize = 11 }: FitTextProps) {
 	const ref = useRef<HTMLSpanElement>(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: children drives scrollWidth; effect must remeasure on text change
 	useLayoutEffect(() => {
 		const el = ref.current;
 		if (!el) return;
@@ -42,7 +43,7 @@ export function FitText({ children, className, minFontSize = 11 }: FitTextProps)
 			ro.disconnect();
 			el.style.fontSize = "";
 		};
-	}, [minFontSize]);
+	}, [minFontSize, children]);
 
 	return (
 		<span

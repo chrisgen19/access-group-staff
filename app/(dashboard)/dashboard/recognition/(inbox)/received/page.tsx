@@ -1,9 +1,10 @@
-import { requireSession } from "@/lib/auth-utils";
+import { getServerSession } from "@/lib/auth-utils";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionFeedClient } from "../../_components/recognition-feed-client";
 
 export default async function RecognitionReceivedPage() {
-	const session = await requireSession();
+	const session = await getServerSession();
+	if (!session) return null;
 
 	return (
 		<RecognitionFeedClient

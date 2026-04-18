@@ -7,16 +7,19 @@ export function ForceLight() {
 	const { theme, setTheme } = useTheme();
 	const themeRef = useRef(theme);
 	themeRef.current = theme;
+	const setThemeRef = useRef(setTheme);
+	setThemeRef.current = setTheme;
 
 	useEffect(() => {
 		const original = themeRef.current;
-		setTheme("light");
+		const apply = setThemeRef.current;
+		apply("light");
 		return () => {
 			if (original) {
-				setTheme(original);
+				setThemeRef.current(original);
 			}
 		};
-	}, [setTheme]);
+	}, []);
 
 	return null;
 }
