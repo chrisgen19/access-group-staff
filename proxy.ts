@@ -2,15 +2,10 @@ import { getCookies } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { sanitizeCallback } from "@/lib/auth/safe-callback";
 import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
-
-function sanitizeCallback(callbackUrl: string | null): string | null {
-	if (!callbackUrl) return null;
-	if (!callbackUrl.startsWith("/") || callbackUrl.startsWith("//")) return null;
-	return callbackUrl;
-}
 
 async function resolveSession(request: NextRequest) {
 	try {
@@ -28,7 +23,7 @@ export async function proxy(request: NextRequest) {
 
 	if (isProtected && !sessionCookie) {
 		const loginUrl = new URL("/login", request.url);
-		if (!pathname.startsWith("/dashboard")) {
+		if (pathname !== "/dashboard") {
 			loginUrl.searchParams.set("callbackUrl", pathname);
 		}
 		return NextResponse.redirect(loginUrl);

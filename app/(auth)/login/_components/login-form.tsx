@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
+import { safeCallbackOrDefault } from "@/lib/auth/safe-callback";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { GoogleIcon, MicrosoftIcon } from "@/components/shared/oauth-icons";
@@ -22,7 +23,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 export function LoginForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+	const callbackUrl = safeCallbackOrDefault(searchParams.get("callbackUrl"));
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
