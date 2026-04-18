@@ -1,4 +1,4 @@
-import { requireSession } from "@/lib/auth-utils";
+import { AuthError, requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { deleteFromR2, extractKeyFromUrl, getAvatarKey, getPublicUrl, uploadToR2 } from "@/lib/r2";
 
@@ -55,8 +55,10 @@ export async function POST(request: Request) {
 
 		return Response.json({ success: true, data: { url } });
 	} catch (error) {
+		if (error instanceof AuthError) {
+			return Response.json({ success: false, error: error.message }, { status: error.status });
+		}
 		const message = error instanceof Error ? error.message : "Upload failed";
-		const status = message === "Unauthorized" || message === "Account deactivated" ? 401 : 500;
-		return Response.json({ success: false, error: message }, { status });
+		return Response.json({ success: false, error: message }, { status: 500 });
 	}
 }

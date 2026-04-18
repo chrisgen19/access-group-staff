@@ -68,9 +68,11 @@ export async function updateDepartmentAction(id: string, formData: unknown) {
 export async function deleteDepartmentAction(id: string) {
 	try {
 		await requireRole("ADMIN");
-		const userCount = await prisma.user.count({
-			where: { departmentId: id, deletedAt: null },
-		});
+		// Count soft-deleted users too. If we ignored them, deleting the
+		// department would null out their saved `department_id` (via
+		// ON DELETE SET NULL on the optional relation) and they'd come
+		// back without a department on restore — silent data loss.
+		const userCount = await prisma.user.count({ where: { departmentId: id } });
 
 		if (userCount > 0) {
 			return {

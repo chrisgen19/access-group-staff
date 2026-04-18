@@ -10,7 +10,7 @@
 		"lint": "bunx @biomejs/biome check .",
 		"lint:fix": "bunx @biomejs/biome check --fix .",
 		"format": "bunx @biomejs/biome format --write .",
-		"db:push": "bunx prisma db push",
+		"db:push": "bunx prisma db push && bunx prisma db execute --file ./scripts/pre-deploy.sql",
 		"db:seed": "bunx prisma db seed",
 		"db:studio": "bunx prisma studio",
 		"test": "bun test",
