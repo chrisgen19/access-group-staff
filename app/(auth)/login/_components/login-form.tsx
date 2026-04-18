@@ -1,17 +1,18 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { signIn } from "@/lib/auth-client";
-import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { GoogleIcon, MicrosoftIcon } from "@/components/shared/oauth-icons";
 import type { OAuthSettings } from "@/lib/actions/settings-actions";
+import { safeCallbackUrl } from "@/lib/auth/safe-callback";
+import { signIn } from "@/lib/auth-client";
+import { type LoginInput, loginSchema } from "@/lib/validations/auth";
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 	invalid_code: "OAuth sign-in failed. Please try again.",
@@ -22,13 +23,16 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
 export function LoginForm() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+	const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 	const [isMicrosoftLoading, setIsMicrosoftLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [oauthSettings, setOauthSettings] = useState<OAuthSettings | null>(null);
-	const [oauthAvailability, setOauthAvailability] = useState<{ google: boolean; microsoft: boolean } | null>(null);
+	const [oauthAvailability, setOauthAvailability] = useState<{
+		google: boolean;
+		microsoft: boolean;
+	} | null>(null);
 
 	useEffect(() => {
 		fetch("/api/settings/oauth")
@@ -116,7 +120,8 @@ export function LoginForm() {
 	const oauthLoaded = oauthSettings !== null;
 	const anyOAuthDisabled = isLoading || isGoogleLoading || isMicrosoftLoading;
 	const showGoogle = oauthSettings?.oauth_google_enabled && oauthAvailability?.google !== false;
-	const showMicrosoft = oauthSettings?.oauth_microsoft_enabled && oauthAvailability?.microsoft === true;
+	const showMicrosoft =
+		oauthSettings?.oauth_microsoft_enabled && oauthAvailability?.microsoft === true;
 	const hasOAuth = showGoogle || showMicrosoft;
 
 	return (
@@ -188,9 +193,7 @@ export function LoginForm() {
 									<div className="w-full border-t border-gray-200 dark:border-white/10" />
 								</div>
 								<div className="relative flex justify-center text-xs uppercase">
-									<span className="bg-card px-2 text-muted-foreground">
-										Or continue with
-									</span>
+									<span className="bg-card px-2 text-muted-foreground">Or continue with</span>
 								</div>
 							</div>
 						</>
