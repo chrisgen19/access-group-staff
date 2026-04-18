@@ -2,7 +2,7 @@ import { getCookies } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { sanitizeCallbackUrl } from "@/lib/auth/safe-callback";
+import { safeCallbackUrl, sanitizeCallbackUrl } from "@/lib/auth/safe-callback";
 import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
@@ -59,8 +59,7 @@ export async function proxy(request: NextRequest) {
 			response.cookies.delete(sessionToken.name);
 			return response;
 		}
-		const safeCallback =
-			sanitizeCallbackUrl(request.nextUrl.searchParams.get("callbackUrl")) ?? "/dashboard";
+		const safeCallback = safeCallbackUrl(request.nextUrl.searchParams.get("callbackUrl"));
 		return NextResponse.redirect(new URL(safeCallback, request.url));
 	}
 
