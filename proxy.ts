@@ -23,7 +23,7 @@ export async function proxy(request: NextRequest) {
 
 	if (isProtected && !sessionCookie) {
 		const loginUrl = new URL("/login", request.url);
-		if (!pathname.startsWith("/dashboard")) {
+		if (pathname !== "/dashboard") {
 			loginUrl.searchParams.set("callbackUrl", pathname);
 		}
 		return NextResponse.redirect(loginUrl);
