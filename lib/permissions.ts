@@ -1,7 +1,7 @@
 import type { Role } from "@/app/generated/prisma/client";
 
 export function getUserRole(session: { user: { role?: string | null } } | null): Role {
-	return ((session?.user?.role as Role) ?? "STAFF");
+	return (session?.user?.role as Role) ?? "STAFF";
 }
 
 const ROLE_HIERARCHY: Record<Role, number> = {

@@ -1,19 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Heart, ArrowRight, Eye, Share2, Pencil } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import {
-	type RecognitionCard,
-	getSelectedValues,
-	formatRecognitionDate,
-} from "@/lib/recognition";
-import { usePreferencesStore } from "@/stores/use-preferences-store";
 import { useUnreadCardIds } from "@/hooks/use-unread-card-ids";
-import { RecognitionCardMini } from "./recognition-card-mini";
+import { formatRecognitionDate, getSelectedValues, type RecognitionCard } from "@/lib/recognition";
+import { cn } from "@/lib/utils";
+import { usePreferencesStore } from "@/stores/use-preferences-store";
 import { CardInteractionBar } from "./card-interaction-bar";
+import { RecognitionCardMini } from "./recognition-card-mini";
 
 function CardSkeleton() {
 	return (
@@ -145,17 +141,10 @@ export function RecognitionFeed({
 		return (
 			<div className="flex flex-col items-center justify-center rounded-[2rem] border border-gray-200 dark:border-white/10 bg-card p-16 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 				<div className="mb-6 rounded-full bg-background p-6">
-					<Heart
-						size={48}
-						className="text-muted-foreground opacity-40"
-					/>
+					<Heart size={48} className="text-muted-foreground opacity-40" />
 				</div>
-				<p className="text-[1.5rem] font-medium text-foreground">
-					{emptyTitle}
-				</p>
-				<p className="mt-2 text-base text-muted-foreground">
-					{emptyDescription}
-				</p>
+				<p className="text-[1.5rem] font-medium text-foreground">{emptyTitle}</p>
+				<p className="mt-2 text-base text-muted-foreground">{emptyDescription}</p>
 			</div>
 		);
 	}
@@ -169,34 +158,28 @@ export function RecognitionFeed({
 			)}
 			{cards.map((card) => {
 				const isSender = currentUserId === card.sender.id;
-				const actions = showActions && onShare ? (
-					<CardActions
-						cardId={card.id}
-						isSender={isSender}
-						onShare={handleShare}
-					/>
-				) : null;
+				const actions =
+					showActions && onShare ? (
+						<CardActions cardId={card.id} isSender={isSender} onShare={handleShare} />
+					) : null;
 
 				const isParticipant =
-					currentUserId === card.sender.id ||
-					currentUserId === card.recipient.id;
+					currentUserId === card.sender.id || currentUserId === card.recipient.id;
 				const canInteract = isParticipant || isAdmin;
 
 				if (cardView === "physical") {
 					const isNew = filter === "received" && unreadCardIds.has(card.id);
 					return (
-						<div key={card.id} className={cn("group relative rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden", cardMaxWidth)}>
+						<div
+							key={card.id}
+							className={cn(
+								"group relative rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden",
+								cardMaxWidth,
+							)}
+						>
 							<div className="relative">
-								<RecognitionCardMini
-									card={card}
-									size={cardSize}
-									isNew={isNew}
-								/>
-								{actions && (
-									<div className="absolute top-3 right-3 z-10">
-										{actions}
-									</div>
-								)}
+								<RecognitionCardMini card={card} size={cardSize} isNew={isNew} />
+								{actions && <div className="absolute top-3 right-3 z-10">{actions}</div>}
 							</div>
 							{canInteract && (
 								<div className="px-5 pb-4">
@@ -218,7 +201,13 @@ export function RecognitionFeed({
 				return (
 					<div
 						key={card.id}
-						className={cn("group rounded-[2rem] border bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]", isNewCard ? "border-primary/40 ring-1 ring-primary/20" : "border-gray-200/60 dark:border-white/10", cardMaxWidth)}
+						className={cn(
+							"group rounded-[2rem] border bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]",
+							isNewCard
+								? "border-primary/40 ring-1 ring-primary/20"
+								: "border-gray-200/60 dark:border-white/10",
+							cardMaxWidth,
+						)}
 					>
 						<div className="flex items-center gap-3 mb-3">
 							<UserAvatar
@@ -230,19 +219,13 @@ export function RecognitionFeed({
 							/>
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
-									{card.sender.firstName}{" "}
-									{card.sender.lastName}
+									{card.sender.firstName} {card.sender.lastName}
 								</span>
 								{card.sender.position && (
-									<p className="text-muted-foreground text-xs">
-										{card.sender.position}
-									</p>
+									<p className="text-muted-foreground text-xs">{card.sender.position}</p>
 								)}
 							</div>
-							<ArrowRight
-								size={16}
-								className="text-muted-foreground mx-1"
-							/>
+							<ArrowRight size={16} className="text-muted-foreground mx-1" />
 							<UserAvatar
 								firstName={card.recipient.firstName}
 								lastName={card.recipient.lastName}
@@ -252,13 +235,10 @@ export function RecognitionFeed({
 							/>
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
-									{card.recipient.firstName}{" "}
-									{card.recipient.lastName}
+									{card.recipient.firstName} {card.recipient.lastName}
 								</span>
 								{card.recipient.position && (
-									<p className="text-muted-foreground text-xs">
-										{card.recipient.position}
-									</p>
+									<p className="text-muted-foreground text-xs">{card.recipient.position}</p>
 								)}
 							</div>
 							<div className="ml-auto flex items-center gap-2">
@@ -271,9 +251,7 @@ export function RecognitionFeed({
 							</div>
 						</div>
 
-						<p className="text-sm text-foreground/80 mb-3 leading-relaxed">
-							{card.message}
-						</p>
+						<p className="text-sm text-foreground/80 mb-3 leading-relaxed">{card.message}</p>
 
 						<div className="flex flex-wrap items-center gap-2">
 							{values.map((value) => (

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
+import { getOAuthProviderAvailability, getOAuthSettings } from "@/lib/actions/settings-actions";
 import { requireRole } from "@/lib/auth-utils";
-import { getOAuthSettings, getOAuthProviderAvailability } from "@/lib/actions/settings-actions";
 import { OAuthSettingsPanel } from "./_components/oauth-settings";
 
 export default async function SuperAdminPage() {
@@ -24,7 +24,10 @@ export default async function SuperAdminPage() {
 				</p>
 			</div>
 
-			<OAuthSettingsPanel initialSettings={oauthSettings} providerAvailability={providerAvailability} />
+			<OAuthSettingsPanel
+				initialSettings={oauthSettings}
+				providerAvailability={providerAvailability}
+			/>
 		</div>
 	);
 }

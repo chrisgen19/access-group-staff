@@ -1,10 +1,10 @@
-import { getServerSession } from "@/lib/auth-utils";
-import { redirect } from "next/navigation";
-import Link from "next/link";
 import { Plus } from "lucide-react";
-import { hasMinRole, getUserRole } from "@/lib/permissions";
-import { StatsWidget } from "./_components/stats-widget";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/auth-utils";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionFeedWidget } from "./_components/recognition-feed-widget";
+import { StatsWidget } from "./_components/stats-widget";
 
 export default async function DashboardPage() {
 	const session = await getServerSession();
@@ -19,8 +19,7 @@ export default async function DashboardPage() {
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
 				<div>
 					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-						Welcome back,{" "}
-						{(user.firstName as string) ?? user.name}!
+						Welcome back, {(user.firstName as string) ?? user.name}!
 					</h1>
 					<p className="mt-2 text-base text-muted-foreground">
 						Here&apos;s what&apos;s happening at Access Group today.

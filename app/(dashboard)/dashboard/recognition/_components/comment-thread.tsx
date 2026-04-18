@@ -1,17 +1,17 @@
 "use client";
 
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useState, useTransition } from "react";
-import { Pencil, Trash2, Check, X } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import type { CardComment } from "@/lib/recognition";
-import { useSession } from "@/lib/auth-client";
 import {
 	addCommentAction,
-	editCommentAction,
 	deleteCommentAction,
+	editCommentAction,
 } from "@/lib/actions/interaction-actions";
+import { useSession } from "@/lib/auth-client";
+import type { CardComment } from "@/lib/recognition";
+import { cn } from "@/lib/utils";
 
 function timeAgo(dateString: string) {
 	const diff = Date.now() - new Date(dateString).getTime();
@@ -36,13 +36,7 @@ interface CommentItemProps {
 	onDelete: (commentId: string) => void;
 }
 
-function CommentItem({
-	comment,
-	currentUserId,
-	isAdmin,
-	onEdit,
-	onDelete,
-}: CommentItemProps) {
+function CommentItem({ comment, currentUserId, isAdmin, onEdit, onDelete }: CommentItemProps) {
 	const [isEditing, setIsEditing] = useState(false);
 	const [editValue, setEditValue] = useState(comment.body);
 	const [confirmDelete, setConfirmDelete] = useState(false);
@@ -151,9 +145,7 @@ function CommentItem({
 							</div>
 						</div>
 					) : (
-						<p className="text-sm text-foreground/80 leading-relaxed break-words">
-							{comment.body}
-						</p>
+						<p className="text-sm text-foreground/80 leading-relaxed break-words">{comment.body}</p>
 					)}
 				</div>
 				<div className="flex items-center gap-2 mt-0.5 px-1">
@@ -172,8 +164,8 @@ function CommentItem({
 									<Pencil size={11} />
 								</button>
 							)}
-							{canDelete && (
-								confirmDelete ? (
+							{canDelete &&
+								(confirmDelete ? (
 									<span className="inline-flex items-center gap-1">
 										<button
 											type="button"
@@ -200,8 +192,7 @@ function CommentItem({
 									>
 										<Trash2 size={11} />
 									</button>
-								)
-							)}
+								))}
 						</div>
 					)}
 				</div>
@@ -252,9 +243,7 @@ export function CommentThread({
 	}
 
 	function handleEdit(updated: CardComment) {
-		onCommentsChange(
-			comments.map((c) => (c.id === updated.id ? updated : c)),
-		);
+		onCommentsChange(comments.map((c) => (c.id === updated.id ? updated : c)));
 	}
 
 	function handleDelete(commentId: string) {

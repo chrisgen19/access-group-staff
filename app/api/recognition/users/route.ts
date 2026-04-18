@@ -5,10 +5,7 @@ export async function GET() {
 	try {
 		await requireSession();
 	} catch {
-		return Response.json(
-			{ success: false, error: "Unauthorized" },
-			{ status: 401 },
-		);
+		return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
 	}
 
 	try {
@@ -26,9 +23,6 @@ export async function GET() {
 
 		return Response.json({ success: true, data: users });
 	} catch {
-		return Response.json(
-			{ success: false, error: "Internal server error" },
-			{ status: 500 },
-		);
+		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
 	}
 }

@@ -1,6 +1,6 @@
-import { prisma } from "../lib/db";
-import { auth } from "../lib/auth";
 import type { Branch, Role } from "../app/generated/prisma/client";
+import { auth } from "../lib/auth";
+import { prisma } from "../lib/db";
 
 const PASSWORD = "Password123!";
 

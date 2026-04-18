@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { ProfileForm } from "./_components/profile-form";
 import { AvatarUpload } from "./_components/avatar-upload";
+import { ProfileForm } from "./_components/profile-form";
 
 export default async function ProfilePage() {
 	const session = await getServerSession();

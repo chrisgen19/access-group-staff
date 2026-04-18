@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import { useTheme } from "next-themes";
-import { usePreferencesStore, BG_OPTIONS } from "@/stores/use-preferences-store";
+import { useEffect } from "react";
+import { BG_OPTIONS, usePreferencesStore } from "@/stores/use-preferences-store";
 
 export function BgProvider() {
 	const bgColorId = usePreferencesStore((s) => s.bgColorId);

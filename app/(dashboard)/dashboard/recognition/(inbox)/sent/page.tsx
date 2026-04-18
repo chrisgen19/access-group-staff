@@ -1,5 +1,5 @@
 import { getServerSession } from "@/lib/auth-utils";
-import { hasMinRole, getUserRole } from "@/lib/permissions";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionFeedClient } from "../../_components/recognition-feed-client";
 
 export default async function RecognitionSentPage() {

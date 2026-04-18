@@ -27,6 +27,4 @@ export const createRecognitionCardSchema = z
 		},
 	);
 
-export type CreateRecognitionCardInput = z.infer<
-	typeof createRecognitionCardSchema
->;
+export type CreateRecognitionCardInput = z.infer<typeof createRecognitionCardSchema>;

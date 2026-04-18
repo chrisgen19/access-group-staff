@@ -1,7 +1,7 @@
 import {
+	SkeletonCard,
 	SkeletonLine,
 	SkeletonPageHeader,
-	SkeletonCard,
 } from "@/components/shared/skeleton-primitives";
 
 export default function DashboardLoading() {

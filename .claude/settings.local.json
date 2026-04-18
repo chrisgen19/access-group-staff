@@ -29,7 +29,21 @@
       "Bash(node:*)",
       "mcp__plugin_playwright_playwright__browser_navigate",
       "mcp__plugin_playwright_playwright__browser_take_screenshot",
-      "mcp__plugin_playwright_playwright__browser_run_code"
+      "mcp__plugin_playwright_playwright__browser_run_code",
+      "Read(//Users/chrisgen19/projects/access-group-staff.worktrees/bugfix-47-auth-redirect-loop/**)",
+      "Bash(ln -s ~/projects/access-group-staff/.env .env)",
+      "Bash(ln -s ~/projects/access-group-staff/.env.local .env.local)",
+      "Bash(lsof -iTCP -sTCP:LISTEN -P)",
+      "Bash(ps -p 22136 -o pid,command)",
+      "Bash(curl -s -o /tmp/auth-test.json -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:3000/api/auth/sign-in/email -H \"Content-Type: application/json\" -d '{\"email\":\"admin@accessgroup.com.au\",\"password\":\"Password123!\"}')",
+      "Bash(curl -s -o /tmp/auth2.json -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:3000/api/auth/sign-in/email -H \"Content-Type: application/json\" -d '{\"email\":\"christian.diomampo@accessgroup.net.au\",\"password\":\"Password123!\"}')",
+      "Bash(curl -s -o /tmp/auth3.json -w \"HTTP %{http_code}\\\\n\" -X POST http://localhost:3000/api/auth/sign-in/email -H \"Content-Type: application/json\" -H \"Origin: http://localhost:3001\" -d '{\"email\":\"christian.diomampo@accessgroup.net.au\",\"password\":\"Password123!\"}')",
+      "Bash(curl -s -I -X OPTIONS http://localhost:3000/api/auth/sign-in/email -H \"Origin: http://localhost:3001\" -H \"Access-Control-Request-Method: POST\")",
+      "Bash(gh issue *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(gh run *)",
+      "Bash(git reset *)"
     ]
   }
 }

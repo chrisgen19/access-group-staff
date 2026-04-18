@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "@/lib/auth-utils";
-import { canManageUsers } from "@/lib/permissions";
-import { prisma } from "@/lib/db";
 import type { Role } from "@/app/generated/prisma/client";
+import { getServerSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { canManageUsers } from "@/lib/permissions";
 import { UserForm } from "../_components/user-form";
 
 export default async function NewUserPage() {
@@ -15,7 +15,11 @@ export default async function NewUserPage() {
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<UserForm mode="create" currentUserRole={session.user.role as string} departments={departments} />
+			<UserForm
+				mode="create"
+				currentUserRole={session.user.role as string}
+				departments={departments}
+			/>
 		</div>
 	);
 }

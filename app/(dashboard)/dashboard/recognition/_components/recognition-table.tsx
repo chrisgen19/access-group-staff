@@ -1,28 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	ChevronLeft,
+	ChevronRight,
+	Eye,
+	Heart,
+	Pencil,
+	Search,
+	Share2,
+	Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Eye, Share2, Heart, Trash2, Pencil, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { useSession } from "@/lib/auth-client";
-import { getUserRole, hasMinRole } from "@/lib/permissions";
-import {
-	type RecognitionCard,
-	type ExportRecognitionCard,
-	getSelectedValues,
-	formatRecognitionDate,
-	generateRecognitionCsv,
-} from "@/lib/recognition";
-import { deleteRecognitionCardAction } from "@/lib/actions/recognition-actions";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -33,9 +25,26 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { deleteRecognitionCardAction } from "@/lib/actions/recognition-actions";
+import { useSession } from "@/lib/auth-client";
+import { getUserRole, hasMinRole } from "@/lib/permissions";
+import {
+	type ExportRecognitionCard,
+	formatRecognitionDate,
+	generateRecognitionCsv,
+	getSelectedValues,
+	type RecognitionCard,
+} from "@/lib/recognition";
 import { RecognitionFilterBar } from "./recognition-filter-bar";
 import { ShareDialog } from "./share-dialog";
-import { UserAvatar } from "@/components/shared/user-avatar";
 
 const PAGE_SIZE = 20;
 
@@ -143,7 +152,7 @@ export function RecognitionTable() {
 			const res = await fetch(`/api/recognition?${params}`);
 			if (!res.ok) throw new Error("Failed to fetch recognition cards");
 
-			const json = await res.json() as { success: boolean; data: ExportRecognitionCard[] };
+			const json = (await res.json()) as { success: boolean; data: ExportRecognitionCard[] };
 			if (!json.success) throw new Error("Export failed");
 
 			const csv = generateRecognitionCsv(json.data);
@@ -163,7 +172,15 @@ export function RecognitionTable() {
 	}
 
 	const { data, isPending, isError } = useQuery<PaginatedResponse>({
-		queryKey: ["recognition-cards", "all", page, debouncedSearch, selectedValues, selectedMonth, selectedYear],
+		queryKey: [
+			"recognition-cards",
+			"all",
+			page,
+			debouncedSearch,
+			selectedValues,
+			selectedMonth,
+			selectedYear,
+		],
 		queryFn: async () => {
 			const params = new URLSearchParams({
 				paginated: "true",
@@ -212,9 +229,7 @@ export function RecognitionTable() {
 	if (isError) {
 		return (
 			<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
-				<p className="text-[1.5rem] font-medium text-foreground">
-					Something went wrong
-				</p>
+				<p className="text-[1.5rem] font-medium text-foreground">Something went wrong</p>
 				<p className="mt-2 text-base text-muted-foreground">
 					Failed to load recognition cards. Please try again later.
 				</p>
@@ -228,9 +243,7 @@ export function RecognitionTable() {
 				<div className="mb-6 rounded-full bg-background p-6">
 					<Heart size={48} className="text-muted-foreground opacity-40" />
 				</div>
-				<p className="text-[1.5rem] font-medium text-foreground">
-					No recognition cards yet
-				</p>
+				<p className="text-[1.5rem] font-medium text-foreground">No recognition cards yet</p>
 				<p className="mt-2 text-base text-muted-foreground">
 					No one has sent a recognition card yet.
 				</p>
@@ -260,9 +273,7 @@ export function RecognitionTable() {
 					<div className="mb-6 rounded-full bg-background p-6">
 						<Search size={48} className="text-muted-foreground opacity-40" />
 					</div>
-					<p className="text-[1.5rem] font-medium text-foreground">
-						No matching cards
-					</p>
+					<p className="text-[1.5rem] font-medium text-foreground">No matching cards</p>
 					<p className="mt-2 text-base text-muted-foreground">
 						No recognition cards match your current filters.
 					</p>
@@ -336,9 +347,7 @@ export function RecognitionTable() {
 												</div>
 											</TableCell>
 											<TableCell className="max-w-xs">
-												<p className="text-sm text-foreground/80 truncate">
-													{card.message}
-												</p>
+												<p className="text-sm text-foreground/80 truncate">{card.message}</p>
 											</TableCell>
 											<TableCell>
 												<div className="flex flex-wrap gap-1">
@@ -406,7 +415,9 @@ export function RecognitionTable() {
 					{pagination && pagination.totalPages > 1 && (
 						<div className="flex items-center justify-between pt-2">
 							<p className="text-sm text-muted-foreground">
-								Showing {(pagination.page - 1) * pagination.pageSize + 1}–{Math.min(pagination.page * pagination.pageSize, pagination.total)} of {pagination.total} cards
+								Showing {(pagination.page - 1) * pagination.pageSize + 1}–
+								{Math.min(pagination.page * pagination.pageSize, pagination.total)} of{" "}
+								{pagination.total} cards
 							</p>
 							<div className="flex items-center gap-2">
 								<button
@@ -446,11 +457,7 @@ export function RecognitionTable() {
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-						<AlertDialogAction
-							onClick={handleDelete}
-							disabled={isDeleting}
-							variant="destructive"
-						>
+						<AlertDialogAction onClick={handleDelete} disabled={isDeleting} variant="destructive">
 							{isDeleting ? "Deleting..." : "Delete"}
 						</AlertDialogAction>
 					</AlertDialogFooter>

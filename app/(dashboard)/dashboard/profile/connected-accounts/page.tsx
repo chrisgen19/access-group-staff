@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { getOAuthProviderAvailability, getOAuthSettings } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { getOAuthProviderAvailability, getOAuthSettings } from "@/lib/actions/settings-actions";
 import { ConnectedAccountsPanel } from "./_components/connected-accounts-panel";
 
 export default async function ConnectedAccountsPage() {

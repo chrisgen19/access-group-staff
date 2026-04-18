@@ -49,5 +49,5 @@ const usePreferencesStore = create<PreferencesState>()(
 	),
 );
 
-export { usePreferencesStore, BG_OPTIONS, CARD_VIEW_OPTIONS, CARD_SIZE_OPTIONS };
-export type { BgOptionId, CardView, CardSize };
+export type { BgOptionId, CardSize, CardView };
+export { BG_OPTIONS, CARD_SIZE_OPTIONS, CARD_VIEW_OPTIONS, usePreferencesStore };

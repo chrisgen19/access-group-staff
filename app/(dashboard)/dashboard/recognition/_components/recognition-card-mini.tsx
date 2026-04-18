@@ -1,18 +1,14 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
-	type RecognitionCard,
-	COMPANY_VALUES,
-	formatRecognitionDate,
-} from "@/lib/recognition";
-import {
-	AccessGroupLogo,
 	AccessBusinessLogo,
+	AccessGroupLogo,
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
 import { FitText } from "@/components/shared/fit-text";
+import { COMPANY_VALUES, formatRecognitionDate, type RecognitionCard } from "@/lib/recognition";
+import { cn } from "@/lib/utils";
 import type { CardSize } from "@/stores/use-preferences-store";
 
 const SIZE_CONFIG = {
@@ -99,9 +95,7 @@ function ValueIndicator({
 				checked ? "bg-[#333]" : "bg-[#e5e7eb]",
 			)}
 		>
-			{checked && (
-				<Check size={iconSize} strokeWidth={3} className="text-white" />
-			)}
+			{checked && <Check size={iconSize} strokeWidth={3} className="text-white" />}
 		</div>
 	);
 }
@@ -156,9 +150,7 @@ export function RecognitionCardMini({
 			<div className="flex-1 flex flex-col gap-2">
 				{/* TO */}
 				<div className={cn("bg-white rounded-sm flex flex-col shadow-sm", s.field)}>
-					<span className={cn("font-black text-black mb-0.5", s.labelText)}>
-						TO
-					</span>
+					<span className={cn("font-black text-black mb-0.5", s.labelText)}>TO</span>
 					<FitText className={cn("text-[#222]", s.valueText)}>
 						{`${card.recipient.firstName} ${card.recipient.lastName}`}
 					</FitText>
@@ -172,19 +164,14 @@ export function RecognitionCardMini({
 						s.messageMin,
 					)}
 				>
-					<span className={cn("font-black text-black mb-0.5", s.labelText)}>
-						WHAT YOU DID
-					</span>
-					<p className={cn("text-[#222] leading-relaxed mb-8", s.messageText)}>
-						{card.message}
-					</p>
+					<span className={cn("font-black text-black mb-0.5", s.labelText)}>WHAT YOU DID</span>
+					<p className={cn("text-[#222] leading-relaxed mb-8", s.messageText)}>{card.message}</p>
 
 					{/* Small Value Checkboxes */}
 					<div className="absolute bottom-2 left-2 right-2">
 						<div className="flex justify-between items-center w-full gap-0.5">
 							{COMPANY_VALUES.map((v) => {
-								const checked =
-									card[v.key as keyof RecognitionCard] === true;
+								const checked = card[v.key as keyof RecognitionCard] === true;
 								return (
 									<div key={v.key} className="flex items-center gap-0.5">
 										<ValueIndicator
@@ -226,9 +213,7 @@ export function RecognitionCardMini({
 							s.fromDateH,
 						)}
 					>
-						<span className={cn("font-black text-black mb-0.5", s.labelText)}>
-							FROM
-						</span>
+						<span className={cn("font-black text-black mb-0.5", s.labelText)}>FROM</span>
 						<FitText className={cn("text-[#222]", s.valueText)}>
 							{`${card.sender.firstName} ${card.sender.lastName}`}
 						</FitText>
@@ -240,9 +225,7 @@ export function RecognitionCardMini({
 							s.fromDateH,
 						)}
 					>
-						<span className={cn("font-black text-black mb-0.5", s.labelText)}>
-							DATE
-						</span>
+						<span className={cn("font-black text-black mb-0.5", s.labelText)}>DATE</span>
 						<span className={cn("text-[#222]", s.valueText)}>
 							{formatRecognitionDate(card.date)}
 						</span>
@@ -281,8 +264,7 @@ export function RecognitionCardMini({
 
 					<div className="flex flex-col gap-2 relative z-10">
 						{COMPANY_VALUES.map((v) => {
-							const checked =
-								card[v.key as keyof RecognitionCard] === true;
+							const checked = card[v.key as keyof RecognitionCard] === true;
 							return (
 								<div key={v.key} className="flex items-center gap-1.5">
 									<ValueIndicator
@@ -292,10 +274,7 @@ export function RecognitionCardMini({
 										label={v.label}
 									/>
 									<span
-										className={cn(
-											"font-black text-[#222] uppercase tracking-tight",
-											s.lgLabel,
-										)}
+										className={cn("font-black text-[#222] uppercase tracking-tight", s.lgLabel)}
 									>
 										{v.label}
 									</span>

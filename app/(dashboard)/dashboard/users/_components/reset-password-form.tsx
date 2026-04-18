@@ -1,15 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { adminResetPasswordAction } from "@/lib/actions/user-actions";
-import {
-	adminResetPasswordSchema,
-	type AdminResetPasswordInput,
-} from "@/lib/validations/auth";
+import { type AdminResetPasswordInput, adminResetPasswordSchema } from "@/lib/validations/auth";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 pr-11 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -40,9 +37,7 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 
 			if (!result.success) {
 				const errorMsg =
-					typeof result.error === "string"
-						? result.error
-						: "Failed to reset password";
+					typeof result.error === "string" ? result.error : "Failed to reset password";
 				toast.error(errorMsg);
 				return;
 			}
@@ -63,7 +58,8 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 					Reset Password
 				</h2>
 				<p className="mt-1 text-sm text-muted-foreground">
-					Set a new password for {userName}. They will need to use this password on their next login.
+					Set a new password for {userName}. They will need to use this password on their next
+					login.
 				</p>
 			</div>
 
@@ -93,9 +89,7 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 							</button>
 						</div>
 						{errors.newPassword && (
-							<p className="mt-1 text-sm text-destructive">
-								{errors.newPassword.message}
-							</p>
+							<p className="mt-1 text-sm text-destructive">{errors.newPassword.message}</p>
 						)}
 					</div>
 
@@ -123,9 +117,7 @@ export function ResetPasswordForm({ userId, userName }: ResetPasswordFormProps) 
 							</button>
 						</div>
 						{errors.confirmPassword && (
-							<p className="mt-1 text-sm text-destructive">
-								{errors.confirmPassword.message}
-							</p>
+							<p className="mt-1 text-sm text-destructive">{errors.confirmPassword.message}</p>
 						)}
 					</div>
 				</div>

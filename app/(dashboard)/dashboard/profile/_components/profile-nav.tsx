@@ -1,8 +1,8 @@
 "use client";
 
+import { Link2, Lock, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { User, Settings, Link2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [

@@ -1,6 +1,6 @@
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { uploadToR2, deleteFromR2, getAvatarKey, getPublicUrl, extractKeyFromUrl } from "@/lib/r2";
+import { deleteFromR2, extractKeyFromUrl, getAvatarKey, getPublicUrl, uploadToR2 } from "@/lib/r2";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE = 500_000; // 500KB — compressed 200×200 should be well under this
@@ -17,7 +17,10 @@ export async function POST(request: Request) {
 		}
 
 		if (!ALLOWED_TYPES.includes(file.type)) {
-			return Response.json({ success: false, error: "Invalid file type. Use JPEG, PNG, or WebP." }, { status: 400 });
+			return Response.json(
+				{ success: false, error: "Invalid file type. Use JPEG, PNG, or WebP." },
+				{ status: 400 },
+			);
 		}
 
 		if (file.size > MAX_SIZE) {

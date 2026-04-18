@@ -58,7 +58,6 @@ export function RecognitionFilterBar({
 	onExport,
 	isExporting,
 }: RecognitionFilterBarProps) {
-
 	function toggleValue(key: string) {
 		if (selectedValues.includes(key)) {
 			onSelectedValuesChange(selectedValues.filter((v) => v !== key));
@@ -88,9 +87,8 @@ export function RecognitionFilterBar({
 				{/* Value toggles */}
 				<div className="flex flex-wrap items-center gap-1.5">
 					{COMPANY_VALUES.map((value) => {
-						const urlKey = Object.entries(VALUE_KEY_MAP).find(
-							([, v]) => v === value.key,
-						)?.[0] ?? value.key;
+						const urlKey =
+							Object.entries(VALUE_KEY_MAP).find(([, v]) => v === value.key)?.[0] ?? value.key;
 						const isActive = selectedValues.includes(urlKey);
 
 						return (
@@ -151,10 +149,7 @@ export function RecognitionFilterBar({
 						variant="ghost"
 						size="sm"
 						onClick={onClear}
-						className={cn(
-							"gap-1 text-muted-foreground",
-							!hasActiveFilters && "invisible",
-						)}
+						className={cn("gap-1 text-muted-foreground", !hasActiveFilters && "invisible")}
 					>
 						<X size={14} />
 						Clear
@@ -166,11 +161,7 @@ export function RecognitionFilterBar({
 						disabled={isExporting}
 						className="gap-1"
 					>
-						{isExporting ? (
-							<Loader2 size={14} className="animate-spin" />
-						) : (
-							<Download size={14} />
-						)}
+						{isExporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
 						{isExporting ? "Exporting..." : "Export"}
 					</Button>
 				</div>

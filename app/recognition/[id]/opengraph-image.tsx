@@ -6,11 +6,7 @@ export const runtime = "nodejs";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default async function OGImage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function OGImage({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
 
 	const card = await prisma.recognitionCard.findUnique({
@@ -47,20 +43,16 @@ export default async function OGImage({
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
-	const message =
-		card.message.length > 150
-			? `${card.message.slice(0, 150)}...`
-			: card.message;
+	const message = card.message.length > 150 ? `${card.message.slice(0, 150)}...` : card.message;
 	const [year, month, day] = card.date.toISOString().split("T")[0].split("-");
-	const dateStr = new Date(
-		Number(year),
-		Number(month) - 1,
-		Number(day),
-	).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
+	const dateStr = new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString(
+		"en-US",
+		{
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		},
+	);
 
 	return new ImageResponse(
 		<div
@@ -286,58 +278,53 @@ export default async function OGImage({
 								gap: 14,
 							}}
 						>
-							{Object.entries(VALUE_LABELS).map(
-								([key, label]) => {
-									const checked =
-										card[key as keyof typeof card] === true;
-									return (
+							{Object.entries(VALUE_LABELS).map(([key, label]) => {
+								const checked = card[key as keyof typeof card] === true;
+								return (
+									<div
+										key={key}
+										style={{
+											display: "flex",
+											alignItems: "center",
+											gap: 10,
+										}}
+									>
 										<div
-											key={key}
 											style={{
+												width: 24,
+												height: 24,
+												backgroundColor: checked ? "#333" : "#e5e7eb",
 												display: "flex",
 												alignItems: "center",
-												gap: 10,
+												justifyContent: "center",
 											}}
 										>
-											<div
-												style={{
-													width: 24,
-													height: 24,
-													backgroundColor: checked
-														? "#333"
-														: "#e5e7eb",
-													display: "flex",
-													alignItems: "center",
-													justifyContent: "center",
-												}}
-											>
-												{checked && (
-													<div
-														style={{
-															color: "white",
-															fontSize: 14,
-															fontWeight: 900,
-														}}
-													>
-														&#10003;
-													</div>
-												)}
-											</div>
-											<div
-												style={{
-													fontSize: 20,
-													fontWeight: 900,
-													color: "#222",
-													textTransform: "uppercase",
-													letterSpacing: "-0.5px",
-												}}
-											>
-												{label}
-											</div>
+											{checked && (
+												<div
+													style={{
+														color: "white",
+														fontSize: 14,
+														fontWeight: 900,
+													}}
+												>
+													&#10003;
+												</div>
+											)}
 										</div>
-									);
-								},
-							)}
+										<div
+											style={{
+												fontSize: 20,
+												fontWeight: 900,
+												color: "#222",
+												textTransform: "uppercase",
+												letterSpacing: "-0.5px",
+											}}
+										>
+											{label}
+										</div>
+									</div>
+								);
+							})}
 						</div>
 					</div>
 				</div>

@@ -1,7 +1,7 @@
-import { auth } from "@/lib/auth";
 import { toNextJsHandler } from "better-auth/next-js";
-import { getOAuthSettings, getOAuthProviderAvailability } from "@/lib/actions/settings-actions";
 import type { NextRequest } from "next/server";
+import { getOAuthProviderAvailability, getOAuthSettings } from "@/lib/actions/settings-actions";
+import { auth } from "@/lib/auth";
 
 const { GET: authGET, POST: authPOST } = toNextJsHandler(auth);
 
@@ -18,10 +18,14 @@ async function checkOAuthAllowed(request: NextRequest): Promise<Response | null>
 	);
 	if (!providerMatch) return null;
 
-	const body = request.method === "POST" ? await request.clone().json().catch(() => null) : null;
-	const provider =
-		providerMatch[1] ||
-		(body as Record<string, unknown> | null)?.provider;
+	const body =
+		request.method === "POST"
+			? await request
+					.clone()
+					.json()
+					.catch(() => null)
+			: null;
+	const provider = providerMatch[1] || (body as Record<string, unknown> | null)?.provider;
 
 	if (typeof provider !== "string" || !(provider in PROVIDER_SETTING_MAP)) return null;
 

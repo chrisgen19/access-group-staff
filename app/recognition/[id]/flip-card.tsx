@@ -1,15 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { RotateCcw } from "lucide-react";
+import { useState } from "react";
 
-export function FlipCard({
-	front,
-	back,
-}: {
-	front: React.ReactNode;
-	back: React.ReactNode;
-}) {
+export function FlipCard({ front, back }: { front: React.ReactNode; back: React.ReactNode }) {
 	const [isFlipped, setIsFlipped] = useState(false);
 
 	return (
@@ -25,10 +19,7 @@ export function FlipCard({
 			</button>
 
 			{/* Card container with perspective */}
-			<div
-				className="relative z-0 w-full"
-				style={{ perspective: "2000px" }}
-			>
+			<div className="relative z-0 w-full" style={{ perspective: "2000px" }}>
 				<div
 					className="relative w-full transition-transform duration-700 ease-in-out"
 					style={{
@@ -37,10 +28,7 @@ export function FlipCard({
 					}}
 				>
 					{/* Card 2 (Back of physical card) — shown first */}
-					<div
-						className="w-full"
-						style={{ backfaceVisibility: "hidden" }}
-					>
+					<div className="w-full" style={{ backfaceVisibility: "hidden" }}>
 						{back}
 					</div>
 

@@ -1,10 +1,10 @@
 "use client";
 
+import { AlertCircle, Building2, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil, Trash2, AlertCircle, Building2 } from "lucide-react";
-import { deleteDepartmentAction } from "@/lib/actions/department-actions";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { deleteDepartmentAction } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 
 interface Department {
@@ -17,7 +17,10 @@ interface Department {
 export function DepartmentTable({
 	departments,
 	onMutate,
-}: { departments: Department[]; onMutate?: () => void }) {
+}: {
+	departments: Department[];
+	onMutate?: () => void;
+}) {
 	const [deleteTarget, setDeleteTarget] = useState<Department | null>(null);
 	const [editTarget, setEditTarget] = useState<Department | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
@@ -68,18 +71,13 @@ export function DepartmentTable({
 									<td colSpan={4} className="px-8 py-16 text-center">
 										<div className="flex flex-col items-center justify-center text-muted-foreground">
 											<Building2 size={40} className="mb-3 opacity-20" />
-											<p className="text-base font-medium text-foreground">
-												No departments found
-											</p>
+											<p className="text-base font-medium text-foreground">No departments found</p>
 										</div>
 									</td>
 								</tr>
 							) : (
 								departments.map((dept) => (
-									<tr
-										key={dept.id}
-										className="group transition-colors hover:bg-background"
-									>
+									<tr key={dept.id} className="group transition-colors hover:bg-background">
 										<td className="whitespace-nowrap px-8 py-5 text-sm font-medium text-foreground">
 											{dept.name}
 										</td>
@@ -128,9 +126,7 @@ export function DepartmentTable({
 								<AlertCircle className="h-6 w-6 text-destructive" />
 							</div>
 							<div className="text-center sm:text-left">
-								<h3 className="text-[1.25rem] font-medium text-foreground">
-									Delete Department
-								</h3>
+								<h3 className="text-[1.25rem] font-medium text-foreground">Delete Department</h3>
 								<p className="mt-3 text-sm leading-relaxed text-muted-foreground">
 									Are you sure you want to delete{" "}
 									<span className="font-medium text-foreground">

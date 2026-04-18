@@ -24,8 +24,5 @@ jobs:
       - name: Generate Prisma client
         run: bunx prisma generate
 
-      - name: Lint
-        run: bun run lint
-
       - name: Test
         run: bun test

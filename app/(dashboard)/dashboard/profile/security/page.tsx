@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { ChangePasswordForm } from "../_components/change-password-form";

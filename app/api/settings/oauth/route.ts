@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getOAuthSettings, getOAuthProviderAvailability } from "@/lib/actions/settings-actions";
+import { getOAuthProviderAvailability, getOAuthSettings } from "@/lib/actions/settings-actions";
 
 export async function GET() {
 	const settings = await getOAuthSettings();

@@ -1,9 +1,9 @@
+import { headers } from "next/headers";
 import { cache } from "react";
+import type { Role } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
-import type { Role } from "@/app/generated/prisma/client";
-import { headers } from "next/headers";
 
 export const getServerSession = cache(async () => {
 	const session = await auth.api.getSession({

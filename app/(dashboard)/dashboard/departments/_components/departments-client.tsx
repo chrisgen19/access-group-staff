@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { Plus } from "lucide-react";
-import { getDepartmentsAction } from "@/lib/actions/department-actions";
+import { useCallback, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DepartmentTable } from "./department-table";
+import { getDepartmentsAction } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
+import { DepartmentTable } from "./department-table";
 
 interface Department {
 	id: string;

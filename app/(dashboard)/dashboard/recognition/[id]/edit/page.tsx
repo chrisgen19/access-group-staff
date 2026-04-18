@@ -1,13 +1,9 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { RecognitionForm } from "../../_components/recognition-form";
 
-export default async function EditRecognitionPage({
-	params,
-}: {
-	params: Promise<{ id: string }>;
-}) {
+export default async function EditRecognitionPage({ params }: { params: Promise<{ id: string }> }) {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 

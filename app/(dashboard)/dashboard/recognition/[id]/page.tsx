@@ -1,20 +1,20 @@
-import { redirect, notFound } from "next/navigation";
+import { ArrowLeft, Check } from "lucide-react";
 import Link from "next/link";
-import { getServerSession } from "@/lib/auth-utils";
-import { hasMinRole } from "@/lib/permissions";
-import { prisma } from "@/lib/db";
+import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
-import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
-import { getCardReactionSummary } from "@/lib/interactions";
+import { FlipCard } from "@/app/recognition/[id]/flip-card";
 import {
-	AccessGroupLogo,
 	AccessBusinessLogo,
+	AccessGroupLogo,
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
-import { Check, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { FitText } from "@/components/shared/fit-text";
-import { FlipCard } from "@/app/recognition/[id]/flip-card";
+import { getServerSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { getCardReactionSummary } from "@/lib/interactions";
+import { hasMinRole } from "@/lib/permissions";
+import { COMPANY_VALUES, formatRecognitionDate } from "@/lib/recognition";
+import { cn } from "@/lib/utils";
 import { CardInteractionBar } from "../_components/card-interaction-bar";
 import { CardDetailActions } from "./_components/card-detail-actions";
 import { MarkNotificationsRead } from "./_components/mark-notifications-read";
@@ -39,13 +39,7 @@ function ValueIndicator({
 					checked ? "bg-[#333]" : "bg-[#e5e7eb]",
 				)}
 			>
-				{checked && (
-					<Check
-						size={isLarge ? 14 : 7}
-						strokeWidth={3}
-						className="text-white"
-					/>
-				)}
+				{checked && <Check size={isLarge ? 14 : 7} strokeWidth={3} className="text-white" />}
 			</div>
 			<span
 				className={cn(
@@ -135,19 +129,33 @@ export default async function RecognitionDetailPage({
 					</div>
 					<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
 						<span className="text-xs font-black text-black mb-1">DATE</span>
-						<span className="text-lg text-[#222]">{formatRecognitionDate(card.date.toISOString())}</span>
+						<span className="text-lg text-[#222]">
+							{formatRecognitionDate(card.date.toISOString())}
+						</span>
 					</div>
 				</div>
 				<div className="flex-1 flex flex-col justify-center pl-4 md:pl-8 z-10 min-w-0">
 					<h1 className="font-sans text-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap font-black">
-						Thank you for your<br />contribution
+						Thank you for your
+						<br />
+						contribution
 					</h1>
 					<h2 className="font-sans text-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap font-black">
-						Access is proud<br />because of team<br />members like you.
+						Access is proud
+						<br />
+						because of team
+						<br />
+						members like you.
 					</h2>
 				</div>
-				<div className="absolute left-[45%] top-[10%] w-[60%] h-[90%] pointer-events-none text-white opacity-60" aria-hidden="true">
-					<BackgroundGraphic preserveAspectRatio="xMinYMin meet" className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left" />
+				<div
+					className="absolute left-[45%] top-[10%] w-[60%] h-[90%] pointer-events-none text-white opacity-60"
+					aria-hidden="true"
+				>
+					<BackgroundGraphic
+						preserveAspectRatio="xMinYMin meet"
+						className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
+					/>
 				</div>
 			</div>
 		</div>
@@ -155,10 +163,22 @@ export default async function RecognitionDetailPage({
 
 	const card2Back = (
 		<div className="w-full bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6">
-			<div className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400" aria-hidden="true" />
-			<div className="absolute top-2 right-2 w-4 h-4 border-t border-r border-gray-400" aria-hidden="true" />
-			<div className="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-gray-400" aria-hidden="true" />
-			<div className="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-gray-400" aria-hidden="true" />
+			<div
+				className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400"
+				aria-hidden="true"
+			/>
+			<div
+				className="absolute top-2 right-2 w-4 h-4 border-t border-r border-gray-400"
+				aria-hidden="true"
+			/>
+			<div
+				className="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-gray-400"
+				aria-hidden="true"
+			/>
+			<div
+				className="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-gray-400"
+				aria-hidden="true"
+			/>
 			<div className="flex-1 flex flex-col gap-4">
 				<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col min-h-20 shadow-sm">
 					<span className="text-xs font-black text-black mb-1">TO</span>
@@ -168,13 +188,19 @@ export default async function RecognitionDetailPage({
 					<span className="text-xs font-black text-black mb-2">WHAT YOU DID</span>
 					<p className="text-base text-[#222] whitespace-pre-wrap mb-12">{card.message}</p>
 					<div className="absolute bottom-4 left-4 right-4">
-						<span className="text-[10px] font-black text-black mb-2 block uppercase">Which values were demonstrated?</span>
+						<span className="text-[10px] font-black text-black mb-2 block uppercase">
+							Which values were demonstrated?
+						</span>
 						<div className="flex justify-between items-center w-full gap-1">
 							{COMPANY_VALUES.map((v) => (
 								<ValueIndicator
 									key={v.key}
 									checked={card[v.key as keyof typeof card] === true}
-									label={v.wrap ? `${v.label.split(" ").slice(0, -1).join(" ")}\n${v.label.split(" ").at(-1)}` : v.label}
+									label={
+										v.wrap
+											? `${v.label.split(" ").slice(0, -1).join(" ")}\n${v.label.split(" ").at(-1)}`
+											: v.label
+									}
 								/>
 							))}
 						</div>
@@ -187,7 +213,9 @@ export default async function RecognitionDetailPage({
 					</div>
 					<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 min-h-20 shadow-sm">
 						<span className="text-xs font-black text-black mb-1">DATE</span>
-						<span className="text-lg text-[#222]">{formatRecognitionDate(card.date.toISOString())}</span>
+						<span className="text-lg text-[#222]">
+							{formatRecognitionDate(card.date.toISOString())}
+						</span>
 					</div>
 				</div>
 			</div>
@@ -197,13 +225,26 @@ export default async function RecognitionDetailPage({
 					<AccessBusinessLogo color="#e31837" />
 				</div>
 				<div className="bg-white p-6 md:p-8 rounded-sm flex flex-col flex-grow shadow-sm relative overflow-hidden">
-					<div className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]" aria-hidden="true">
-						<BackgroundGraphic preserveAspectRatio="xMinYMin meet" className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left" />
+					<div
+						className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]"
+						aria-hidden="true"
+					>
+						<BackgroundGraphic
+							preserveAspectRatio="xMinYMin meet"
+							className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
+						/>
 					</div>
-					<h2 className="text-[#e31837] text-[15px] font-bold mb-8 relative z-10">WHICH ACCESS VALUES WERE DEMONSTRATED?</h2>
+					<h2 className="text-[#e31837] text-[15px] font-bold mb-8 relative z-10">
+						WHICH ACCESS VALUES WERE DEMONSTRATED?
+					</h2>
 					<div className="flex flex-col gap-5 relative z-10">
 						{COMPANY_VALUES.map((v) => (
-							<ValueIndicator key={v.key} checked={card[v.key as keyof typeof card] === true} label={v.label} isLarge />
+							<ValueIndicator
+								key={v.key}
+								checked={card[v.key as keyof typeof card] === true}
+								label={v.label}
+								isLarge
+							/>
 						))}
 					</div>
 				</div>

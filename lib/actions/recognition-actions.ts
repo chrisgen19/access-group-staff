@@ -1,10 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/db";
-import { requireSession } from "@/lib/auth-utils";
-import { createRecognitionCardSchema } from "@/lib/validations/recognition";
 import { revalidatePath } from "next/cache";
-
+import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { createRecognitionCardSchema } from "@/lib/validations/recognition";
 
 export async function createRecognitionCardAction(formData: unknown) {
 	try {
@@ -65,10 +64,7 @@ export async function createRecognitionCardAction(formData: unknown) {
 		revalidatePath("/dashboard");
 		return { success: true as const, data: card };
 	} catch (error) {
-		const message =
-			error instanceof Error
-				? error.message
-				: "Failed to create recognition card";
+		const message = error instanceof Error ? error.message : "Failed to create recognition card";
 		return { success: false as const, error: message };
 	}
 }
@@ -155,10 +151,7 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 		revalidatePath(`/recognition/${cardId}`);
 		return { success: true as const, data: card };
 	} catch (error) {
-		const message =
-			error instanceof Error
-				? error.message
-				: "Failed to update recognition card";
+		const message = error instanceof Error ? error.message : "Failed to update recognition card";
 		return { success: false as const, error: message };
 	}
 }
@@ -206,10 +199,7 @@ export async function deleteRecognitionCardAction(cardId: string) {
 		revalidatePath("/dashboard");
 		return { success: true as const };
 	} catch (error) {
-		const message =
-			error instanceof Error
-				? error.message
-				: "Failed to delete recognition card";
+		const message = error instanceof Error ? error.message : "Failed to delete recognition card";
 		return { success: false as const, error: message };
 	}
 }
@@ -242,10 +232,7 @@ export async function getRecognitionCardsAction() {
 		});
 		return { success: true as const, data: cards };
 	} catch (error) {
-		const message =
-			error instanceof Error
-				? error.message
-				: "Failed to fetch recognition cards";
+		const message = error instanceof Error ? error.message : "Failed to fetch recognition cards";
 		return { success: false as const, error: message };
 	}
 }

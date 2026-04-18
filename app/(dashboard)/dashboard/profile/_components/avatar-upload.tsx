@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Camera, Loader2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { removeAvatarAction } from "@/lib/actions/profile-actions";
 import { authClient } from "@/lib/auth-client";
-import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 
 interface AvatarUploadProps {
@@ -162,7 +162,9 @@ export function AvatarUpload({
 					size="xl"
 					className={cn(
 						"border-2 border-gray-200 dark:border-white/10",
-						!displayAvatar && !currentImage && "bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15",
+						!displayAvatar &&
+							!currentImage &&
+							"bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15",
 					)}
 				/>
 				<button

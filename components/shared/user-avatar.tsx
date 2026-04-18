@@ -39,11 +39,7 @@ export function UserAvatar({
 				src={src}
 				alt={`${firstName} ${lastName}`}
 				onError={() => setErroredSrc(src)}
-				className={cn(
-					"rounded-full object-cover shrink-0",
-					SIZE_CLASSES[size],
-					className,
-				)}
+				className={cn("rounded-full object-cover shrink-0", SIZE_CLASSES[size], className)}
 			/>
 		);
 	}

@@ -1,19 +1,16 @@
+import type { NextRequest } from "next/server";
+import type { Prisma } from "@/app/generated/prisma/client";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { VALUE_KEY_MAP } from "@/lib/recognition";
-import type { Prisma } from "@/app/generated/prisma/client";
-import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
 	let session: Awaited<ReturnType<typeof requireSession>>;
 	try {
 		session = await requireSession();
 	} catch {
-		return Response.json(
-			{ success: false, error: "Unauthorized" },
-			{ status: 401 },
-		);
+		return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
 	}
 
 	try {
@@ -29,10 +26,7 @@ export async function GET(request: NextRequest) {
 		} else if (filter === "sent") {
 			where = { senderId: session.user.id };
 		} else if (filter === "department") {
-			const departmentId = session.user.departmentId as
-				| string
-				| null
-				| undefined;
+			const departmentId = session.user.departmentId as string | null | undefined;
 			if (departmentId) {
 				where = {
 					recipient: { departmentId },
@@ -68,15 +62,20 @@ export async function GET(request: NextRequest) {
 			},
 		};
 
-		const mapCounts = <T extends { _count: { reactions: number; comments: number }; senderId: string; recipientId: string }>(
-			{ _count, ...card }: T,
-		) => ({
+		const mapCounts = <
+			T extends {
+				_count: { reactions: number; comments: number };
+				senderId: string;
+				recipientId: string;
+			},
+		>({
+			_count,
+			...card
+		}: T) => ({
 			...card,
 			// Only expose interaction counts to participants (sender/recipient/admin)
 			interactionCounts:
-				card.senderId === session.user.id ||
-				card.recipientId === session.user.id ||
-				isAdmin
+				card.senderId === session.user.id || card.recipientId === session.user.id || isAdmin
 					? _count
 					: null,
 		});
@@ -117,9 +116,8 @@ export async function GET(request: NextRequest) {
 				conditions.push({ date: { lte: new Date(`${dateTo}T23:59:59.999Z`) } });
 			}
 
-			const filteredWhere: Prisma.RecognitionCardWhereInput = conditions.length > 0
-				? { AND: conditions }
-				: {};
+			const filteredWhere: Prisma.RecognitionCardWhereInput =
+				conditions.length > 0 ? { AND: conditions } : {};
 
 			if (isExport) {
 				const exportInclude = {
@@ -157,7 +155,10 @@ export async function GET(request: NextRequest) {
 			}
 
 			const page = Math.max(1, Number(request.nextUrl.searchParams.get("page")) || 1);
-			const pageSize = Math.min(100, Math.max(1, Number(request.nextUrl.searchParams.get("pageSize")) || 20));
+			const pageSize = Math.min(
+				100,
+				Math.max(1, Number(request.nextUrl.searchParams.get("pageSize")) || 20),
+			);
 
 			const [cards, total] = await Promise.all([
 				prisma.recognitionCard.findMany({
@@ -240,9 +241,7 @@ export async function GET(request: NextRequest) {
 			data: cards.map((card) => {
 				const mapped = mapCounts(card);
 				const isCardParticipant =
-					card.senderId === session.user.id ||
-					card.recipientId === session.user.id ||
-					isAdmin;
+					card.senderId === session.user.id || card.recipientId === session.user.id || isAdmin;
 				return {
 					...mapped,
 					reactionSummary: isCardParticipant
@@ -252,9 +251,6 @@ export async function GET(request: NextRequest) {
 			}),
 		});
 	} catch {
-		return Response.json(
-			{ success: false, error: "Internal server error" },
-			{ status: 500 },
-		);
+		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
 	}
 }

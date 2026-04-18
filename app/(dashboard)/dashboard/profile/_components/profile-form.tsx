@@ -1,10 +1,10 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import { updateProfileAction } from "@/lib/actions/profile-actions";
 
 const inputClass =
@@ -49,8 +49,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
 				toast.success("Profile updated");
 				router.refresh();
 			} else {
-				const errorMsg =
-					typeof result.error === "string" ? result.error : "Update failed";
+				const errorMsg = typeof result.error === "string" ? result.error : "Update failed";
 				toast.error(errorMsg);
 			}
 		} catch {
@@ -72,13 +71,19 @@ export function ProfileForm({ user }: ProfileFormProps) {
 				<div className="px-8 py-6 space-y-5">
 					<div className="grid grid-cols-2 gap-5">
 						<div>
-							<label htmlFor="firstName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="firstName"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								First Name
 							</label>
 							<input id="firstName" className={inputClass} {...register("firstName")} />
 						</div>
 						<div>
-							<label htmlFor="lastName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="lastName"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Last Name
 							</label>
 							<input id="lastName" className={inputClass} {...register("lastName")} />
@@ -86,7 +91,10 @@ export function ProfileForm({ user }: ProfileFormProps) {
 					</div>
 
 					<div>
-						<label htmlFor="displayName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+						<label
+							htmlFor="displayName"
+							className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+						>
 							Display Name
 						</label>
 						<input id="displayName" className={inputClass} {...register("displayName")} />
@@ -94,13 +102,19 @@ export function ProfileForm({ user }: ProfileFormProps) {
 
 					<div className="grid grid-cols-2 gap-5">
 						<div>
-							<label htmlFor="phone" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="phone"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Phone
 							</label>
 							<input id="phone" className={inputClass} {...register("phone")} />
 						</div>
 						<div>
-							<label htmlFor="position" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="position"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Position
 							</label>
 							<input id="position" className={inputClass} {...register("position")} />
@@ -113,7 +127,9 @@ export function ProfileForm({ user }: ProfileFormProps) {
 						</label>
 						<select
 							value={watch("branch") ?? "none"}
-							onChange={(e) => setValue("branch", e.target.value === "none" ? null : e.target.value)}
+							onChange={(e) =>
+								setValue("branch", e.target.value === "none" ? null : e.target.value)
+							}
 							className={selectClass}
 						>
 							<option value="none">No Branch</option>

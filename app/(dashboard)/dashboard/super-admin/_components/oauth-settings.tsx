@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
-import { updateOAuthSetting } from "@/lib/actions/settings-actions";
 import type { OAuthSettings } from "@/lib/actions/settings-actions";
+import { updateOAuthSetting } from "@/lib/actions/settings-actions";
 import { cn } from "@/lib/utils";
 
 const PROVIDERS = [
@@ -122,9 +122,7 @@ export function OAuthSettingsPanel({
 									{provider.icon}
 								</div>
 								<div>
-									<p className="text-sm font-medium text-foreground">
-										{provider.name}
-									</p>
+									<p className="text-sm font-medium text-foreground">{provider.name}</p>
 									<p className="text-xs text-muted-foreground">
 										{isConfigured
 											? provider.description

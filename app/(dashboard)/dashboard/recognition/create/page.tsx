@@ -1,5 +1,5 @@
-import { getServerSession } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/auth-utils";
 import { RecognitionForm } from "../_components/recognition-form";
 
 export default async function CreateRecognitionPage() {

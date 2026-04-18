@@ -1,9 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/db";
-import { requireSession } from "@/lib/auth-utils";
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
 import { deleteFromR2, extractKeyFromUrl } from "@/lib/r2";
 
 const updateProfileSchema = z.object({

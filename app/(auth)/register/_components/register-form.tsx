@@ -1,17 +1,17 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { signIn, signUp } from "@/lib/auth-client";
-import { registerSchema, type RegisterInput } from "@/lib/validations/auth";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { GoogleIcon, MicrosoftIcon } from "@/components/shared/oauth-icons";
 import type { OAuthSettings } from "@/lib/actions/settings-actions";
+import { signIn, signUp } from "@/lib/auth-client";
+import { type RegisterInput, registerSchema } from "@/lib/validations/auth";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -31,7 +31,10 @@ export function RegisterForm() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const [oauthSettings, setOauthSettings] = useState<OAuthSettings | null>(null);
-	const [oauthAvailability, setOauthAvailability] = useState<{ google: boolean; microsoft: boolean } | null>(null);
+	const [oauthAvailability, setOauthAvailability] = useState<{
+		google: boolean;
+		microsoft: boolean;
+	} | null>(null);
 
 	useEffect(() => {
 		fetch("/api/settings/oauth")
@@ -123,7 +126,8 @@ export function RegisterForm() {
 	const oauthLoaded = oauthSettings !== null;
 	const anyOAuthDisabled = isLoading || isGoogleLoading || isMicrosoftLoading;
 	const showGoogle = oauthSettings?.oauth_google_enabled && oauthAvailability?.google !== false;
-	const showMicrosoft = oauthSettings?.oauth_microsoft_enabled && oauthAvailability?.microsoft === true;
+	const showMicrosoft =
+		oauthSettings?.oauth_microsoft_enabled && oauthAvailability?.microsoft === true;
 	const hasOAuth = showGoogle || showMicrosoft;
 
 	return (
@@ -195,9 +199,7 @@ export function RegisterForm() {
 									<div className="w-full border-t border-gray-200 dark:border-white/10" />
 								</div>
 								<div className="relative flex justify-center text-xs uppercase">
-									<span className="bg-card px-2 text-muted-foreground">
-										Or continue with
-									</span>
+									<span className="bg-card px-2 text-muted-foreground">Or continue with</span>
 								</div>
 							</div>
 						</>
@@ -206,16 +208,27 @@ export function RegisterForm() {
 					<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 						<div className="grid grid-cols-2 gap-5">
 							<div>
-								<label htmlFor="firstName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="firstName"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									First Name
 								</label>
-								<input id="firstName" type="text" className={inputClass} {...register("firstName")} />
+								<input
+									id="firstName"
+									type="text"
+									className={inputClass}
+									{...register("firstName")}
+								/>
 								{errors.firstName && (
 									<p className="mt-1 text-sm text-destructive">{errors.firstName.message}</p>
 								)}
 							</div>
 							<div>
-								<label htmlFor="lastName" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="lastName"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									Last Name
 								</label>
 								<input id="lastName" type="text" className={inputClass} {...register("lastName")} />
@@ -226,7 +239,10 @@ export function RegisterForm() {
 						</div>
 
 						<div>
-							<label htmlFor="email" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="email"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Corporate Email
 							</label>
 							<input
@@ -242,11 +258,20 @@ export function RegisterForm() {
 						</div>
 
 						<div>
-							<label htmlFor="password" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="password"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Password
 							</label>
 							<div className="relative">
-								<input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className={`${inputClass} pr-11`} {...register("password")} />
+								<input
+									id="password"
+									type={showPassword ? "text" : "password"}
+									placeholder="••••••••"
+									className={`${inputClass} pr-11`}
+									{...register("password")}
+								/>
 								<button
 									type="button"
 									onClick={() => setShowPassword((prev) => !prev)}
@@ -262,18 +287,31 @@ export function RegisterForm() {
 						</div>
 
 						<div>
-							<label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="confirmPassword"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Confirm Password
 							</label>
 							<div className="relative">
-								<input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className={`${inputClass} pr-11`} {...register("confirmPassword")} />
+								<input
+									id="confirmPassword"
+									type={showConfirmPassword ? "text" : "password"}
+									placeholder="••••••••"
+									className={`${inputClass} pr-11`}
+									{...register("confirmPassword")}
+								/>
 								<button
 									type="button"
 									onClick={() => setShowConfirmPassword((prev) => !prev)}
 									className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
 									tabIndex={-1}
 								>
-									{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+									{showConfirmPassword ? (
+										<EyeOff className="h-4 w-4" />
+									) : (
+										<Eye className="h-4 w-4" />
+									)}
 								</button>
 							</div>
 							{errors.confirmPassword && (

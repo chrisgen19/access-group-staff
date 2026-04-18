@@ -1,21 +1,13 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
-import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import {
-	createDepartmentAction,
-	updateDepartmentAction,
-} from "@/lib/actions/department-actions";
-import { departmentSchema, type DepartmentInput } from "@/lib/validations/department";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/components/ui/dialog";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { createDepartmentAction, updateDepartmentAction } from "@/lib/actions/department-actions";
+import { type DepartmentInput, departmentSchema } from "@/lib/validations/department";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -59,15 +51,12 @@ export function DepartmentFormDialog({
 					: await updateDepartmentAction(department!.id, data);
 
 			if (!result.success) {
-				const errorMsg =
-					typeof result.error === "string" ? result.error : "Validation failed";
+				const errorMsg = typeof result.error === "string" ? result.error : "Validation failed";
 				toast.error(errorMsg);
 				return;
 			}
 
-			toast.success(
-				mode === "create" ? "Department created" : "Department updated",
-			);
+			toast.success(mode === "create" ? "Department created" : "Department updated");
 			reset();
 			onClose();
 			onSuccess?.();
@@ -93,7 +82,10 @@ export function DepartmentFormDialog({
 				<form onSubmit={handleSubmit(onSubmit)}>
 					<div className="space-y-5 px-8 py-6">
 						<div>
-							<label htmlFor="dept-name" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="dept-name"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Department Name
 							</label>
 							<input
@@ -107,7 +99,10 @@ export function DepartmentFormDialog({
 							)}
 						</div>
 						<div>
-							<label htmlFor="dept-code" className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="dept-code"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Code
 							</label>
 							<input

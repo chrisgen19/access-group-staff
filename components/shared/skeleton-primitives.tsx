@@ -6,19 +6,10 @@ function SkeletonLine({ className }: { className?: string }) {
 	return <div className={cn(SKELETON_BG, "rounded", className)} />;
 }
 
-function SkeletonPageHeader({
-	action,
-	className,
-}: {
-	action?: boolean;
-	className?: string;
-}) {
+function SkeletonPageHeader({ action, className }: { action?: boolean; className?: string }) {
 	return (
 		<div
-			className={cn(
-				"flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between",
-				className,
-			)}
+			className={cn("flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between", className)}
 		>
 			<div className="space-y-3">
 				<SkeletonLine className="h-10 w-72" />
@@ -29,13 +20,7 @@ function SkeletonPageHeader({
 	);
 }
 
-function SkeletonCard({
-	children,
-	className,
-}: {
-	children?: React.ReactNode;
-	className?: string;
-}) {
+function SkeletonCard({ children, className }: { children?: React.ReactNode; className?: string }) {
 	return (
 		<div
 			className={cn(
@@ -82,4 +67,4 @@ function SkeletonFormCard({
 	);
 }
 
-export { SkeletonLine, SkeletonPageHeader, SkeletonCard, SkeletonFormCard };
+export { SkeletonCard, SkeletonFormCard, SkeletonLine, SkeletonPageHeader };

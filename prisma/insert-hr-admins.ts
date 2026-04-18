@@ -1,5 +1,5 @@
-import { prisma } from "../lib/db";
 import { auth } from "../lib/auth";
+import { prisma } from "../lib/db";
 
 const PASSWORD = "Password123!";
 
@@ -58,9 +58,7 @@ async function insertHrAdmins() {
 		});
 
 		if (!existing) {
-			console.log(
-				`User ${userData.email} not found, skipping update.`,
-			);
+			console.log(`User ${userData.email} not found, skipping update.`);
 			continue;
 		}
 

@@ -1,8 +1,8 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
 import {
 	Select,
 	SelectContent,
@@ -14,11 +14,7 @@ import { updateTopRecognizedLimit } from "@/lib/actions/settings-actions";
 
 const LIMIT_OPTIONS = [1, 3, 5, 10, 15, 20, 25, 30, 40, 50];
 
-export function RecognitionSettingsPanel({
-	initialLimit,
-}: {
-	initialLimit: number;
-}) {
+export function RecognitionSettingsPanel({ initialLimit }: { initialLimit: number }) {
 	const [limit, setLimit] = useState(initialLimit);
 	const [isPending, startTransition] = useTransition();
 	const queryClient = useQueryClient();
@@ -58,12 +54,9 @@ export function RecognitionSettingsPanel({
 			<div className="px-8 py-6">
 				<div className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-white/10 p-5">
 					<div>
-						<p className="text-sm font-medium text-foreground">
-							Most Recognized Limit
-						</p>
+						<p className="text-sm font-medium text-foreground">Most Recognized Limit</p>
 						<p className="text-xs text-muted-foreground">
-							Number of top recipients shown in the dashboard stats
-							widget.
+							Number of top recipients shown in the dashboard stats widget.
 						</p>
 					</div>
 

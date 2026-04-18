@@ -1,27 +1,23 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, ChevronDown, Loader2, Search, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Loader2, Search, ChevronDown, X, Check } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
 import {
 	createRecognitionCardAction,
 	updateRecognitionCardAction,
 } from "@/lib/actions/recognition-actions";
-import { ShareDialog } from "./share-dialog";
+import { useSession } from "@/lib/auth-client";
 import {
-	createRecognitionCardSchema,
 	type CreateRecognitionCardInput,
+	createRecognitionCardSchema,
 } from "@/lib/validations/recognition";
-import {
-	AccessGroupLogo,
-	AccessBusinessLogo,
-	BackgroundGraphic,
-} from "./card-assets";
+import { AccessBusinessLogo, AccessGroupLogo, BackgroundGraphic } from "./card-assets";
+import { ShareDialog } from "./share-dialog";
 
 interface ActiveUser {
 	id: string;
@@ -63,9 +59,7 @@ function ProgressBar({ currentStep }: { currentStep: 1 | 2 }) {
 						<div className="flex items-center gap-2">
 							<div
 								className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors duration-300 ${
-									isCompleted || isActive
-										? "bg-[#e31837] text-white"
-										: "bg-[#e5e7eb] text-[#999]"
+									isCompleted || isActive ? "bg-[#e31837] text-white" : "bg-[#e5e7eb] text-[#999]"
 								}`}
 							>
 								{isCompleted ? <Check size={16} strokeWidth={3} /> : s.number}
@@ -110,35 +104,20 @@ function ValueCheckbox({
 	wrap?: boolean;
 }) {
 	return (
-		<label
-			className={`flex items-center ${isLarge ? "gap-2" : "gap-1.5"} cursor-pointer group`}
-		>
+		<label className={`flex items-center ${isLarge ? "gap-2" : "gap-1.5"} cursor-pointer group`}>
 			<div className="relative flex items-center justify-center">
-				<input
-					type="checkbox"
-					className="sr-only"
-					checked={checked}
-					onChange={onChange}
-				/>
+				<input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
 				<div
 					className={`transition-colors duration-200 flex-shrink-0 flex items-center justify-center ${
 						isLarge ? "w-8 h-8" : "w-3.5 h-3.5 md:w-4 md:h-4"
 					} ${checked ? "bg-[#333]" : "bg-[#e5e7eb] group-hover:bg-[#d1d5db]"}`}
 				>
-					{checked && (
-						<Check
-							size={isLarge ? 18 : 10}
-							strokeWidth={3}
-							className="text-white"
-						/>
-					)}
+					{checked && <Check size={isLarge ? 18 : 10} strokeWidth={3} className="text-white" />}
 				</div>
 			</div>
 			<span
 				className={`font-black text-[#222] uppercase ${
-					isLarge
-						? "text-2xl tracking-tight"
-						: "text-[8.5px] md:text-[10px]"
+					isLarge ? "text-2xl tracking-tight" : "text-[8.5px] md:text-[10px]"
 				} ${wrap && !isLarge ? "leading-[1.1]" : ""}`}
 			>
 				{!isLarge && wrap ? (
@@ -181,7 +160,13 @@ function RecipientCombobox({
 	error?: string;
 }) {
 	return (
-		<div className="relative flex-1" ref={dropdownRef} role="combobox" aria-expanded={isDropdownOpen && !selectedUser} aria-haspopup="listbox">
+		<div
+			className="relative flex-1"
+			ref={dropdownRef}
+			role="combobox"
+			aria-expanded={isDropdownOpen && !selectedUser}
+			aria-haspopup="listbox"
+		>
 			{selectedUser ? (
 				<div className="flex items-center justify-between h-full">
 					<span className="text-lg text-[#222]">
@@ -213,17 +198,15 @@ function RecipientCombobox({
 							className="w-full pl-5 outline-none text-lg bg-transparent placeholder:text-gray-400"
 							spellCheck="false"
 						/>
-						<ChevronDown
-							size={14}
-							className="absolute right-0 text-gray-400 pointer-events-none"
-						/>
+						<ChevronDown size={14} className="absolute right-0 text-gray-400 pointer-events-none" />
 					</div>
 					{isDropdownOpen && (
-						<div role="listbox" className="absolute top-full left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg rounded-sm">
+						<div
+							role="listbox"
+							className="absolute top-full left-0 right-0 z-50 mt-2 max-h-60 overflow-y-auto bg-white border border-gray-200 shadow-lg rounded-sm"
+						>
 							{filteredUsers.length === 0 ? (
-								<div className="px-4 py-3 text-sm text-gray-400">
-									No users found
-								</div>
+								<div className="px-4 py-3 text-sm text-gray-400">No users found</div>
 							) : (
 								filteredUsers.map((user) => (
 									<button
@@ -238,9 +221,7 @@ function RecipientCombobox({
 												{user.firstName} {user.lastName}
 											</span>
 											{user.department && (
-												<span className="ml-2 text-gray-400">
-													{user.department.name}
-												</span>
+												<span className="ml-2 text-gray-400">{user.department.name}</span>
 											)}
 										</div>
 									</button>
@@ -250,11 +231,7 @@ function RecipientCombobox({
 					)}
 				</>
 			)}
-			{error && (
-				<p className="absolute -bottom-5 left-0 text-xs text-red-600">
-					{error}
-				</p>
-			)}
+			{error && <p className="absolute -bottom-5 left-0 text-xs text-red-600">{error}</p>}
 		</div>
 	);
 }
@@ -285,9 +262,7 @@ export function RecognitionForm({
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	const senderName = session?.user
-		? `${session.user.firstName} ${session.user.lastName}`
-		: "";
+	const senderName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : "";
 
 	const {
 		register,
@@ -301,11 +276,9 @@ export function RecognitionForm({
 		defaultValues: {
 			recipientId: editDefaults?.recipientId ?? "",
 			message: editDefaults?.message ?? "",
-			date: editDefaults?.date ?? new Date(
-				Date.now() - new Date().getTimezoneOffset() * 60_000,
-			)
-				.toISOString()
-				.split("T")[0],
+			date:
+				editDefaults?.date ??
+				new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().split("T")[0],
 			valuesPeople: editDefaults?.valuesPeople ?? false,
 			valuesSafety: editDefaults?.valuesSafety ?? false,
 			valuesRespect: editDefaults?.valuesRespect ?? false,
@@ -326,9 +299,7 @@ export function RecognitionForm({
 		},
 	});
 
-	const availableUsers = (usersData?.data ?? []).filter(
-		(user) => user.id !== session?.user?.id,
-	);
+	const availableUsers = (usersData?.data ?? []).filter((user) => user.id !== session?.user?.id);
 
 	const filteredUsers = availableUsers.filter((user) => {
 		const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
@@ -337,16 +308,12 @@ export function RecognitionForm({
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
-			if (
-				dropdownRef.current &&
-				!dropdownRef.current.contains(event.target as Node)
-			) {
+			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
 				setIsDropdownOpen(false);
 			}
 		}
 		document.addEventListener("mousedown", handleClickOutside);
-		return () =>
-			document.removeEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
 	}, []);
 
 	function handleSelectUser(user: ActiveUser) {
@@ -427,69 +394,123 @@ export function RecognitionForm({
 	};
 
 	return (
-	<>
-		<form
-			onSubmit={handleSubmit(onSubmit)}
-			className="flex flex-col items-center gap-8"
-		>
-			{/* Progress Bar */}
-			<ProgressBar currentStep={step} />
+		<>
+			<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center gap-8">
+				{/* Progress Bar */}
+				<ProgressBar currentStep={step} />
 
-			{/* ============================================ */}
-			{/* STEP 1 — Card 2 (Back / Fill Card)          */}
-			{/* ============================================ */}
-			{step === 1 && (
-				<>
-					<div className="w-full max-w-5xl bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6">
-						{/* Crop Marks */}
-						<div className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400" aria-hidden="true" />
-						<div className="absolute top-2 right-2 w-4 h-4 border-t border-r border-gray-400" aria-hidden="true" />
-						<div className="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-gray-400" aria-hidden="true" />
-						<div className="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-gray-400" aria-hidden="true" />
+				{/* ============================================ */}
+				{/* STEP 1 — Card 2 (Back / Fill Card)          */}
+				{/* ============================================ */}
+				{step === 1 && (
+					<>
+						<div className="w-full max-w-5xl bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6">
+							{/* Crop Marks */}
+							<div
+								className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400"
+								aria-hidden="true"
+							/>
+							<div
+								className="absolute top-2 right-2 w-4 h-4 border-t border-r border-gray-400"
+								aria-hidden="true"
+							/>
+							<div
+								className="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-gray-400"
+								aria-hidden="true"
+							/>
+							<div
+								className="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-gray-400"
+								aria-hidden="true"
+							/>
 
-						{/* Left Column */}
-						<div className="flex-1 flex flex-col gap-4">
-							{/* TO */}
-							<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col h-20 shadow-sm relative">
-								<span className="text-xs font-black text-black mb-1">TO</span>
-								<RecipientCombobox
-									{...comboboxProps}
-									error={errors.recipientId?.message}
-								/>
+							{/* Left Column */}
+							<div className="flex-1 flex flex-col gap-4">
+								{/* TO */}
+								<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col h-20 shadow-sm relative">
+									<span className="text-xs font-black text-black mb-1">TO</span>
+									<RecipientCombobox {...comboboxProps} error={errors.recipientId?.message} />
+								</div>
+
+								{/* WHAT YOU DID */}
+								<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-grow min-h-[300px] shadow-sm relative">
+									<span className="text-xs font-black text-black mb-2">WHAT YOU DID</span>
+									<textarea
+										{...register("message")}
+										className="w-full flex-grow outline-none resize-none text-base bg-transparent mb-16 text-[#222] placeholder:text-gray-400"
+										placeholder="Describe what this team member did..."
+										spellCheck="false"
+									/>
+
+									{/* Small Value Checkboxes + Errors */}
+									<div className="absolute bottom-4 left-4 right-4">
+										{(errors.message || errors.valuesPeople) && (
+											<div className="mb-2 space-y-1">
+												{errors.message && (
+													<p className="text-xs text-red-600">{errors.message.message}</p>
+												)}
+												{errors.valuesPeople && (
+													<p className="text-xs text-red-600">{errors.valuesPeople.message}</p>
+												)}
+											</div>
+										)}
+										<span className="text-[10px] font-black text-black mb-2 block uppercase">
+											Which values were demonstrated?
+										</span>
+										<div className="flex justify-between items-center w-full gap-1">
+											{COMPANY_VALUES.map((v) => (
+												<ValueCheckbox
+													key={v.key}
+													checked={watch(v.key)}
+													onChange={() => toggleValue(v.key)}
+													label={v.label}
+													wrap={v.wrap}
+												/>
+											))}
+										</div>
+									</div>
+								</div>
+
+								{/* FROM + DATE */}
+								<div className="flex gap-4">
+									<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
+										<span className="text-xs font-black text-black mb-1">FROM</span>
+										<span className="text-lg text-[#222]">{senderName}</span>
+									</div>
+									<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
+										<span className="text-xs font-black text-black mb-1">DATE</span>
+										<input
+											type="date"
+											{...register("date")}
+											className="w-full outline-none text-lg bg-transparent text-[#222]"
+										/>
+										{errors.date && <p className="text-xs text-red-600">{errors.date.message}</p>}
+									</div>
+								</div>
 							</div>
 
-							{/* WHAT YOU DID */}
-							<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-grow min-h-[300px] shadow-sm relative">
-								<span className="text-xs font-black text-black mb-2">
-									WHAT YOU DID
-								</span>
-								<textarea
-									{...register("message")}
-									className="w-full flex-grow outline-none resize-none text-base bg-transparent mb-16 text-[#222] placeholder:text-gray-400"
-									placeholder="Describe what this team member did..."
-									spellCheck="false"
-								/>
+							{/* Right Column */}
+							<div className="flex-1 flex flex-col gap-4">
+								<div className="h-24 flex items-center justify-between px-2">
+									<AccessGroupLogo color="#e31837" />
+									<AccessBusinessLogo color="#e31837" />
+								</div>
 
-								{/* Small Value Checkboxes + Errors */}
-								<div className="absolute bottom-4 left-4 right-4">
-									{(errors.message || errors.valuesPeople) && (
-										<div className="mb-2 space-y-1">
-											{errors.message && (
-												<p className="text-xs text-red-600">
-													{errors.message.message}
-												</p>
-											)}
-											{errors.valuesPeople && (
-												<p className="text-xs text-red-600">
-													{errors.valuesPeople.message}
-												</p>
-											)}
-										</div>
-									)}
-									<span className="text-[10px] font-black text-black mb-2 block uppercase">
-										Which values were demonstrated?
-									</span>
-									<div className="flex justify-between items-center w-full gap-1">
+								<div className="bg-white p-6 md:p-8 rounded-sm flex flex-col flex-grow shadow-sm relative overflow-hidden">
+									<div
+										className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]"
+										aria-hidden="true"
+									>
+										<BackgroundGraphic
+											preserveAspectRatio="xMinYMin meet"
+											className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
+										/>
+									</div>
+
+									<h2 className="text-[#e31837] text-[15px] font-bold mb-8 relative z-10">
+										WHICH ACCESS VALUES WERE DEMONSTRATED?
+									</h2>
+
+									<div className="flex flex-col gap-5 relative z-10">
 										{COMPANY_VALUES.map((v) => (
 											<ValueCheckbox
 												key={v.key}
@@ -497,226 +518,151 @@ export function RecognitionForm({
 												onChange={() => toggleValue(v.key)}
 												label={v.label}
 												wrap={v.wrap}
+												isLarge
 											/>
 										))}
 									</div>
 								</div>
 							</div>
-
-							{/* FROM + DATE */}
-							<div className="flex gap-4">
-								<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
-									<span className="text-xs font-black text-black mb-1">FROM</span>
-									<span className="text-lg text-[#222]">{senderName}</span>
-								</div>
-								<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
-									<span className="text-xs font-black text-black mb-1">DATE</span>
-									<input
-										type="date"
-										{...register("date")}
-										className="w-full outline-none text-lg bg-transparent text-[#222]"
-									/>
-									{errors.date && (
-										<p className="text-xs text-red-600">{errors.date.message}</p>
-									)}
-								</div>
-							</div>
 						</div>
 
-						{/* Right Column */}
-						<div className="flex-1 flex flex-col gap-4">
-							<div className="h-24 flex items-center justify-between px-2">
-								<AccessGroupLogo color="#e31837" />
-								<AccessBusinessLogo color="#e31837" />
+						{/* Step 1 Buttons */}
+						<div className="w-full max-w-5xl flex flex-row-reverse gap-3">
+							<button
+								type="button"
+								onClick={handleReview}
+								className="inline-flex justify-center rounded-full bg-[#e31837] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#c41430] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#e31837]/30 transition-all duration-200"
+							>
+								{isEdit ? "Review Changes" : "Review Before Submit"}
+							</button>
+							<button
+								type="button"
+								onClick={() => router.push("/dashboard/recognition")}
+								className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
+							>
+								Cancel
+							</button>
+						</div>
+					</>
+				)}
+
+				{/* ============================================ */}
+				{/* STEP 2 — Card 1 (Front / Review & Submit)   */}
+				{/* ============================================ */}
+				{step === 2 && (
+					<>
+						<div className="w-full max-w-5xl bg-[#e6e7e8] relative shadow-2xl flex flex-col overflow-hidden">
+							{/* Red Header */}
+							<div className="bg-[#e31837] h-28 flex items-center justify-between px-6 md:px-12 z-10">
+								<AccessGroupLogo color="#ffffff" />
+								<AccessBusinessLogo color="#ffffff" />
 							</div>
 
-							<div className="bg-white p-6 md:p-8 rounded-sm flex flex-col flex-grow shadow-sm relative overflow-hidden">
-								<div className="absolute left-[20%] top-[10%] w-[80%] h-[90%] pointer-events-none text-black opacity-[0.05]" aria-hidden="true">
+							{/* Content Area */}
+							<div className="flex flex-col md:flex-row p-6 md:p-8 gap-8 relative">
+								{/* Left Column (Editable Fields) */}
+								<div className="flex-1 flex flex-col gap-3 z-10">
+									<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm relative">
+										<span className="text-xs font-black text-black mb-1">TEAM MEMBER NAME</span>
+										<RecipientCombobox {...comboboxProps} error={errors.recipientId?.message} />
+									</div>
+
+									<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm min-h-[160px] flex-grow">
+										<span className="text-xs font-black text-black mb-1">WHAT TEAM MEMBER DID</span>
+										<textarea
+											{...register("message")}
+											className="w-full flex-grow outline-none resize-none text-base bg-transparent text-[#222] placeholder:text-gray-400"
+											spellCheck="false"
+										/>
+										{errors.message && (
+											<p className="text-xs text-red-600 mt-1">{errors.message.message}</p>
+										)}
+									</div>
+
+									<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
+										<span className="text-xs font-black text-black mb-1">DEPARTMENT/LOCATION</span>
+										<span className="text-lg text-[#222] min-h-[1.75rem]">
+											{selectedUser?.department?.name ?? ""}
+										</span>
+									</div>
+
+									<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
+										<span className="text-xs font-black text-black mb-1">MY NAME</span>
+										<span className="text-lg text-[#222] min-h-[1.75rem]">{senderName}</span>
+									</div>
+
+									<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
+										<span className="text-xs font-black text-black mb-1">DATE</span>
+										<input
+											type="date"
+											{...register("date")}
+											className="w-full outline-none text-lg bg-transparent text-[#222]"
+										/>
+										{errors.date && (
+											<p className="text-xs text-red-600 mt-1">{errors.date.message}</p>
+										)}
+									</div>
+								</div>
+
+								{/* Right Column (Text) */}
+								<div className="flex-1 flex flex-col justify-center pl-4 md:pl-8 z-10 min-w-0">
+									<h1 className="font-sans font-black text-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap">
+										Thank you for your
+										<br />
+										contribution
+									</h1>
+									<h2 className="font-sans font-black text-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap">
+										Access is proud
+										<br />
+										because of team
+										<br />
+										members like you.
+									</h2>
+								</div>
+
+								{/* Background Watermark */}
+								<div
+									className="absolute left-[45%] top-[10%] w-[60%] h-[90%] pointer-events-none text-white opacity-60"
+									aria-hidden="true"
+								>
 									<BackgroundGraphic
 										preserveAspectRatio="xMinYMin meet"
 										className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
 									/>
 								</div>
-
-								<h2 className="text-[#e31837] text-[15px] font-bold mb-8 relative z-10">
-									WHICH ACCESS VALUES WERE DEMONSTRATED?
-								</h2>
-
-								<div className="flex flex-col gap-5 relative z-10">
-									{COMPANY_VALUES.map((v) => (
-										<ValueCheckbox
-											key={v.key}
-											checked={watch(v.key)}
-											onChange={() => toggleValue(v.key)}
-											label={v.label}
-											wrap={v.wrap}
-											isLarge
-										/>
-									))}
-								</div>
 							</div>
 						</div>
-					</div>
 
-					{/* Step 1 Buttons */}
-					<div className="w-full max-w-5xl flex flex-row-reverse gap-3">
-						<button
-							type="button"
-							onClick={handleReview}
-							className="inline-flex justify-center rounded-full bg-[#e31837] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#c41430] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#e31837]/30 transition-all duration-200"
-						>
-							{isEdit ? "Review Changes" : "Review Before Submit"}
-						</button>
-						<button
-							type="button"
-							onClick={() => router.push("/dashboard/recognition")}
-							className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
-						>
-							Cancel
-						</button>
-					</div>
-				</>
-			)}
-
-			{/* ============================================ */}
-			{/* STEP 2 — Card 1 (Front / Review & Submit)   */}
-			{/* ============================================ */}
-			{step === 2 && (
-				<>
-					<div className="w-full max-w-5xl bg-[#e6e7e8] relative shadow-2xl flex flex-col overflow-hidden">
-						{/* Red Header */}
-						<div className="bg-[#e31837] h-28 flex items-center justify-between px-6 md:px-12 z-10">
-							<AccessGroupLogo color="#ffffff" />
-							<AccessBusinessLogo color="#ffffff" />
+						{/* Step 2 Buttons */}
+						<div className="w-full max-w-5xl flex flex-row-reverse gap-3">
+							<button
+								type="submit"
+								disabled={isLoading}
+								className="inline-flex justify-center rounded-full bg-[#e31837] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#c41430] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#e31837]/30 transition-all duration-200 disabled:opacity-50"
+							>
+								{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+								{isEdit ? "Save Changes" : "Send Recognition"}
+							</button>
+							<button
+								type="button"
+								onClick={() => {
+									setStep(1);
+									window.scrollTo({ top: 0, behavior: "smooth" });
+								}}
+								className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
+							>
+								Back
+							</button>
 						</div>
+					</>
+				)}
+			</form>
 
-						{/* Content Area */}
-						<div className="flex flex-col md:flex-row p-6 md:p-8 gap-8 relative">
-							{/* Left Column (Editable Fields) */}
-							<div className="flex-1 flex flex-col gap-3 z-10">
-								<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm relative">
-									<span className="text-xs font-black text-black mb-1">
-										TEAM MEMBER NAME
-									</span>
-									<RecipientCombobox
-										{...comboboxProps}
-										error={errors.recipientId?.message}
-									/>
-								</div>
-
-								<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm min-h-[160px] flex-grow">
-									<span className="text-xs font-black text-black mb-1">
-										WHAT TEAM MEMBER DID
-									</span>
-									<textarea
-										{...register("message")}
-										className="w-full flex-grow outline-none resize-none text-base bg-transparent text-[#222] placeholder:text-gray-400"
-										spellCheck="false"
-									/>
-									{errors.message && (
-										<p className="text-xs text-red-600 mt-1">
-											{errors.message.message}
-										</p>
-									)}
-								</div>
-
-								<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
-									<span className="text-xs font-black text-black mb-1">
-										DEPARTMENT/LOCATION
-									</span>
-									<span className="text-lg text-[#222] min-h-[1.75rem]">
-										{selectedUser?.department?.name ?? ""}
-									</span>
-								</div>
-
-								<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
-									<span className="text-xs font-black text-black mb-1">
-										MY NAME
-									</span>
-									<span className="text-lg text-[#222] min-h-[1.75rem]">
-										{senderName}
-									</span>
-								</div>
-
-								<div className="bg-white p-3 rounded-sm flex flex-col shadow-sm">
-									<span className="text-xs font-black text-black mb-1">
-										DATE
-									</span>
-									<input
-										type="date"
-										{...register("date")}
-										className="w-full outline-none text-lg bg-transparent text-[#222]"
-									/>
-									{errors.date && (
-										<p className="text-xs text-red-600 mt-1">
-											{errors.date.message}
-										</p>
-									)}
-								</div>
-							</div>
-
-							{/* Right Column (Text) */}
-							<div className="flex-1 flex flex-col justify-center pl-4 md:pl-8 z-10 min-w-0">
-								<h1
-									className="font-sans font-black text-[#e31837] text-xl sm:text-2xl md:text-3xl lg:text-[2rem] uppercase leading-none mb-4 md:mb-6 tracking-tight whitespace-nowrap"
-								>
-									Thank you for your
-									<br />
-									contribution
-								</h1>
-								<h2
-									className="font-sans font-black text-[#222] text-2xl sm:text-3xl md:text-4xl lg:text-[2.75rem] uppercase leading-[0.95] tracking-tighter whitespace-nowrap"
-								>
-									Access is proud
-									<br />
-									because of team
-									<br />
-									members like you.
-								</h2>
-							</div>
-
-							{/* Background Watermark */}
-							<div className="absolute left-[45%] top-[10%] w-[60%] h-[90%] pointer-events-none text-white opacity-60" aria-hidden="true">
-								<BackgroundGraphic
-									preserveAspectRatio="xMinYMin meet"
-									className="w-full h-full scale-[1.7] md:scale-[2] origin-top-left"
-								/>
-							</div>
-						</div>
-					</div>
-
-					{/* Step 2 Buttons */}
-					<div className="w-full max-w-5xl flex flex-row-reverse gap-3">
-						<button
-							type="submit"
-							disabled={isLoading}
-							className="inline-flex justify-center rounded-full bg-[#e31837] px-6 py-2.5 text-sm font-medium text-white hover:bg-[#c41430] hover:shadow-md focus:outline-none focus:ring-4 focus:ring-[#e31837]/30 transition-all duration-200 disabled:opacity-50"
-						>
-							{isLoading && (
-								<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-							)}
-							{isEdit ? "Save Changes" : "Send Recognition"}
-						</button>
-						<button
-							type="button"
-							onClick={() => {
-								setStep(1);
-								window.scrollTo({ top: 0, behavior: "smooth" });
-							}}
-							className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
-						>
-							Back
-						</button>
-					</div>
-				</>
-			)}
-		</form>
-
-		<ShareDialog
-			open={!!sharedCardId}
-			cardId={sharedCardId}
-			onClose={() => setSharedCardId(null)}
-		/>
-	</>
+			<ShareDialog
+				open={!!sharedCardId}
+				cardId={sharedCardId}
+				onClose={() => setSharedCardId(null)}
+			/>
+		</>
 	);
 }

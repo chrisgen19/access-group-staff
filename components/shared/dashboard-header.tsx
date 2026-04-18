@@ -1,20 +1,20 @@
 "use client";
 
+import { ChevronDown, LogOut, UserCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, UserCircle, LogOut } from "lucide-react";
 import { toast } from "sonner";
-import { signOut, useSession } from "@/lib/auth-client";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { NotificationBell } from "@/components/shared/notification-bell";
 import { MobileSidebarTrigger } from "@/components/shared/dashboard-sidebar";
+import { NotificationBell } from "@/components/shared/notification-bell";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
 	DropdownMenu,
-	DropdownMenuTrigger,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export function DashboardHeader() {
 	const router = useRouter();
@@ -56,26 +56,18 @@ export function DashboardHeader() {
 							<span className="hidden text-sm font-medium text-foreground sm:block">
 								{user.name}
 							</span>
-							<ChevronDown
-								size={16}
-								className="mr-1 hidden text-muted-foreground sm:block"
-							/>
+							<ChevronDown size={16} className="mr-1 hidden text-muted-foreground sm:block" />
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" sideOffset={8}>
 							<DropdownMenuItem
 								className="cursor-pointer"
-								onClick={() =>
-									router.push("/dashboard/profile")
-								}
+								onClick={() => router.push("/dashboard/profile")}
 							>
 								<UserCircle size={16} />
 								My Profile
 							</DropdownMenuItem>
 							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={handleSignOut}
-							>
+							<DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
 								<LogOut size={16} />
 								Sign Out
 							</DropdownMenuItem>

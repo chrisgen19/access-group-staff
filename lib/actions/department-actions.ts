@@ -1,9 +1,9 @@
 "use server";
 
-import { prisma } from "@/lib/db";
-import { requireRole } from "@/lib/auth-utils";
-import { departmentSchema } from "@/lib/validations/department";
 import { revalidatePath } from "next/cache";
+import { requireRole } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { departmentSchema } from "@/lib/validations/department";
 
 export async function getDepartmentsAction() {
 	try {

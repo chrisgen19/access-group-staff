@@ -1,15 +1,11 @@
-import { redirect } from "next/navigation";
-import Link from "next/link";
 import { Plus } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionTabs, type TabItem } from "../_components/recognition-tabs";
 
-export default async function RecognitionInboxLayout({
-	children,
-}: {
-	children: React.ReactNode;
-}) {
+export default async function RecognitionInboxLayout({ children }: { children: React.ReactNode }) {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 
@@ -48,9 +44,7 @@ export default async function RecognitionInboxLayout({
 					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
 						Recognition Card
 					</h1>
-					<p className="mt-2 text-base text-muted-foreground">
-						Your personal recognition inbox.
-					</p>
+					<p className="mt-2 text-base text-muted-foreground">Your personal recognition inbox.</p>
 				</div>
 				<Link
 					href="/dashboard/recognition/create"

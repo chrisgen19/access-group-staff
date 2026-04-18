@@ -1,7 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
 
 export async function markNotificationReadAction(notificationId: string) {
 	try {
@@ -17,8 +17,7 @@ export async function markNotificationReadAction(notificationId: string) {
 
 		return { success: true as const };
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Failed to mark notification as read";
+		const message = error instanceof Error ? error.message : "Failed to mark notification as read";
 		return { success: false as const, error: message };
 	}
 }
@@ -37,8 +36,7 @@ export async function markAllNotificationsReadAction() {
 
 		return { success: true as const };
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Failed to mark notifications as read";
+		const message = error instanceof Error ? error.message : "Failed to mark notifications as read";
 		return { success: false as const, error: message };
 	}
 }
@@ -58,8 +56,7 @@ export async function markNotificationsReadByCardAction(cardId: string) {
 
 		return { success: true as const };
 	} catch (error) {
-		const message =
-			error instanceof Error ? error.message : "Failed to mark notifications as read";
+		const message = error instanceof Error ? error.message : "Failed to mark notifications as read";
 		return { success: false as const, error: message };
 	}
 }

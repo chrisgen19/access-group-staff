@@ -11,11 +11,7 @@ interface FitTextProps {
 	minFontSize?: number;
 }
 
-export function FitText({
-	children,
-	className,
-	minFontSize = 11,
-}: FitTextProps) {
+export function FitText({ children, className, minFontSize = 11 }: FitTextProps) {
 	const ref = useRef<HTMLSpanElement>(null);
 
 	useLayoutEffect(() => {
@@ -34,8 +30,7 @@ export function FitText({
 				Number.parseFloat(style.paddingRight);
 
 			if (el.scrollWidth > available && available > 0) {
-				const scaled =
-					(available / el.scrollWidth) * baseSize * SAFETY_FACTOR;
+				const scaled = (available / el.scrollWidth) * baseSize * SAFETY_FACTOR;
 				el.style.fontSize = `${Math.max(minFontSize, scaled)}px`;
 			}
 		};
@@ -52,10 +47,7 @@ export function FitText({
 	return (
 		<span
 			ref={ref}
-			className={cn(
-				"block whitespace-nowrap overflow-hidden text-ellipsis",
-				className,
-			)}
+			className={cn("block whitespace-nowrap overflow-hidden text-ellipsis", className)}
 		>
 			{children}
 		</span>

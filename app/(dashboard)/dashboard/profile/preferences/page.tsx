@@ -1,21 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, CreditCard, List, Minimize2, Square, Maximize2 } from "lucide-react";
+import { Check, CreditCard, List, Maximize2, Minimize2, Square } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-	usePreferencesStore,
-	BG_OPTIONS,
-	CARD_VIEW_OPTIONS,
-	CARD_SIZE_OPTIONS,
-} from "@/stores/use-preferences-store";
-import type {
-	BgOptionId,
-	CardView,
-	CardSize,
-} from "@/stores/use-preferences-store";
 import { cn } from "@/lib/utils";
+import type { BgOptionId, CardSize, CardView } from "@/stores/use-preferences-store";
+import {
+	BG_OPTIONS,
+	CARD_SIZE_OPTIONS,
+	CARD_VIEW_OPTIONS,
+	usePreferencesStore,
+} from "@/stores/use-preferences-store";
 
 const VIEW_ICONS: Record<CardView, React.ComponentType<{ size?: number; className?: string }>> = {
 	physical: CreditCard,
@@ -70,9 +66,7 @@ export default function PreferencesPage() {
 				{/* Background Color */}
 				<div className="space-y-4">
 					<div>
-						<h4 className="text-sm font-medium text-foreground">
-							Background Color
-						</h4>
+						<h4 className="text-sm font-medium text-foreground">Background Color</h4>
 						<p className="mt-1 text-sm text-muted-foreground">
 							Choose the page background color for your dashboard.
 						</p>
@@ -107,10 +101,7 @@ export default function PreferencesPage() {
 										{isSelected && (
 											<div className="absolute inset-0 flex items-center justify-center">
 												<div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-													<Check
-														size={12}
-														className="text-primary-foreground"
-													/>
+													<Check size={12} className="text-primary-foreground" />
 												</div>
 											</div>
 										)}
@@ -118,9 +109,7 @@ export default function PreferencesPage() {
 									<span
 										className={cn(
 											"text-xs font-medium",
-											isSelected
-												? "text-primary"
-												: "text-muted-foreground",
+											isSelected ? "text-primary" : "text-muted-foreground",
 										)}
 									>
 										{option.label}
@@ -134,9 +123,7 @@ export default function PreferencesPage() {
 				{/* Card View */}
 				<div className="space-y-4">
 					<div>
-						<h4 className="text-sm font-medium text-foreground">
-							Card View
-						</h4>
+						<h4 className="text-sm font-medium text-foreground">Card View</h4>
 						<p className="mt-1 text-sm text-muted-foreground">
 							Choose how recognition cards appear in feeds.
 						</p>
@@ -171,9 +158,7 @@ export default function PreferencesPage() {
 									<span
 										className={cn(
 											"text-xs font-medium",
-											isSelected
-												? "text-primary"
-												: "text-muted-foreground",
+											isSelected ? "text-primary" : "text-muted-foreground",
 										)}
 									>
 										{option.label}
@@ -187,9 +172,7 @@ export default function PreferencesPage() {
 				{/* Card Size */}
 				<div className="space-y-4">
 					<div>
-						<h4 className="text-sm font-medium text-foreground">
-							Card Size
-						</h4>
+						<h4 className="text-sm font-medium text-foreground">Card Size</h4>
 						<p className="mt-1 text-sm text-muted-foreground">
 							Adjust the size of recognition cards in feeds.
 						</p>
@@ -224,9 +207,7 @@ export default function PreferencesPage() {
 									<span
 										className={cn(
 											"text-xs font-medium",
-											isSelected
-												? "text-primary"
-												: "text-muted-foreground",
+											isSelected ? "text-primary" : "text-muted-foreground",
 										)}
 									>
 										{option.label}

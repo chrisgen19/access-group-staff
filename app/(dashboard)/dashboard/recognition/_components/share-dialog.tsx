@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { Check, Copy, Share2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
 	Dialog,
 	DialogContent,
-	DialogHeader,
-	DialogTitle,
 	DialogDescription,
 	DialogFooter,
+	DialogHeader,
+	DialogTitle,
 } from "@/components/ui/dialog";
 
 interface ShareDialogProps {
@@ -60,13 +60,14 @@ export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: S
 						{redirectOnClose ? "Recognition Card Sent!" : "Share Recognition Card"}
 					</DialogTitle>
 					<DialogDescription className="text-center">
-						Share this card with your team on Slack, Teams, email, or
-						any messaging platform.
+						Share this card with your team on Slack, Teams, email, or any messaging platform.
 					</DialogDescription>
 				</DialogHeader>
 
 				<div className="flex items-center gap-2 mt-2">
-					<label className="sr-only" htmlFor="share-url">Share URL</label>
+					<label className="sr-only" htmlFor="share-url">
+						Share URL
+					</label>
 					<input
 						id="share-url"
 						type="text"
@@ -80,11 +81,7 @@ export function ShareDialog({ open, cardId, onClose, redirectOnClose = true }: S
 						aria-label="Copy share link"
 						className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
 					>
-						{copied ? (
-							<Check size={18} />
-						) : (
-							<Copy size={18} />
-						)}
+						{copied ? <Check size={18} /> : <Copy size={18} />}
 					</button>
 				</div>
 

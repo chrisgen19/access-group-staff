@@ -1,7 +1,7 @@
 "use client";
 
+import { Building2, Globe } from "lucide-react";
 import { useState } from "react";
-import { Globe, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RecognitionFeed } from "../recognition/_components/recognition-feed";
 
@@ -18,8 +18,7 @@ const FEED_TABS = [
 		label: "My Department",
 		icon: Building2,
 		emptyTitle: "No department recognitions yet",
-		emptyDescription:
-			"Recognition cards involving your department will appear here.",
+		emptyDescription: "Recognition cards involving your department will appear here.",
 	},
 ];
 
@@ -30,7 +29,7 @@ interface RecognitionFeedWidgetProps {
 
 export function RecognitionFeedWidget({ currentUserId, isAdmin }: RecognitionFeedWidgetProps) {
 	const [activeTab, setActiveTab] = useState<"all" | "department">("all");
-	const currentTab = FEED_TABS.find((t) => t.key === activeTab)!;
+	const currentTab = FEED_TABS.find((t) => t.key === activeTab) ?? FEED_TABS[0];
 
 	return (
 		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden flex flex-col">
@@ -63,10 +62,7 @@ export function RecognitionFeedWidget({ currentUserId, isAdmin }: RecognitionFee
 					))}
 				</div>
 			</div>
-			<div
-				className="px-6 pb-6 overflow-y-auto max-h-[calc(100vh-12rem)]"
-				role="tabpanel"
-			>
+			<div className="px-6 pb-6 overflow-y-auto max-h-[calc(100vh-12rem)]" role="tabpanel">
 				<RecognitionFeed
 					filter={activeTab}
 					showTitle={false}

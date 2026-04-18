@@ -1,17 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Share2, Pencil } from "lucide-react";
+import { Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { ShareDialog } from "../../_components/share-dialog";
 
-export function CardDetailActions({
-	cardId,
-	isSender,
-}: {
-	cardId: string;
-	isSender: boolean;
-}) {
+export function CardDetailActions({ cardId, isSender }: { cardId: string; isSender: boolean }) {
 	const router = useRouter();
 	const [showShare, setShowShare] = useState(false);
 

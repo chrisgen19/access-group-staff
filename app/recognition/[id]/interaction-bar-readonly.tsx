@@ -1,18 +1,15 @@
 "use client";
 
+import { MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle } from "lucide-react";
 
 interface InteractionBarReadonlyProps {
 	reactions: { emoji: string; count: number }[];
 	commentCount: number;
 }
 
-export function InteractionBarReadonly({
-	reactions,
-	commentCount,
-}: InteractionBarReadonlyProps) {
+export function InteractionBarReadonly({ reactions, commentCount }: InteractionBarReadonlyProps) {
 	const pathname = usePathname();
 	const loginUrl = `/login?callbackUrl=${encodeURIComponent(pathname)}`;
 

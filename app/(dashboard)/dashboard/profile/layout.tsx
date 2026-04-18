@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { Badge } from "@/components/ui/badge";
 import { ProfileNav } from "./_components/profile-nav";
 
 export default async function ProfileLayout({ children }: { children: React.ReactNode }) {
@@ -22,9 +22,7 @@ export default async function ProfileLayout({ children }: { children: React.Reac
 				<div className="mt-2 flex items-center gap-2">
 					<p className="text-base text-muted-foreground">{user.email}</p>
 					<Badge variant="outline">{user.role}</Badge>
-					{user.department && (
-						<Badge variant="secondary">{user.department.name}</Badge>
-					)}
+					{user.department && <Badge variant="secondary">{user.department.name}</Badge>}
 				</div>
 			</div>
 
