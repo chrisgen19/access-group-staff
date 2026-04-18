@@ -1,7 +1,6 @@
-import { headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import type { Branch, Prisma, Role } from "@/app/generated/prisma/client";
-import { auth } from "@/lib/auth";
+import { AuthError, requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canViewUsers } from "@/lib/permissions";
 
@@ -25,9 +24,17 @@ function parseBranch(param: string | null): Branch | null {
 }
 
 export async function GET(request: NextRequest) {
-	const session = await auth.api.getSession({ headers: await headers() });
+	let session: Awaited<ReturnType<typeof requireSession>>;
+	try {
+		session = await requireSession();
+	} catch (error) {
+		if (error instanceof AuthError) {
+			return Response.json({ success: false, error: error.message }, { status: error.status });
+		}
+		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
+	}
 
-	if (!session || !canViewUsers(session.user.role as Role)) {
+	if (!canViewUsers(session.user.role as Role)) {
 		return Response.json({ success: false, error: "Forbidden" }, { status: 403 });
 	}
 
