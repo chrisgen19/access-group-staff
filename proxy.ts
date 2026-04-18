@@ -1,10 +1,24 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { getCookies } from "better-auth/cookies";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
+
+function sanitizeCallback(callbackUrl: string | null): string | null {
+	if (!callbackUrl) return null;
+	if (!callbackUrl.startsWith("/") || callbackUrl.startsWith("//")) return null;
+	return callbackUrl;
+}
+
+async function resolveSession(request: NextRequest) {
+	try {
+		return await auth.api.getSession({ headers: request.headers });
+	} catch {
+		return null;
+	}
+}
 
 export async function proxy(request: NextRequest) {
 	const sessionCookie = request.cookies.get(sessionToken.name)?.value ?? null;
@@ -21,25 +35,37 @@ export async function proxy(request: NextRequest) {
 	}
 
 	if (isProtected && sessionCookie) {
-		const session = await auth.api.getSession({
-			headers: request.headers,
+		const session = await resolveSession(request);
+		if (!session) {
+			const response = NextResponse.redirect(new URL("/login", request.url));
+			response.cookies.delete(sessionToken.name);
+			return response;
+		}
+		const user = await prisma.user.findUnique({
+			where: { id: session.user.id },
+			select: { isActive: true },
 		});
-		if (session) {
-			const user = await prisma.user.findUnique({
-				where: { id: session.user.id },
-				select: { isActive: true },
-			});
-			if (!user?.isActive) {
-				const response = NextResponse.redirect(new URL("/login", request.url));
-				response.cookies.delete(sessionToken.name);
-				return response;
-			}
+		if (!user?.isActive) {
+			const response = NextResponse.redirect(new URL("/login", request.url));
+			response.cookies.delete(sessionToken.name);
+			return response;
 		}
 	}
 
 	if ((pathname === "/login" || pathname === "/register") && sessionCookie) {
-		const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
-		const safeCallback = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//") ? callbackUrl : "/dashboard";
+		const session = await resolveSession(request);
+		if (!session) {
+			const authUrl = new URL(pathname, request.url);
+			const safeCallback = sanitizeCallback(request.nextUrl.searchParams.get("callbackUrl"));
+			if (safeCallback) {
+				authUrl.searchParams.set("callbackUrl", safeCallback);
+			}
+			const response = NextResponse.redirect(authUrl);
+			response.cookies.delete(sessionToken.name);
+			return response;
+		}
+		const safeCallback =
+			sanitizeCallback(request.nextUrl.searchParams.get("callbackUrl")) ?? "/dashboard";
 		return NextResponse.redirect(new URL(safeCallback, request.url));
 	}
 
