@@ -77,6 +77,7 @@ export const createUserSchema = z.object({
 	departmentId: z.string().nullable().optional(),
 	isActive: z.boolean().default(true),
 	hireDate: z.coerce.date().nullable().optional(),
+	birthday: z.coerce.date().nullable().optional(),
 	shiftSchedule: shiftScheduleSchema.nullable().optional(),
 });
 

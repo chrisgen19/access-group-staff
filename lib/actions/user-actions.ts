@@ -92,6 +92,7 @@ export async function createUserAction(formData: unknown) {
 					departmentId: rest.departmentId ?? null,
 					isActive: rest.isActive,
 					hireDate: rest.hireDate ?? null,
+					birthday: rest.birthday ?? null,
 				},
 			});
 			if (shiftSchedule !== undefined) {
@@ -135,7 +136,7 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			return { success: false as const, error: "Insufficient permissions to assign this role" };
 		}
 
-		const { shiftSchedule, hireDate, ...userFields } = parsed.data;
+		const { shiftSchedule, hireDate, birthday, ...userFields } = parsed.data;
 		const updated = await prisma.$transaction(async (tx) => {
 			const user = await tx.user.update({
 				where: { id: userId },
@@ -143,6 +144,7 @@ export async function updateUserAction(userId: string, formData: unknown) {
 					...userFields,
 					role: roleIsChanging ? (parsed.data.role as Role) : undefined,
 					hireDate: hireDate === undefined ? undefined : (hireDate ?? null),
+					birthday: birthday === undefined ? undefined : (birthday ?? null),
 					name:
 						parsed.data.firstName && parsed.data.lastName
 							? `${parsed.data.firstName} ${parsed.data.lastName}`

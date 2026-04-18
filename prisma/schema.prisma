@@ -43,6 +43,7 @@ model User {
   isActive      Boolean   @default(true) @map("is_active")
   departmentId  String?   @map("department_id")
   hireDate      DateTime? @map("hire_date") @db.Date
+  birthday      DateTime? @db.Date
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 

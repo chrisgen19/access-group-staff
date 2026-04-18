@@ -79,6 +79,7 @@ export function UserForm({
 	const roleValue = watch("role");
 	const isActiveValue = watch("isActive");
 	const hireDateValue = watch("hireDate");
+	const birthdayValue = watch("birthday");
 	const shiftScheduleValue = watch("shiftSchedule");
 
 	const availableRoles =
@@ -327,22 +328,41 @@ export function UserForm({
 							</select>
 						</div>
 
-						<div>
-							<label
-								htmlFor="hireDate"
-								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-							>
-								Date Hired
-							</label>
-							<input
-								id="hireDate"
-								type="date"
-								value={toDateInputValue(hireDateValue)}
-								onChange={(e) =>
-									setValue("hireDate", e.target.value ? new Date(e.target.value) : null)
-								}
-								className={inputClass}
-							/>
+						<div className="grid grid-cols-2 gap-5">
+							<div>
+								<label
+									htmlFor="hireDate"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
+									Date Hired
+								</label>
+								<input
+									id="hireDate"
+									type="date"
+									value={toDateInputValue(hireDateValue)}
+									onChange={(e) =>
+										setValue("hireDate", e.target.value ? new Date(e.target.value) : null)
+									}
+									className={inputClass}
+								/>
+							</div>
+							<div>
+								<label
+									htmlFor="birthday"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
+									Birthday
+								</label>
+								<input
+									id="birthday"
+									type="date"
+									value={toDateInputValue(birthdayValue)}
+									onChange={(e) =>
+										setValue("birthday", e.target.value ? new Date(e.target.value) : null)
+									}
+									className={inputClass}
+								/>
+							</div>
 						</div>
 
 						<div className="space-y-3">

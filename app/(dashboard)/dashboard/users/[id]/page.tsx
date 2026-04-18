@@ -28,7 +28,7 @@ function formatBranch(branch: string | null): string | null {
 	return BRANCH_LABELS[branch] ?? branch;
 }
 
-function formatHireDate(value: Date | null): string | null {
+function formatDate(value: Date | null): string | null {
 	if (!value) return null;
 	return new Intl.DateTimeFormat("en-AU", {
 		year: "numeric",
@@ -97,6 +97,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 						<InfoRow label="Display Name" value={user.displayName} />
 						<InfoRow label="Email" value={user.email} />
 						<InfoRow label="Phone" value={user.phone} />
+						<InfoRow label="Birthday" value={formatDate(user.birthday)} />
 					</div>
 				</div>
 
@@ -128,7 +129,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 								{user.isActive ? "Active" : "Inactive"}
 							</Badge>
 						</div>
-						<InfoRow label="Date Hired" value={formatHireDate(user.hireDate)} />
+						<InfoRow label="Date Hired" value={formatDate(user.hireDate)} />
 						<InfoRow label="Joined" value={user.createdAt.toLocaleDateString()} />
 					</div>
 				</div>
