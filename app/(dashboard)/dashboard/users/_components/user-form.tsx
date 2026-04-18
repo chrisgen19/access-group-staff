@@ -55,9 +55,8 @@ export function UserForm({
 		watch,
 		formState: { errors },
 	} = useForm<CreateUserInput>({
-		resolver: zodResolver(
-			(isCreate ? createUserSchema : updateUserSchema) as typeof createUserSchema,
-		),
+		// biome-ignore lint/suspicious/noExplicitAny: schemas diverge on optional fields; resolver union narrows at runtime
+		resolver: zodResolver((isCreate ? createUserSchema : updateUserSchema) as any),
 		defaultValues: {
 			role: "STAFF",
 			isActive: true,
