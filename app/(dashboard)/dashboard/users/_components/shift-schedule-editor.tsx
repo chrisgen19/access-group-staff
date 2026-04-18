@@ -3,6 +3,7 @@
 import {
 	DISPLAY_DAY_ORDER,
 	SHIFT_DAY_LABELS,
+	type ShiftScheduleFieldErrors,
 	type ShiftScheduleInput,
 } from "@/lib/validations/user";
 
@@ -39,16 +40,10 @@ export const DEFAULT_SHIFT_SCHEDULE: ShiftScheduleInput = {
 	],
 };
 
-interface DayError {
-	startTime?: { message?: string };
-	endTime?: { message?: string };
-	breakMins?: { message?: string };
-}
-
 interface ShiftScheduleEditorProps {
 	value: ShiftScheduleInput;
 	onChange: (next: ShiftScheduleInput) => void;
-	errors?: { days?: DayError[] };
+	errors?: ShiftScheduleFieldErrors;
 }
 
 function hhmmToMinutes(value: string): number {

@@ -8,42 +8,16 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
+import { parseDateInputValue, toDateInputValue } from "@/lib/date-input";
 import {
 	type CreateUserInput,
 	createUserSchema,
+	type ShiftScheduleFieldErrors,
 	type ShiftScheduleInput,
 	type UpdateUserInput,
 	updateUserSchema,
 } from "@/lib/validations/user";
 import { DEFAULT_SHIFT_SCHEDULE, ShiftScheduleEditor } from "./shift-schedule-editor";
-
-function toDateInputValue(value: Date | string | null | undefined): string {
-	if (!value) return "";
-	const date = value instanceof Date ? value : new Date(value);
-	if (Number.isNaN(date.getTime())) return "";
-	const year = date.getUTCFullYear();
-	const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-	const day = String(date.getUTCDate()).padStart(2, "0");
-	return `${year}-${month}-${day}`;
-}
-
-function parseDateInputValue(value: string): Date | null {
-	if (!value) return null;
-	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-	if (!match) return null;
-	const year = Number(match[1]);
-	const month = Number(match[2]);
-	const day = Number(match[3]);
-	const date = new Date(Date.UTC(year, month - 1, day));
-	if (
-		date.getUTCFullYear() !== year ||
-		date.getUTCMonth() !== month - 1 ||
-		date.getUTCDate() !== day
-	) {
-		return null;
-	}
-	return date;
-}
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -83,6 +57,7 @@ export function UserForm({
 		handleSubmit,
 		setValue,
 		watch,
+		getValues,
 		formState: { errors },
 	} = useForm<CreateUserInput>({
 		// biome-ignore lint/suspicious/noExplicitAny: schemas diverge on optional fields; resolver union narrows at runtime
@@ -399,7 +374,7 @@ export function UserForm({
 									<button
 										type="button"
 										onClick={() => {
-											const branch = watch("branch");
+											const branch = getValues("branch");
 											const timezone =
 												branch === "PERTH" ? "Australia/Perth" : DEFAULT_SHIFT_SCHEDULE.timezone;
 											setValue("shiftSchedule", { ...DEFAULT_SHIFT_SCHEDULE, timezone });
@@ -414,16 +389,7 @@ export function UserForm({
 								<ShiftScheduleEditor
 									value={shiftScheduleValue}
 									onChange={(next: ShiftScheduleInput) => setValue("shiftSchedule", next)}
-									errors={
-										errors.shiftSchedule as
-											| {
-													days?: Array<{
-														startTime?: { message?: string };
-														endTime?: { message?: string };
-													}>;
-											  }
-											| undefined
-									}
+									errors={errors.shiftSchedule as ShiftScheduleFieldErrors | undefined}
 								/>
 							)}
 						</div>

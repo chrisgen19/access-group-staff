@@ -45,7 +45,7 @@ async function upsertShiftSchedule(
 			isWorking: day.isWorking,
 			startTime: day.isWorking ? (day.startTime ?? null) : null,
 			endTime: day.isWorking ? (day.endTime ?? null) : null,
-			breakMins: day.breakMins,
+			breakMins: day.isWorking ? day.breakMins : 0,
 		})),
 	});
 }

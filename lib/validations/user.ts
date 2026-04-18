@@ -2,6 +2,22 @@ import { z } from "zod";
 
 const HHMM_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+const SUPPORTED_TIMEZONES: ReadonlySet<string> = (() => {
+	const supported =
+		typeof Intl.supportedValuesOf === "function" ? Intl.supportedValuesOf("timeZone") : [];
+	return new Set(supported.length > 0 ? supported : ["UTC"]);
+})();
+
+function isValidTimezone(tz: string): boolean {
+	if (SUPPORTED_TIMEZONES.has(tz)) return true;
+	try {
+		new Intl.DateTimeFormat("en-US", { timeZone: tz });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 export const SHIFT_DAY_LABELS = [
 	"Sunday",
 	"Monday",
@@ -64,7 +80,11 @@ export const shiftDaySchema = z
 	});
 
 export const shiftScheduleSchema = z.object({
-	timezone: z.string().min(1).default("Asia/Manila"),
+	timezone: z
+		.string()
+		.min(1)
+		.default("Asia/Manila")
+		.refine(isValidTimezone, { message: "Invalid IANA timezone" }),
 	days: z
 		.array(shiftDaySchema)
 		.length(7, "Schedule must have one entry per weekday")
@@ -76,6 +96,17 @@ export const shiftScheduleSchema = z.object({
 			{ message: "Schedule must cover days 0-6 exactly once" },
 		),
 });
+
+export interface ShiftDayFieldErrors {
+	startTime?: { message?: string };
+	endTime?: { message?: string };
+	breakMins?: { message?: string };
+}
+
+export interface ShiftScheduleFieldErrors {
+	timezone?: { message?: string };
+	days?: ShiftDayFieldErrors[];
+}
 
 export const createUserSchema = z.object({
 	email: z.string().email("Invalid email address"),
