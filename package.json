@@ -12,7 +12,10 @@
     "format": "bunx @biomejs/biome format --write .",
     "db:push": "bunx prisma db push",
     "db:seed": "bunx prisma db seed",
-    "db:studio": "bunx prisma studio"
+    "db:studio": "bunx prisma studio",
+    "wt:new": "bash scripts/wt-new.sh",
+    "wt:rm": "bash scripts/wt-remove.sh",
+    "wt:ls": "git worktree list"
   },
   "prisma": {
     "seed": "bun prisma/seed.ts"

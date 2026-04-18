@@ -167,7 +167,67 @@ bun run format       # Biome format
 bun run db:push      # Push schema to database
 bun run db:seed      # Seed database
 bun run db:studio    # Open Prisma Studio
+bun run wt:new       # Create a git worktree (see Git Worktrees below)
+bun run wt:ls        # List all worktrees
+bun run wt:rm        # Remove a worktree
 ```
+
+## Git Worktrees
+
+Work on multiple branches in parallel without re-cloning or constant branch switching. Each worktree is a separate checkout sharing the same `.git` metadata.
+
+### Layout
+
+Worktrees live as a sibling folder to the main clone:
+
+```
+~/projects/
+├── access-group-staff/                         ← main clone (tracks `main`)
+└── access-group-staff.worktrees/               ← all worktrees
+    ├── feature-x/
+    └── bugfix-47-auth-redirect-loop/
+```
+
+### Create a worktree
+
+```bash
+# From the main clone:
+bun run wt:new feature/my-thing                 # branch off origin/main
+bun run wt:new bugfix/existing-branch           # check out an existing remote branch
+bun run wt:new hotfix/urgent origin/production  # branch off a different base
+```
+
+The script:
+1. Creates `../access-group-staff.worktrees/<slug>/` (slashes in branch → dashes)
+2. Checks out the branch (existing local → existing remote → new from base)
+3. Symlinks `.env` and `.env.local` from the main clone
+4. Suggests a dev port (auto-incremented from `3001`)
+
+### Run the worktree
+
+```bash
+cd ~/projects/access-group-staff.worktrees/feature-my-thing
+bun install                  # required per worktree; triggers prisma generate
+bun dev --port 3001          # use a unique port so it doesn't clash with main
+```
+
+### List / remove
+
+```bash
+bun run wt:ls                           # list all worktrees
+bun run wt:rm feature/my-thing          # remove the worktree (branch is kept)
+git branch -d feature/my-thing          # delete the branch after
+```
+
+Always use `bun run wt:rm` (or `git worktree remove`) instead of `rm -rf` — manual deletion leaves stale git metadata.
+
+### Gotchas
+
+- **`node_modules` is per-worktree.** Run `bun install` after every `wt:new`.
+- **Env symlinks share secrets.** All worktrees point at the same `.env.local`. For schema experiments, replace the `.env.local` symlink with a real file pointing at a separate Neon branch DB so `prisma db push` doesn't alter your main dev DB.
+- **Ports must differ.** Use `--port 3001`, `3002`, … or set `PORT` in the worktree's `.env.local`.
+- **Same branch can't be checked out twice.** If you need the currently-checked-out branch in a worktree, switch the main clone to `main` first.
+- **`.claude/` state is per-worktree.** Claude Code sessions don't bleed across branches.
 
 ## Deployment
 
