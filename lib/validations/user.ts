@@ -47,6 +47,19 @@ export const shiftDaySchema = z
 				path: ["endTime"],
 				message: "End time must be after start time",
 			});
+			return;
+		}
+		if (day.startTime && day.endTime) {
+			const [sh, sm] = day.startTime.split(":").map((n) => Number.parseInt(n, 10));
+			const [eh, em] = day.endTime.split(":").map((n) => Number.parseInt(n, 10));
+			const durationMins = eh * 60 + em - (sh * 60 + sm);
+			if (day.breakMins >= durationMins) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					path: ["breakMins"],
+					message: "Break must be shorter than the shift duration",
+				});
+			}
 		}
 	});
 

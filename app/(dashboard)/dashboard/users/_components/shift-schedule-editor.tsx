@@ -193,9 +193,13 @@ export function ShiftScheduleEditor({ value, onChange, errors }: ShiftScheduleEd
 								<span className="text-sm text-muted-foreground italic ml-auto">Off</span>
 							)}
 
-							{(dayError?.startTime?.message || dayError?.endTime?.message) && (
+							{(dayError?.startTime?.message ||
+								dayError?.endTime?.message ||
+								dayError?.breakMins?.message) && (
 								<p className="w-full text-xs text-destructive pl-7">
-									{dayError?.endTime?.message ?? dayError?.startTime?.message}
+									{dayError?.breakMins?.message ??
+										dayError?.endTime?.message ??
+										dayError?.startTime?.message}
 								</p>
 							)}
 						</div>
