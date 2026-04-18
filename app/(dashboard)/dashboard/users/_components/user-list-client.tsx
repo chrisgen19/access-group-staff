@@ -258,9 +258,17 @@ export function UserListClient({ currentUserRole, departments }: UserListClientP
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">
 			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
 				<div>
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-						Staff Directory
-					</h1>
+					<div className="flex items-baseline gap-3 flex-wrap">
+						<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
+							Staff Directory
+						</h1>
+						{pagination && (
+							<span className="text-base font-medium text-muted-foreground">
+								{pagination.total} {pagination.total === 1 ? "staff" : "staff"}
+								{hasActiveFilters && " matching"}
+							</span>
+						)}
+					</div>
 					<p className="mt-2 text-base text-muted-foreground">
 						Manage staff accounts, roles, and department assignments.
 					</p>
