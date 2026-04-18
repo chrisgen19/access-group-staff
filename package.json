@@ -13,6 +13,7 @@
     "db:push": "bunx prisma db push",
     "db:seed": "bunx prisma db seed",
     "db:studio": "bunx prisma studio",
+    "test": "bun test",
     "wt:new": "bash scripts/wt-new.sh",
     "wt:rm": "bash scripts/wt-remove.sh",
     "wt:ls": "git worktree list"
