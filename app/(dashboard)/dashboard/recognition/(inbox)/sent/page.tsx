@@ -1,10 +1,11 @@
+import { redirect } from "next/navigation";
 import { getServerSession } from "@/lib/auth-utils";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionFeedClient } from "../../_components/recognition-feed-client";
 
 export default async function RecognitionSentPage() {
 	const session = await getServerSession();
-	if (!session) return null;
+	if (!session) redirect("/login");
 
 	return (
 		<RecognitionFeedClient
