@@ -114,7 +114,6 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 				onPointerCancel: clearLongPress,
 			})}
 			{open && hasUsers && (
-				// biome-ignore lint/a11y/noStaticElementInteractions: mouse handlers only extend hover area
 				<div
 					role="dialog"
 					aria-label={`People who reacted with ${emoji}`}

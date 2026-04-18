@@ -55,8 +55,8 @@ export function UserForm({
 		watch,
 		formState: { errors },
 	} = useForm<CreateUserInput>({
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		resolver: zodResolver(isCreate ? createUserSchema : (updateUserSchema as any)),
+		// biome-ignore lint/suspicious/noExplicitAny: schemas diverge on optional fields; resolver union narrows at runtime
+		resolver: zodResolver((isCreate ? createUserSchema : updateUserSchema) as any),
 		defaultValues: {
 			role: "STAFF",
 			isActive: true,
@@ -86,12 +86,16 @@ export function UserForm({
 	}, [defaultValues, setValue]);
 
 	async function onSubmit(data: CreateUserInput | UpdateUserInput) {
+		if (!isCreate && !userId) {
+			toast.error("Missing user id");
+			return;
+		}
 		setIsLoading(true);
 		try {
 			const payload = canEditRole ? data : { ...data, role: undefined };
 			const result = isCreate
 				? await createUserAction(payload as CreateUserInput)
-				: await updateUserAction(userId!, payload);
+				: await updateUserAction(userId as string, payload);
 
 			if (!result.success) {
 				const errorMsg =
@@ -226,10 +230,14 @@ export function UserForm({
 
 						<div className="grid grid-cols-2 gap-5">
 							<div>
-								<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="role"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									Role
 								</label>
 								<select
+									id="role"
 									value={roleValue}
 									onChange={(e) => setValue("role", e.target.value as CreateUserInput["role"])}
 									className={selectClass}
@@ -257,10 +265,14 @@ export function UserForm({
 								)}
 							</div>
 							<div>
-								<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+								<label
+									htmlFor="departmentId"
+									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+								>
 									Department
 								</label>
 								<select
+									id="departmentId"
 									value={watch("departmentId") ?? "none"}
 									onChange={(e) =>
 										setValue("departmentId", e.target.value === "none" ? null : e.target.value)
@@ -278,10 +290,14 @@ export function UserForm({
 						</div>
 
 						<div>
-							<label className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5">
+							<label
+								htmlFor="branch"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
 								Branch
 							</label>
 							<select
+								id="branch"
 								value={watch("branch") ?? "none"}
 								onChange={(e) =>
 									setValue(

@@ -5,17 +5,21 @@ import { useEffect, useRef } from "react";
 
 export function ForceLight() {
 	const { theme, setTheme } = useTheme();
-	const savedTheme = useRef<string | undefined>(undefined);
+	const themeRef = useRef(theme);
+	themeRef.current = theme;
+	const setThemeRef = useRef(setTheme);
+	setThemeRef.current = setTheme;
 
 	useEffect(() => {
-		savedTheme.current = theme;
-		setTheme("light");
+		const original = themeRef.current;
+		const apply = setThemeRef.current;
+		apply("light");
 		return () => {
-			if (savedTheme.current) {
-				setTheme(savedTheme.current);
+			if (original) {
+				setThemeRef.current(original);
 			}
 		};
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
+	}, []);
 
 	return null;
 }

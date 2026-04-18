@@ -6,7 +6,7 @@ interface OAuthIconProps {
 
 export function GoogleIcon({ className }: OAuthIconProps) {
 	return (
-		<svg className={cn("h-4 w-4", className)} viewBox="0 0 24 24">
+		<svg className={cn("h-4 w-4", className)} viewBox="0 0 24 24" aria-hidden="true">
 			<path
 				d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
 				fill="#4285F4"
@@ -29,7 +29,7 @@ export function GoogleIcon({ className }: OAuthIconProps) {
 
 export function MicrosoftIcon({ className }: OAuthIconProps) {
 	return (
-		<svg className={cn("h-4 w-4", className)} viewBox="0 0 23 23">
+		<svg className={cn("h-4 w-4", className)} viewBox="0 0 23 23" aria-hidden="true">
 			<path fill="#f35325" d="M1 1h10v10H1z" />
 			<path fill="#81bc06" d="M12 1h10v10H12z" />
 			<path fill="#05a6f0" d="M1 12h10v10H1z" />

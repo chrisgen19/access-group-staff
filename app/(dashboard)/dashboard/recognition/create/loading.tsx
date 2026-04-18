@@ -4,6 +4,7 @@ export default function RecognitionCreateLoading() {
 	return (
 		<div
 			className="max-w-5xl mx-auto py-4 animate-pulse"
+			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition form"
 		>

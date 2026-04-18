@@ -35,6 +35,7 @@ export function UserAvatar({
 
 	if (src && src !== erroredSrc) {
 		return (
+			// biome-ignore lint/performance/noImgElement: avatar URLs are external/dynamic and not configured for next/image
 			<img
 				src={src}
 				alt={`${firstName} ${lastName}`}

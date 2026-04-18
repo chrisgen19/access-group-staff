@@ -2,7 +2,12 @@ import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primiti
 
 export default function ConnectedAccountsLoading() {
 	return (
-		<div className="animate-pulse" aria-busy="true" aria-label="Loading connected accounts">
+		<div
+			className="animate-pulse"
+			role="status"
+			aria-busy="true"
+			aria-label="Loading connected accounts"
+		>
 			<SkeletonCard className="overflow-hidden">
 				<div className="px-8 pt-8 pb-2 space-y-2">
 					<SkeletonLine className="h-7 w-48" />

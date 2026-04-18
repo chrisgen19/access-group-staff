@@ -50,8 +50,8 @@ function SkeletonFormCard({
 				</div>
 			)}
 			<div className={cn("px-8 py-6 space-y-5", !title && "pt-8")}>
-				{Array.from({ length: fieldCount }).map((_, i) => (
-					<div key={`field-${i}`} className="space-y-2">
+				{Array.from({ length: fieldCount }, (_, i) => `field-${i}`).map((key) => (
+					<div key={key} className="space-y-2">
 						<SkeletonLine className="h-4 w-24" />
 						<SkeletonLine className="h-12 w-full rounded-xl" />
 					</div>

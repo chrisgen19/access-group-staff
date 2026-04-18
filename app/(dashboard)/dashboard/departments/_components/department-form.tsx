@@ -43,12 +43,16 @@ export function DepartmentFormDialog({
 	});
 
 	async function onSubmit(data: DepartmentInput) {
+		if (mode === "edit" && !department?.id) {
+			toast.error("Missing department id");
+			return;
+		}
 		setIsLoading(true);
 		try {
 			const result =
 				mode === "create"
 					? await createDepartmentAction(data)
-					: await updateDepartmentAction(department!.id, data);
+					: await updateDepartmentAction(department?.id as string, data);
 
 			if (!result.success) {
 				const errorMsg = typeof result.error === "string" ? result.error : "Validation failed";
