@@ -126,14 +126,12 @@ export function UserForm({
 	}
 
 	return (
-		<div className="max-w-2xl">
-			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-				<div className="px-8 pt-8 pb-2">
-					<h2 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
-						{isCreate ? "Add Staff Member" : "Edit Staff Details"}
-					</h2>
-				</div>
-				<form onSubmit={handleSubmit(onSubmit)}>
+		<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+			<div className="grid gap-6 md:grid-cols-2">
+				<section className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+					<div className="px-8 pt-8 pb-2">
+						<h2 className="text-[1.25rem] font-medium text-foreground">Personal Info</h2>
+					</div>
 					<div className="px-8 py-6 space-y-5">
 						<div className="grid grid-cols-2 gap-5">
 							<div>
@@ -160,6 +158,16 @@ export function UserForm({
 									<p className="mt-1 text-sm text-destructive">{errors.lastName.message}</p>
 								)}
 							</div>
+						</div>
+
+						<div>
+							<label
+								htmlFor="displayName"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Display Name
+							</label>
+							<input id="displayName" className={inputClass} {...register("displayName")} />
 						</div>
 
 						{isCreate && (
@@ -208,94 +216,69 @@ export function UserForm({
 
 						<div>
 							<label
-								htmlFor="displayName"
+								htmlFor="phone"
 								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
 							>
-								Display Name
+								Phone
 							</label>
-							<input id="displayName" className={inputClass} {...register("displayName")} />
+							<input id="phone" className={inputClass} {...register("phone")} />
 						</div>
 
-						<div className="grid grid-cols-2 gap-5">
-							<div>
-								<label
-									htmlFor="phone"
-									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-								>
-									Phone
-								</label>
-								<input id="phone" className={inputClass} {...register("phone")} />
-							</div>
-							<div>
-								<label
-									htmlFor="position"
-									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-								>
-									Position
-								</label>
-								<input id="position" className={inputClass} {...register("position")} />
-							</div>
+						<div>
+							<label
+								htmlFor="birthday"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Birthday
+							</label>
+							<input
+								id="birthday"
+								type="date"
+								value={toDateInputValue(birthdayValue)}
+								onChange={(e) => setValue("birthday", parseDateInputValue(e.target.value))}
+								className={inputClass}
+							/>
+						</div>
+					</div>
+				</section>
+
+				<section className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+					<div className="px-8 pt-8 pb-2">
+						<h2 className="text-[1.25rem] font-medium text-foreground">Work Info</h2>
+					</div>
+					<div className="px-8 py-6 space-y-5">
+						<div>
+							<label
+								htmlFor="position"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Position
+							</label>
+							<input id="position" className={inputClass} {...register("position")} />
 						</div>
 
-						<div className="grid grid-cols-2 gap-5">
-							<div>
-								<label
-									htmlFor="role"
-									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-								>
-									Role
-								</label>
-								<select
-									id="role"
-									value={roleValue}
-									onChange={(e) => setValue("role", e.target.value as CreateUserInput["role"])}
-									className={selectClass}
-									disabled={!canEditRole}
-								>
-									{canEditRole
-										? availableRoles.map((role) => (
-												<option key={role} value={role}>
-													{role}
-												</option>
-											))
-										: roleValue && (
-												<option key={roleValue} value={roleValue}>
-													{roleValue}
-												</option>
-											)}
-								</select>
-								{!canEditRole && (
-									<p className="mt-1 text-xs text-muted-foreground">
-										You don't have permission to change this user's role.
-									</p>
-								)}
-								{errors.role && (
-									<p className="mt-1 text-sm text-destructive">{errors.role.message}</p>
-								)}
-							</div>
-							<div>
-								<label
-									htmlFor="departmentId"
-									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-								>
-									Department
-								</label>
-								<select
-									id="departmentId"
-									value={watch("departmentId") ?? "none"}
-									onChange={(e) =>
-										setValue("departmentId", e.target.value === "none" ? null : e.target.value)
-									}
-									className={selectClass}
-								>
-									<option value="none">No Department</option>
-									{departments.map((dept) => (
-										<option key={dept.id} value={dept.id}>
-											{dept.name} ({dept.code})
-										</option>
-									))}
-								</select>
-							</div>
+						<div>
+							<label
+								htmlFor="departmentId"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Department
+							</label>
+							<select
+								id="departmentId"
+								value={watch("departmentId") ?? "none"}
+								onChange={(e) =>
+									setValue("departmentId", e.target.value === "none" ? null : e.target.value)
+								}
+								className={selectClass}
+							>
+								<option value="none">No Department</option>
+								{departments.map((dept) => (
+									<option key={dept.id} value={dept.id}>
+										{dept.name} ({dept.code})
+									</option>
+								))}
+							</select>
 						</div>
 
 						<div>
@@ -322,80 +305,59 @@ export function UserForm({
 							</select>
 						</div>
 
-						<div className="grid grid-cols-2 gap-5">
-							<div>
-								<label
-									htmlFor="hireDate"
-									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-								>
-									Date Hired
-								</label>
-								<input
-									id="hireDate"
-									type="date"
-									value={toDateInputValue(hireDateValue)}
-									onChange={(e) => setValue("hireDate", parseDateInputValue(e.target.value))}
-									className={inputClass}
-								/>
-							</div>
-							<div>
-								<label
-									htmlFor="birthday"
-									className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
-								>
-									Birthday
-								</label>
-								<input
-									id="birthday"
-									type="date"
-									value={toDateInputValue(birthdayValue)}
-									onChange={(e) => setValue("birthday", parseDateInputValue(e.target.value))}
-									className={inputClass}
-								/>
-							</div>
-						</div>
-
-						<div className="space-y-3">
-							<div className="flex items-center justify-between gap-3 px-1">
-								<div>
-									<div className="text-sm font-medium text-foreground/70">Shift Schedule</div>
-									<p className="text-xs text-muted-foreground">
-										Weekly working hours. Leave empty to clear.
-									</p>
-								</div>
-								{shiftScheduleValue ? (
-									<button
-										type="button"
-										onClick={() => setValue("shiftSchedule", null)}
-										className="text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
-									>
-										Clear
-									</button>
-								) : (
-									<button
-										type="button"
-										onClick={() => {
-											const branch = getValues("branch");
-											const timezone =
-												branch === "PERTH" ? "Australia/Perth" : DEFAULT_SHIFT_SCHEDULE.timezone;
-											setValue("shiftSchedule", { ...DEFAULT_SHIFT_SCHEDULE, timezone });
-										}}
-										className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-									>
-										Add schedule
-									</button>
-								)}
-							</div>
-							{shiftScheduleValue && (
-								<ShiftScheduleEditor
-									value={shiftScheduleValue}
-									onChange={(next: ShiftScheduleInput) => setValue("shiftSchedule", next)}
-									errors={errors.shiftSchedule as ShiftScheduleFieldErrors | undefined}
-								/>
+						<div>
+							<label
+								htmlFor="role"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Role
+							</label>
+							<select
+								id="role"
+								value={roleValue}
+								onChange={(e) => setValue("role", e.target.value as CreateUserInput["role"])}
+								className={selectClass}
+								disabled={!canEditRole}
+							>
+								{canEditRole
+									? availableRoles.map((role) => (
+											<option key={role} value={role}>
+												{role}
+											</option>
+										))
+									: roleValue && (
+											<option key={roleValue} value={roleValue}>
+												{roleValue}
+											</option>
+										)}
+							</select>
+							{!canEditRole && (
+								<p className="mt-1 text-xs text-muted-foreground">
+									You don't have permission to change this user's role.
+								</p>
+							)}
+							{errors.role && (
+								<p className="mt-1 text-sm text-destructive">{errors.role.message}</p>
 							)}
 						</div>
 
-						<div className="flex items-center gap-2 px-1">
+						<div>
+							<label
+								htmlFor="hireDate"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Date Hired
+							</label>
+							<input
+								id="hireDate"
+								type="date"
+								value={toDateInputValue(hireDateValue)}
+								onChange={(e) => setValue("hireDate", parseDateInputValue(e.target.value))}
+								className={inputClass}
+							/>
+						</div>
+
+						<div className="flex items-center gap-2 pt-1 px-1">
 							<input
 								id="isActive"
 								type="checkbox"
@@ -408,26 +370,74 @@ export function UserForm({
 							</label>
 						</div>
 					</div>
+				</section>
+			</div>
 
-					<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-200/60 dark:border-white/10 flex flex-row-reverse gap-3">
-						<button
-							type="submit"
-							disabled={isLoading}
-							className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50"
-						>
-							{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-							{isCreate ? "Create Record" : "Save Changes"}
-						</button>
+			<section className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="px-8 pt-8 pb-4 flex items-center justify-between gap-4">
+					<div>
+						<h2 className="text-[1.25rem] font-medium text-foreground leading-tight">
+							Shift Schedule
+						</h2>
+						<p className="text-xs text-muted-foreground mt-0.5">
+							Weekly working hours. Leave empty to clear.
+						</p>
+					</div>
+					{shiftScheduleValue ? (
 						<button
 							type="button"
-							onClick={() => router.push("/dashboard/users")}
-							className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
+							onClick={() => setValue("shiftSchedule", null)}
+							className="text-sm font-medium text-muted-foreground hover:text-destructive transition-colors"
 						>
-							Cancel
+							Clear
 						</button>
-					</div>
-				</form>
+					) : (
+						<button
+							type="button"
+							onClick={() => {
+								const branch = getValues("branch");
+								const timezone =
+									branch === "PERTH" ? "Australia/Perth" : DEFAULT_SHIFT_SCHEDULE.timezone;
+								setValue("shiftSchedule", { ...DEFAULT_SHIFT_SCHEDULE, timezone });
+							}}
+							className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+						>
+							Add schedule
+						</button>
+					)}
+				</div>
+				<div className="px-8 pb-8">
+					{shiftScheduleValue ? (
+						<ShiftScheduleEditor
+							value={shiftScheduleValue}
+							onChange={(next: ShiftScheduleInput) => setValue("shiftSchedule", next)}
+							errors={errors.shiftSchedule as ShiftScheduleFieldErrors | undefined}
+						/>
+					) : (
+						<div className="rounded-2xl border border-dashed border-gray-200 dark:border-white/10 px-6 py-8 text-center">
+							<p className="text-sm text-muted-foreground">No shift schedule configured.</p>
+						</div>
+					)}
+				</div>
+			</section>
+
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] px-8 py-5 flex flex-row-reverse gap-3">
+				<button
+					type="submit"
+					disabled={isLoading}
+					className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50"
+				>
+					{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+					{isCreate ? "Create Record" : "Save Changes"}
+				</button>
+				<button
+					type="button"
+					onClick={() => router.push("/dashboard/users")}
+					className="inline-flex justify-center rounded-full border border-gray-200 dark:border-white/10 bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-gray-50 dark:hover:bg-white/5 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-white/10 transition-all duration-200"
+				>
+					Cancel
+				</button>
 			</div>
-		</div>
+		</form>
 	);
 }
