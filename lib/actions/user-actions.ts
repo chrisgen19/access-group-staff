@@ -228,6 +228,7 @@ export async function softDeleteUserAction(userId: string) {
 		);
 
 		revalidatePath("/dashboard/users", "layout");
+		revalidatePath(`/dashboard/users/${userId}`);
 		return { success: true as const, data: updated };
 	} catch (error) {
 		if (error instanceof LastSuperadminError) {
@@ -261,6 +262,7 @@ export async function restoreUserAction(userId: string) {
 		});
 
 		revalidatePath("/dashboard/users", "layout");
+		revalidatePath(`/dashboard/users/${userId}`);
 		return { success: true as const, data: updated };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to restore user";
