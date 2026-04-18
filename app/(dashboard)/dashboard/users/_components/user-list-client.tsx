@@ -6,7 +6,6 @@ import {
 	ChevronRight,
 	Eye,
 	Pencil,
-	Plus,
 	RotateCcw,
 	Search,
 	Trash2,
@@ -255,37 +254,6 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 
 	return (
 		<div className="space-y-6">
-			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<div className="flex items-baseline gap-3 flex-wrap">
-						<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-							{isDeletedView ? "Deleted Staff" : "Staff Directory"}
-						</h1>
-						{pagination && (
-							<span className="text-base font-medium text-muted-foreground">
-								{pagination.total} staff
-								{hasActiveFilters && " matching"}
-							</span>
-						)}
-					</div>
-					<p className="mt-2 text-base text-muted-foreground">
-						{isDeletedView
-							? "Restore removed accounts. Their recognition history has been preserved."
-							: "Manage staff accounts, roles, and department assignments."}
-					</p>
-				</div>
-				{!isDeletedView && (
-					<button
-						type="button"
-						onClick={() => router.push("/dashboard/users/new")}
-						className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-					>
-						<Plus className="-ml-1 h-5 w-5" />
-						Add Staff Member
-					</button>
-				)}
-			</div>
-
 			<UserFilterBar
 				search={search}
 				onSearchChange={setSearch}
