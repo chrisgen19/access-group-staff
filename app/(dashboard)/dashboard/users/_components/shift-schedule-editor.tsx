@@ -12,6 +12,20 @@ const timeInputClass =
 const breakInputClass =
 	"w-16 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-2 py-1.5 text-sm text-foreground text-center focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all disabled:opacity-40 disabled:cursor-not-allowed";
 
+const timezoneSelectClass =
+	"rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 px-2.5 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all";
+
+export const TIMEZONE_OPTIONS = [
+	"Asia/Manila",
+	"Australia/Perth",
+	"Australia/Sydney",
+	"Australia/Melbourne",
+	"Australia/Brisbane",
+	"Australia/Adelaide",
+	"Pacific/Auckland",
+	"UTC",
+] as const;
+
 export const DEFAULT_SHIFT_SCHEDULE: ShiftScheduleInput = {
 	timezone: "Asia/Manila",
 	days: [
@@ -90,12 +104,34 @@ export function ShiftScheduleEditor({ value, onChange, errors }: ShiftScheduleEd
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50/60 dark:bg-white/[0.02] border border-gray-200/60 dark:border-white/10 px-4 py-3">
-				<div className="text-sm">
-					<span className="font-semibold text-foreground">{formatHours(totalMins)}</span>
-					<span className="text-muted-foreground"> / week · </span>
-					<span className="text-muted-foreground">
-						{workingDays} working {workingDays === 1 ? "day" : "days"}
-					</span>
+				<div className="flex flex-wrap items-center gap-3 text-sm">
+					<div>
+						<span className="font-semibold text-foreground">{formatHours(totalMins)}</span>
+						<span className="text-muted-foreground"> / week · </span>
+						<span className="text-muted-foreground">
+							{workingDays} working {workingDays === 1 ? "day" : "days"}
+						</span>
+					</div>
+					<label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+						<span>Timezone</span>
+						<select
+							aria-label="Shift schedule timezone"
+							value={value.timezone}
+							onChange={(e) => onChange({ ...value, timezone: e.target.value })}
+							className={timezoneSelectClass}
+						>
+							{TIMEZONE_OPTIONS.includes(
+								value.timezone as (typeof TIMEZONE_OPTIONS)[number],
+							) ? null : (
+								<option value={value.timezone}>{value.timezone}</option>
+							)}
+							{TIMEZONE_OPTIONS.map((tz) => (
+								<option key={tz} value={tz}>
+									{tz}
+								</option>
+							))}
+						</select>
+					</label>
 				</div>
 				<div className="flex flex-wrap gap-1.5">
 					<PresetButton onClick={() => applyPreset("weekdays-9-5")}>Mon–Fri 9–5</PresetButton>

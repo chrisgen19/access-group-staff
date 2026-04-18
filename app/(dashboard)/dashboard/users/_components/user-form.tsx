@@ -27,6 +27,24 @@ function toDateInputValue(value: Date | string | null | undefined): string {
 	return `${year}-${month}-${day}`;
 }
 
+function parseDateInputValue(value: string): Date | null {
+	if (!value) return null;
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+	if (!match) return null;
+	const year = Number(match[1]);
+	const month = Number(match[2]);
+	const day = Number(match[3]);
+	const date = new Date(Date.UTC(year, month - 1, day));
+	if (
+		date.getUTCFullYear() !== year ||
+		date.getUTCMonth() !== month - 1 ||
+		date.getUTCDate() !== day
+	) {
+		return null;
+	}
+	return date;
+}
+
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
 
@@ -340,9 +358,7 @@ export function UserForm({
 									id="hireDate"
 									type="date"
 									value={toDateInputValue(hireDateValue)}
-									onChange={(e) =>
-										setValue("hireDate", e.target.value ? new Date(e.target.value) : null)
-									}
+									onChange={(e) => setValue("hireDate", parseDateInputValue(e.target.value))}
 									className={inputClass}
 								/>
 							</div>
@@ -357,9 +373,7 @@ export function UserForm({
 									id="birthday"
 									type="date"
 									value={toDateInputValue(birthdayValue)}
-									onChange={(e) =>
-										setValue("birthday", e.target.value ? new Date(e.target.value) : null)
-									}
+									onChange={(e) => setValue("birthday", parseDateInputValue(e.target.value))}
 									className={inputClass}
 								/>
 							</div>
@@ -384,7 +398,12 @@ export function UserForm({
 								) : (
 									<button
 										type="button"
-										onClick={() => setValue("shiftSchedule", DEFAULT_SHIFT_SCHEDULE)}
+										onClick={() => {
+											const branch = watch("branch");
+											const timezone =
+												branch === "PERTH" ? "Australia/Perth" : DEFAULT_SHIFT_SCHEDULE.timezone;
+											setValue("shiftSchedule", { ...DEFAULT_SHIFT_SCHEDULE, timezone });
+										}}
 										className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
 									>
 										Add schedule
