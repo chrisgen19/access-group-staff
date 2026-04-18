@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,8 +11,29 @@ interface UsersTabsProps {
 	deletedCount: number;
 }
 
+interface CountsResponse {
+	success: boolean;
+	data: { activeCount: number; deletedCount: number };
+}
+
 export function UsersTabs({ activeCount, deletedCount }: UsersTabsProps) {
 	const pathname = usePathname();
+
+	const { data } = useQuery<CountsResponse>({
+		queryKey: ["users", "counts"],
+		queryFn: async () => {
+			const res = await fetch("/api/users/counts");
+			if (!res.ok) throw new Error("Failed to fetch counts");
+			return res.json();
+		},
+		initialData: {
+			success: true,
+			data: { activeCount, deletedCount },
+		},
+		staleTime: 30_000,
+	});
+
+	const counts = data.data;
 
 	const tabs = [
 		{
@@ -19,14 +41,14 @@ export function UsersTabs({ activeCount, deletedCount }: UsersTabsProps) {
 			label: "Active",
 			href: "/dashboard/users",
 			icon: Users,
-			count: activeCount,
+			count: counts.activeCount,
 		},
 		{
 			key: "deleted",
 			label: "Deleted",
 			href: "/dashboard/users/deleted",
 			icon: Trash2,
-			count: deletedCount,
+			count: counts.deletedCount,
 		},
 	];
 
