@@ -99,7 +99,11 @@ export function TicketList({ tickets, isAdmin }: { tickets: TicketRow[]; isAdmin
 						return (
 							<TableRow
 								key={t.id}
-								onClick={() => router.push(href)}
+								onClick={() => {
+									const selection = window.getSelection();
+									if (selection && selection.toString().length > 0) return;
+									router.push(href);
+								}}
 								onMouseEnter={() => router.prefetch(href)}
 								className="cursor-pointer hover:bg-muted/40"
 							>
