@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { SkeletonLine } from "@/components/shared/skeleton-primitives";
+import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { getDepartmentsAction } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 import { DepartmentTable } from "./department-table";
@@ -54,16 +54,28 @@ export function DepartmentsClient() {
 			</div>
 
 			{isLoading ? (
-				<div
-					className="space-y-4 animate-pulse"
+				<SkeletonCard
+					className="overflow-hidden animate-pulse"
 					role="status"
 					aria-busy="true"
 					aria-label="Loading departments"
 				>
-					<SkeletonLine className="h-10 w-full" />
-					<SkeletonLine className="h-10 w-full" />
-					<SkeletonLine className="h-10 w-full" />
-				</div>
+					<div className="h-14 bg-muted/30 border-b border-gray-200/60 dark:border-white/10" />
+					{["d0", "d1", "d2", "d3"].map((key) => (
+						<div
+							key={key}
+							className="flex items-center gap-8 px-8 py-5 border-b border-gray-200/60 dark:border-white/10 last:border-0"
+						>
+							<SkeletonLine className="h-4 w-40" />
+							<SkeletonLine className="h-4 w-20" />
+							<SkeletonLine className="h-4 w-8" />
+							<div className="flex justify-end gap-1 ml-auto">
+								<SkeletonLine className="h-8 w-8 rounded-full" />
+								<SkeletonLine className="h-8 w-8 rounded-full" />
+							</div>
+						</div>
+					))}
+				</SkeletonCard>
 			) : (
 				<DepartmentTable departments={departments} onMutate={loadDepartments} />
 			)}

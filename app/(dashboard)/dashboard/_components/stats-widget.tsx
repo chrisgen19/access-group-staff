@@ -161,13 +161,13 @@ function StatItem({
 function StatsWidgetSkeleton() {
 	return (
 		<SkeletonCard
-			className="p-6 animate-pulse space-y-6 h-full"
+			className="p-6 animate-pulse flex flex-col gap-6 h-full"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition stats"
 		>
-			<SkeletonLine className="h-5 w-32" />
-			<div className="grid grid-cols-3 gap-4">
+			<SkeletonLine className="h-6 w-40 shrink-0" />
+			<div className="grid grid-cols-3 gap-4 shrink-0">
 				{["s0", "s1", "s2"].map((key) => (
 					<div key={key} className="flex items-center gap-3">
 						<SkeletonLine className="h-10 w-10 rounded-full" />
@@ -178,13 +178,24 @@ function StatsWidgetSkeleton() {
 					</div>
 				))}
 			</div>
-			<div className="space-y-3">
-				{["u0", "u1", "u2"].map((key) => (
-					<div key={key} className="flex items-center gap-3">
-						<SkeletonLine className="h-8 w-8 rounded-full" />
-						<SkeletonLine className="h-4 w-24" />
-					</div>
-				))}
+			<div className="flex flex-col min-h-0 flex-1">
+				<div className="flex items-center gap-2 mb-3 shrink-0">
+					<SkeletonLine className="h-4 w-4 rounded" />
+					<SkeletonLine className="h-4 w-32" />
+				</div>
+				<div className="space-y-2">
+					{["u0", "u1", "u2"].map((key) => (
+						<div
+							key={key}
+							className="flex items-center gap-3 rounded-xl border border-gray-200/60 dark:border-white/10 px-3 py-2.5"
+						>
+							<SkeletonLine className="h-[18px] w-[18px] rounded" />
+							<SkeletonLine className="h-8 w-8 rounded-full" />
+							<SkeletonLine className="h-4 w-24 flex-1" />
+							<SkeletonLine className="h-5 w-8 rounded-full" />
+						</div>
+					))}
+				</div>
 			</div>
 		</SkeletonCard>
 	);

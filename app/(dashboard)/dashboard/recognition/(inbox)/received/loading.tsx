@@ -31,10 +31,15 @@ export default function RecognitionReceivedLoading() {
 						<SkeletonLine className="h-4 w-full" />
 						<SkeletonLine className="h-4 w-2/3" />
 					</div>
-					<div className="flex flex-wrap items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2 mb-4">
 						<SkeletonLine className="h-6 w-16 rounded-full" />
 						<SkeletonLine className="h-6 w-20 rounded-full" />
 						<SkeletonLine className="h-3 w-20 ml-auto" />
+					</div>
+					<div className="flex items-center gap-4 pt-3 border-t border-gray-200/60 dark:border-white/10">
+						<SkeletonLine className="h-6 w-14 rounded-full" />
+						<SkeletonLine className="h-6 w-14 rounded-full" />
+						<SkeletonLine className="h-6 w-20 rounded-full ml-auto" />
 					</div>
 				</SkeletonCard>
 			))}

@@ -37,16 +37,29 @@ export default function RecognitionAllLoading() {
 					>
 						<div className="flex items-center gap-2 w-40">
 							<SkeletonLine className="h-8 w-8 rounded-full" />
-							<SkeletonLine className="h-4 w-24" />
+							<div className="space-y-1 min-w-0">
+								<SkeletonLine className="h-4 w-24" />
+								<SkeletonLine className="h-3 w-16" />
+							</div>
 						</div>
 						<div className="flex items-center gap-2 w-40">
 							<SkeletonLine className="h-8 w-8 rounded-full" />
-							<SkeletonLine className="h-4 w-24" />
+							<div className="space-y-1 min-w-0">
+								<SkeletonLine className="h-4 w-24" />
+								<SkeletonLine className="h-3 w-16" />
+							</div>
 						</div>
 						<SkeletonLine className="h-4 w-48 flex-1" />
-						<SkeletonLine className="h-6 w-20 rounded-full" />
+						<div className="flex gap-1 w-32">
+							<SkeletonLine className="h-6 w-14 rounded-full" />
+							<SkeletonLine className="h-6 w-16 rounded-full" />
+						</div>
 						<SkeletonLine className="h-4 w-20" />
-						<SkeletonLine className="h-4 w-16" />
+						<div className="flex justify-end gap-1 w-32 ml-auto">
+							<SkeletonLine className="h-8 w-8 rounded-full" />
+							<SkeletonLine className="h-8 w-8 rounded-full" />
+							<SkeletonLine className="h-8 w-8 rounded-full" />
+						</div>
 					</div>
 				))}
 			</SkeletonCard>
