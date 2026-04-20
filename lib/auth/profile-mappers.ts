@@ -38,8 +38,8 @@ export function mapMicrosoftProfile(profile: MicrosoftProfile): MappedUser {
 		stripEmailDomain(profile.email) ??
 		""
 	).trim();
-	const [fallbackFirst, ...fallbackRest] = fallbackSource.split(/\s+/);
-	const firstName = profile.given_name ?? fallbackFirst ?? "";
+	const [fallbackFirst = "", ...fallbackRest] = fallbackSource.split(/\s+/);
+	const firstName = profile.given_name ?? fallbackFirst;
 	const lastName = profile.family_name ?? (fallbackRest.join(" ") || firstName);
 	return {
 		firstName,
