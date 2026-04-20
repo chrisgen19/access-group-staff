@@ -288,9 +288,9 @@ export function StatsWidget() {
 			</h3>
 
 			<div className="grid grid-cols-3 gap-4 shrink-0">
-				<StatItem icon={Send} label="Cards Sent" value={stats?.sent ?? 0} />
-				<StatItem icon={Inbox} label="Cards Received" value={stats?.received ?? 0} />
-				<StatItem icon={Calendar} label="This Month" value={stats?.monthlyTotal ?? 0} />
+				<StatItem icon={Send} label="Sent This Month" value={stats?.sent ?? 0} />
+				<StatItem icon={Inbox} label="Received This Month" value={stats?.received ?? 0} />
+				<StatItem icon={Calendar} label="Company This Month" value={stats?.monthlyTotal ?? 0} />
 			</div>
 
 			{showList ? (

@@ -33,10 +33,16 @@ export async function GET() {
 
 		const [sent, received, monthlyTotal] = await Promise.all([
 			prisma.recognitionCard.count({
-				where: { senderId: userId },
+				where: {
+					senderId: userId,
+					createdAt: { gte: startOfMonth, lt: endOfMonth },
+				},
 			}),
 			prisma.recognitionCard.count({
-				where: { recipientId: userId },
+				where: {
+					recipientId: userId,
+					createdAt: { gte: startOfMonth, lt: endOfMonth },
+				},
 			}),
 			prisma.recognitionCard.count({
 				where: { createdAt: { gte: startOfMonth, lt: endOfMonth } },
