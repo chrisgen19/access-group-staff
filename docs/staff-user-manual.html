@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Access Recognition — Staff User Manual</title>
+<style>
+  :root {
+    --brand: #A6192E;
+    --brand-dark: #7A0F1F;
+    --ink: #18181B;
+    --muted: #52525B;
+    --line: #E5E7EB;
+    --cream: #FAF1E1;
+    --cream-soft: #FDF7EB;
+    --chip: #FCE4E4;
+  }
+
+  @page { size: A4; margin: 16mm 14mm; }
+  @page cover { margin: 0; }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    color: var(--ink);
+    font-size: 11.5pt;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Cover */
+  .cover {
+    page: cover;
+    page-break-after: always;
+    min-height: 297mm;
+    width: 210mm;
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 28mm 20mm;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: "";
+    position: absolute;
+    inset: auto -40mm -60mm auto;
+    width: 260mm; height: 260mm;
+    background: radial-gradient(closest-side, rgba(166, 25, 46, 0.08), transparent 70%);
+  }
+  .cover__logo { height: 22mm; color: var(--brand); }
+  .cover__kicker {
+    color: var(--brand);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 10pt;
+    margin-top: 34mm;
+  }
+  .cover__title {
+    font-size: 42pt;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.02;
+    margin: 8mm 0 6mm;
+  }
+  .cover__subtitle {
+    font-size: 14pt;
+    color: var(--muted);
+    max-width: 150mm;
+    line-height: 1.4;
+  }
+  .cover__meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 2px solid var(--brand);
+    padding-top: 6mm;
+  }
+  .cover__meta-left { font-size: 10pt; color: var(--muted); }
+  .cover__meta-right { font-size: 10pt; color: var(--muted); text-align: right; }
+
+  /* Running content */
+  header.page-head {
+    display: flex; align-items: center; gap: 10mm;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 3mm; margin-bottom: 5mm;
+  }
+  header.page-head .logo { height: 9mm; color: var(--brand); }
+  header.page-head .label {
+    color: var(--muted); font-size: 9pt;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  h1 { font-size: 22pt; color: var(--ink); margin: 0 0 4mm; letter-spacing: -0.01em; }
+  h2 { font-size: 15pt; margin: 8mm 0 3mm; color: var(--brand); }
+  h3 { font-size: 12.5pt; margin: 6mm 0 2mm; color: var(--ink); }
+  p { margin: 0 0 3mm; }
+  ul, ol { margin: 0 0 4mm; padding-left: 6mm; }
+  li { margin-bottom: 1.5mm; }
+  a { color: var(--brand); text-decoration: none; }
+  strong { color: var(--ink); }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 10pt; background: var(--cream-soft); padding: 0 1mm; border-radius: 1mm; }
+
+  section { page-break-inside: auto; }
+  .page-break { page-break-before: always; }
+
+  .lead {
+    font-size: 12.5pt;
+    color: var(--muted);
+    max-width: 165mm;
+  }
+
+  .pill {
+    display: inline-block;
+    background: var(--chip); color: var(--brand);
+    font-weight: 700; font-size: 9pt;
+    padding: 0.5mm 3mm; border-radius: 20mm;
+    letter-spacing: 0.04em;
+  }
+
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 3mm;
+    padding: 5mm 6mm;
+    background: #fff;
+    margin: 4mm 0;
+  }
+  .card--cream { background: var(--cream-soft); border-color: #F0E3C8; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5mm;
+    margin: 3mm 0 5mm;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4mm;
+    margin: 3mm 0 5mm;
+  }
+  .tile {
+    border: 1px solid var(--line);
+    border-radius: 3mm;
+    padding: 4mm;
+    background: #fff;
+  }
+  .tile h4 {
+    margin: 0 0 2mm; font-size: 11pt; color: var(--brand);
+    letter-spacing: 0.04em; text-transform: uppercase;
+  }
+  .tile p { margin: 0; font-size: 10.5pt; color: var(--muted); }
+
+  figure {
+    margin: 5mm 0 6mm;
+    page-break-inside: avoid;
+  }
+  figure img {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 3mm;
+    display: block;
+  }
+  figcaption {
+    font-size: 10pt;
+    color: var(--muted);
+    margin-top: 2mm;
+    font-style: italic;
+  }
+
+  .step {
+    display: flex;
+    gap: 4mm;
+    margin: 3mm 0;
+    page-break-inside: avoid;
+  }
+  .step__num {
+    flex: 0 0 8mm; height: 8mm;
+    background: var(--brand); color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11pt;
+  }
+  .step__body { flex: 1; }
+  .step__body h4 { margin: 0 0 1mm; font-size: 11.5pt; }
+  .step__body p { margin: 0; color: var(--muted); }
+
+  .callout {
+    border-left: 4px solid var(--brand);
+    background: var(--cream-soft);
+    padding: 4mm 5mm;
+    border-radius: 0 3mm 3mm 0;
+    margin: 4mm 0;
+  }
+  .callout strong { color: var(--brand); }
+
+  .kv { display: grid; grid-template-columns: 60mm 1fr; gap: 2mm 5mm; margin: 3mm 0 5mm; }
+  .kv dt { font-weight: 700; color: var(--ink); font-size: 10.5pt; }
+  .kv dd { margin: 0; color: var(--muted); font-size: 10.5pt; }
+
+  table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 10.5pt; }
+  th, td { border-bottom: 1px solid var(--line); padding: 3mm 2mm; text-align: left; vertical-align: top; }
+  th { color: var(--brand); font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; font-size: 9pt; }
+
+  .value-list { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3mm; margin: 3mm 0 5mm; }
+  .value-list .v { background: #fff; border: 1px solid var(--line); border-radius: 3mm; padding: 3mm; text-align: center; font-weight: 700; font-size: 10pt; }
+  .value-list .v span { display: block; color: var(--brand); font-size: 9pt; letter-spacing: 0.06em; }
+
+  .toc ol { padding-left: 6mm; }
+  .toc li { margin-bottom: 2mm; font-size: 11.5pt; }
+  .toc em { color: var(--muted); font-style: normal; }
+
+  footer.page-foot {
+    margin-top: 12mm;
+    padding-top: 3mm;
+    border-top: 1px solid var(--line);
+    font-size: 9pt;
+    color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <svg class="cover__logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg" aria-label="Access Group">
+    <path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/>
+  </svg>
+  <div>
+    <div class="cover__kicker">Access Recognition · Staff Handbook</div>
+    <h1 class="cover__title">Sending Thanks,<br />the Access Way.</h1>
+    <p class="cover__subtitle">A quick, friendly guide to recognising your colleagues using the Access Recognition app — from your first login to sending your first card, and everything in between.</p>
+  </div>
+  <div class="cover__meta">
+    <div class="cover__meta-left">
+      <strong>Version 1.0</strong><br />
+      For all Staff users · Access Group Australia
+    </div>
+    <div class="cover__meta-right">
+      <a href="https://access.cgdev.site/">access.cgdev.site</a><br />
+      Published April 2026
+    </div>
+  </div>
+</section>
+
+<!-- TOC -->
+<section>
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg" aria-label="Access Group">
+      <path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/>
+    </svg>
+    <span class="label">Table of Contents</span>
+  </header>
+
+  <h1>What's inside</h1>
+  <p class="lead">This handbook walks you through everything a Staff team member can do inside Access Recognition — no jargon, just clear steps and screenshots you can follow along with.</p>
+
+  <div class="toc">
+    <ol>
+      <li>Welcome to Access Recognition <em>— what it is and why we built it</em></li>
+      <li>Signing in for the first time <em>— email &amp; password or Microsoft SSO</em></li>
+      <li>Your dashboard at a glance <em>— the home screen tour</em></li>
+      <li>Sending a recognition card <em>— the two-step flow</em></li>
+      <li>Your inbox — Received &amp; Sent <em>— the cards you've given and received</em></li>
+      <li>Opening a card <em>— front, back, reactions, and comments</em></li>
+      <li>Notifications <em>— never miss a thank-you</em></li>
+      <li>The leaderboard <em>— see who's being celebrated this month</em></li>
+      <li>Your profile <em>— avatar, preferences, password, and sign-in</em></li>
+      <li>Tips, FAQs &amp; getting help</li>
+    </ol>
+  </div>
+
+  <div class="callout">
+    <strong>How to use this guide.</strong> Read it cover-to-cover on day one, or jump straight to the section you need. Every page matches what you'll see in the app at <a href="https://access.cgdev.site/">access.cgdev.site</a>.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>1</span>
+  </footer>
+</section>
+
+<!-- 1. WELCOME -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">01 · Welcome</span>
+  </header>
+
+  <h1>Welcome to Access Recognition</h1>
+  <p class="lead">Access Recognition is our internal thank-you app. Whenever a colleague does something that makes your day a bit better — big or small — you can send them a branded recognition card tied to one of our Access Group values.</p>
+
+  <h2>What makes it special</h2>
+  <div class="grid-3">
+    <div class="tile">
+      <h4>It's personal</h4>
+      <p>Every card is addressed to a specific person and explains exactly what they did. No generic "great job" — you say why.</p>
+    </div>
+    <div class="tile">
+      <h4>It's on-brand</h4>
+      <p>Cards use the Access Group visual identity, so a thank-you feels like a real moment — not a throwaway chat message.</p>
+    </div>
+    <div class="tile">
+      <h4>It's tied to values</h4>
+      <p>Each card calls out one or more of our five values, so recognition reinforces what we stand for as a team.</p>
+    </div>
+  </div>
+
+  <h2>The Access Group values</h2>
+  <p>You'll tick one or more of these every time you send a card. They're the "why" behind the recognition.</p>
+  <div class="value-list">
+    <div class="v"><span>VALUE</span>People</div>
+    <div class="v"><span>VALUE</span>Safety</div>
+    <div class="v"><span>VALUE</span>Respect</div>
+    <div class="v"><span>VALUE</span>Communication</div>
+    <div class="v"><span>VALUE</span>Continuous<br />Improvement</div>
+  </div>
+
+  <h2>Who this guide is for</h2>
+  <p>This handbook is written for team members with the <span class="pill">STAFF</span> role — that's the default for everyone at Access Group. Managers and administrators have a few extra tools (like staff directory management) that aren't covered here, since they're not available to you.</p>
+
+  <div class="callout">
+    <strong>The golden rule.</strong> You can't send a card to yourself — recognition only counts when it's given, not claimed. And please keep it genuine: one thoughtful card a month beats ten empty ones.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>2</span>
+  </footer>
+</section>
+
+<!-- 2. SIGNING IN -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">02 · Sign In</span>
+  </header>
+
+  <h1>Signing in for the first time</h1>
+  <p class="lead">There are two ways to get into Access Recognition. Most people use their Microsoft work account — that means no extra password to remember.</p>
+
+  <figure>
+    <img src="assets/01-login.png" alt="Access Recognition login screen" />
+    <figcaption>The login screen at access.cgdev.site — Microsoft SSO at the top, email &amp; password below.</figcaption>
+  </figure>
+
+  <h2>Option 1 — Continue with Microsoft (recommended)</h2>
+  <div class="step">
+    <div class="step__num">1</div>
+    <div class="step__body">
+      <h4>Open the app</h4>
+      <p>Go to <a href="https://access.cgdev.site/">access.cgdev.site</a> in your browser. Chrome, Edge, Safari, and Firefox all work.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step__num">2</div>
+    <div class="step__body">
+      <h4>Click <em>Continue with Microsoft</em></h4>
+      <p>You'll be sent to the familiar Microsoft sign-in page. Use your Access Group email and the password you already use for Outlook and Teams.</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step__num">3</div>
+    <div class="step__body">
+      <h4>Approve the sign-in prompt</h4>
+      <p>If Microsoft sends you an authenticator notification, tap <strong>Approve</strong>. You'll be dropped straight onto your Access Recognition dashboard.</p>
+    </div>
+  </div>
+
+  <h2>Option 2 — Email &amp; password</h2>
+  <p>If you've been set up with email-and-password access, enter your corporate email and password in the fields below the Microsoft button, then click <strong>Sign in</strong>.</p>
+
+  <div class="callout">
+    <strong>Can't sign in?</strong> If you're brand new to Access Group and your account hasn't been created yet, give HR or your manager a heads-up — your account is added by an administrator, so it'll appear once you're onboarded in the system.
+  </div>
+
+  <h2>Signing out</h2>
+  <p>To sign out, click the <strong>Sign Out</strong> button at the bottom of the left-hand sidebar on any dashboard screen. On a shared computer, always sign out before you leave.</p>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>3</span>
+  </footer>
+</section>
+
+<!-- 3. DASHBOARD -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">03 · Dashboard</span>
+  </header>
+
+  <h1>Your dashboard at a glance</h1>
+  <p class="lead">This is where you land every time you sign in — a bird's-eye view of what's happening across the team today.</p>
+
+  <figure>
+    <img src="assets/02-dashboard.png" alt="Staff dashboard landing page" />
+    <figcaption>Your home screen: sidebar navigation on the left, the recognition feed in the middle, and your personal stats on the right.</figcaption>
+  </figure>
+
+  <h2>The sidebar</h2>
+  <p>Four items, always visible on the left. Here's what each one opens:</p>
+  <dl class="kv">
+    <dt>Dashboard</dt><dd>The home screen you're on now — recognition feed + your stats.</dd>
+    <dt>Recognition Card</dt><dd>Your inbox of cards received and sent. The red badge shows unread received cards.</dd>
+    <dt>Leaderboard</dt><dd>See who's been recognised the most this month, across the whole company.</dd>
+    <dt>My Profile</dt><dd>Your avatar, preferences, password, and linked Microsoft/Google accounts.</dd>
+  </dl>
+
+  <h2>The recognition feed</h2>
+  <p>The big panel in the middle shows recent public cards. Two tabs let you switch between:</p>
+  <ul>
+    <li><strong>Public</strong> — cards from everyone across Access Group.</li>
+    <li><strong>My Department</strong> — filtered to just your team.</li>
+  </ul>
+  <p>You can react to any card in the feed with emojis, or tap <strong>Comment</strong> to leave a note. More on that in Section 6.</p>
+
+  <h2>Your recognition stats</h2>
+  <p>The right-hand panel is your personal scorecard:</p>
+  <div class="grid-3">
+    <div class="tile"><h4>Cards Sent</h4><p>How many thank-you cards you've given since joining.</p></div>
+    <div class="tile"><h4>Cards Received</h4><p>How many you've been given by teammates.</p></div>
+    <div class="tile"><h4>This Month</h4><p>Combined sent + received activity in the current month.</p></div>
+  </div>
+  <p>Below the stats is the <strong>Most Recognized</strong> mini-leaderboard — the top colleagues this month, with gold/silver/bronze medals for the top three.</p>
+
+  <div class="callout">
+    <strong>See the big red button?</strong> The <em>Send Recognition Card</em> button at the top-right is always one click away. Use it whenever someone deserves a shout-out — we'll walk through it next.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>4</span>
+  </footer>
+</section>
+
+<!-- 4. SENDING A CARD -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">04 · Send a Card</span>
+  </header>
+
+  <h1>Sending a recognition card</h1>
+  <p class="lead">Sending a card takes under a minute. There are two steps — <strong>Fill Card</strong> and <strong>Review &amp; Submit</strong> — and the preview updates live as you type.</p>
+
+  <h2>Step 1 — Fill Card</h2>
+  <figure>
+    <img src="assets/05-create-step1.png" alt="Empty recognition card form, step 1" />
+    <figcaption>The card editor. The left side is your live card preview; the right side is the values checklist.</figcaption>
+  </figure>
+
+  <div class="step">
+    <div class="step__num">1</div>
+    <div class="step__body">
+      <h4>Pick a colleague</h4>
+      <p>Click the <strong>TO</strong> field and start typing their name. Matches appear instantly.</p>
+    </div>
+  </div>
+
+  <figure>
+    <img src="assets/05b-create-picker.png" alt="Recipient picker with a search result" />
+    <figcaption>Typing "Kate" surfaces Kate Bickley. Click the result to set her as the recipient.</figcaption>
+  </figure>
+
+  <div class="step">
+    <div class="step__num">2</div>
+    <div class="step__body">
+      <h4>Write what they did</h4>
+      <p>In the <strong>WHAT YOU DID</strong> box, describe the moment. Be specific — "stayed late to help debug the deploy" hits harder than "was awesome".</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">3</div>
+    <div class="step__body">
+      <h4>Tick at least one value</h4>
+      <p>On the right, select every Access Group value the person demonstrated. You must pick at least one; multiple is fine.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step__num">4</div>
+    <div class="step__body">
+      <h4>Check the date</h4>
+      <p>It defaults to today. Change it only if you're recognising something that happened earlier.</p>
+    </div>
+  </div>
+
+  <figure>
+    <img src="assets/05c-create-filled.png" alt="Filled recognition card form" />
+    <figcaption>A completed step 1 — ready to review.</figcaption>
+  </figure>
+
+  <h2>Step 2 — Review &amp; Submit</h2>
+  <p>Click <strong>Review Before Submit</strong>. The card flips to its final, on-brand look so you can double-check everything before it goes out.</p>
+
+  <figure>
+    <img src="assets/06-create-review.png" alt="Review and submit screen showing the final card" />
+    <figcaption>The final card. Hit <em>Send Recognition</em> to deliver, or <em>Back</em> to tweak anything.</figcaption>
+  </figure>
+
+  <p>Once you send:</p>
+  <ul>
+    <li>The recipient gets a notification in their bell icon.</li>
+    <li>The card appears in your <strong>Sent</strong> tab and their <strong>Received</strong> tab.</li>
+    <li>If the card is public, it also shows up in the recognition feed.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>You can edit your own cards.</strong> If you spot a typo after sending, open the card from your Sent tab and click Edit. Recipients will see an "Edited" notification so they know you tidied it up.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>5</span>
+  </footer>
+</section>
+
+<!-- 5. INBOX -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">05 · Your Inbox</span>
+  </header>
+
+  <h1>Your inbox — Received &amp; Sent</h1>
+  <p class="lead">Click <strong>Recognition Card</strong> in the sidebar to open your personal inbox. Two tabs: cards you've been given, and cards you've sent.</p>
+
+  <h2>Received</h2>
+  <figure>
+    <img src="assets/03-inbox-received.png" alt="Received inbox" />
+    <figcaption>The Received tab. New cards are flagged with a small red <em>NEW</em> ribbon.</figcaption>
+  </figure>
+
+  <p>Each row is a full, clickable recognition card. Click anywhere on the card to open it in full view, where you can see reactions and comments. See Section 6 for the full card view.</p>
+
+  <h2>Sent</h2>
+  <figure>
+    <img src="assets/04-inbox-sent.png" alt="Sent inbox" />
+    <figcaption>The Sent tab — everyone you've thanked, most recent first.</figcaption>
+  </figure>
+
+  <p>From the Sent view, you can:</p>
+  <ul>
+    <li>Click any card to open and share it.</li>
+    <li>Click <strong>Edit</strong> on a card you authored to fix the message or adjust the values.</li>
+    <li>Leave the same card and come back later — the list is always fresh.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>The red "9+" badge</strong> next to <em>Recognition Card</em> in the sidebar is your unread counter. Once you've opened a card, it's marked as read and the number drops.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>6</span>
+  </footer>
+</section>
+
+<!-- 6. CARD VIEW -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">06 · Opening a Card</span>
+  </header>
+
+  <h1>Opening a card</h1>
+  <p class="lead">Clicking any card — in your inbox, in the public feed, or via a shared link — opens it in full. This is where the card really shines: reactions, comments, and the Access Group front-of-card design.</p>
+
+  <h2>The front of the card</h2>
+  <figure>
+    <img src="assets/12-card-detail.png" alt="Full recognition card view" />
+    <figcaption>Who it's to, who it's from, what they did, which values they demonstrated.</figcaption>
+  </figure>
+
+  <h2>Flip it over</h2>
+  <p>The <strong>Flip to front</strong> / <strong>Flip to back</strong> button above the card shows the presentation-style reverse side.</p>
+  <figure>
+    <img src="assets/14-card-back.png" alt="Card back with THANK YOU FOR YOUR CONTRIBUTION" />
+    <figcaption>The back of the card — perfect for a screenshot if you want to share a thank-you on Teams or LinkedIn.</figcaption>
+  </figure>
+
+  <h2>React with an emoji</h2>
+  <p>Below every card is a row of six emojis — 👏 ❤️ 🔥 🎉 💪 😊. Tap one to add your reaction, tap again to remove it. Reactions are visible to everyone.</p>
+
+  <h2>Leave a comment</h2>
+  <p>Click <strong>Comment</strong> on the right of the reaction bar to add a short note. Great for piling on a well-deserved thank-you, or sharing context the sender might not have known about.</p>
+
+  <h2>Share a link</h2>
+  <p>The <strong>Share</strong> button in the top-right of the card page copies a public link. Anyone at Access Group with the link can view the card — handy for Slack shout-outs or pinning in Teams channels.</p>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>7</span>
+  </footer>
+</section>
+
+<!-- 7. NOTIFICATIONS -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">07 · Notifications</span>
+  </header>
+
+  <h1>Notifications</h1>
+  <p class="lead">The bell icon in the top-right of every page holds your notifications. A red counter tells you how many you haven't read yet.</p>
+
+  <figure>
+    <img src="assets/13-notifications.png" alt="Notifications dropdown open" />
+    <figcaption>Click the bell for a dropdown of recent notifications, most recent first.</figcaption>
+  </figure>
+
+  <h2>What you'll be notified about</h2>
+  <ul>
+    <li><strong>Card received</strong> — someone sent you a recognition card.</li>
+    <li><strong>Card edited</strong> — a sender updated a card you were given.</li>
+    <li><strong>Card deleted</strong> — a card addressed to you was removed.</li>
+    <li><strong>Reaction</strong> — someone reacted to a card you sent or received.</li>
+    <li><strong>Comment</strong> — someone commented on a card you sent or received.</li>
+  </ul>
+
+  <h2>Clearing notifications</h2>
+  <p>Click any notification to jump straight to the related card — that marks it read. Or click <strong>Mark all as read</strong> in the top-right of the dropdown to clear everything at once.</p>
+
+  <div class="callout">
+    <strong>Tip.</strong> Unread notifications don't expire. If you're on leave for a week, they'll all be waiting when you return — no catch-up email needed.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>8</span>
+  </footer>
+</section>
+
+<!-- 8. LEADERBOARD -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">08 · Leaderboard</span>
+  </header>
+
+  <h1>The leaderboard</h1>
+  <p class="lead">The leaderboard shows the most recognised people at Access Group each month. It's fun, friendly, and deliberately celebratory — not a competition.</p>
+
+  <figure>
+    <img src="assets/07-leaderboard.png" alt="Leaderboard for April 2026" />
+    <figcaption>Gold, silver, and bronze medals mark the top three for the selected month.</figcaption>
+  </figure>
+
+  <h2>How it works</h2>
+  <ul>
+    <li>The board counts cards <strong>received</strong> in the chosen month.</li>
+    <li>Use the <strong>Showing</strong> dropdown to switch between the current month and past snapshots.</li>
+    <li>The current month is labelled <span class="pill">Live</span> and updates in real time as cards are sent.</li>
+    <li>Past months are frozen snapshots — great for looking back on who shone in, say, March.</li>
+  </ul>
+
+  <div class="callout">
+    <strong>Why it matters.</strong> The leaderboard makes generosity visible. Sending more cards doesn't earn you a medal — but noticing great work around you does mean more colleagues feel seen.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>9</span>
+  </footer>
+</section>
+
+<!-- 9. PROFILE -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">09 · Your Profile</span>
+  </header>
+
+  <h1>Your profile</h1>
+  <p class="lead">Open <strong>My Profile</strong> in the sidebar to update how you show up in the app. There are four tabs: Profile, Security, Connected Accounts, and Preferences.</p>
+
+  <h2>Profile</h2>
+  <figure>
+    <img src="assets/08-profile.png" alt="Profile edit screen" />
+    <figcaption>Upload a photo, set a display name, and fill in your role/phone so colleagues can find you faster.</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Profile Photo</strong> — click <em>Upload photo</em>. JPG, PNG, or WebP; the app auto-resizes to 200×200.</li>
+    <li><strong>First / Last / Display Name</strong> — display name is optional and shown when present.</li>
+    <li><strong>Phone &amp; Position</strong> — visible on your profile card; useful for colleagues figuring out who does what.</li>
+    <li><strong>Branch</strong> — ISO or Perth, set by an admin when your account is created.</li>
+  </ul>
+
+  <h2>Security</h2>
+  <figure>
+    <img src="assets/11-profile-security.png" alt="Change password screen" />
+    <figcaption>Only shown if your account uses email-and-password sign-in. SSO-only accounts skip this.</figcaption>
+  </figure>
+  <p>To change your password, enter your current one, then the new password twice. Passwords must be reasonably strong — the form will tell you if it's too short.</p>
+
+  <h2>Connected Accounts</h2>
+  <figure>
+    <img src="assets/10-profile-connected.png" alt="Connected accounts screen with Email, Google, Microsoft options" />
+    <figcaption>Link a Microsoft or Google account so you can one-click sign in next time.</figcaption>
+  </figure>
+  <p>Click <strong>Connect</strong> on a row to link that account. Once connected, you can sign in with either method. To unlink, click <em>Disconnect</em> on the same row.</p>
+
+  <h2>Preferences</h2>
+  <figure>
+    <img src="assets/09-profile-preferences.png" alt="Preferences screen with background, card view, and card size" />
+    <figcaption>Purely cosmetic — changes only affect your own view of the app.</figcaption>
+  </figure>
+  <dl class="kv">
+    <dt>Background Colour</dt><dd>Six options for the page background. Cream is the Access default; try Slate if you prefer a cooler look.</dd>
+    <dt>Card View</dt><dd><em>Physical Card</em> (full branded preview) or <em>Simple</em> (compact list). Pick whichever scans faster for you.</dd>
+    <dt>Card Size</dt><dd>Compact, Normal, or Expanded — changes how much vertical space each card takes in your inbox.</dd>
+  </dl>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook</span>
+    <span>10</span>
+  </footer>
+</section>
+
+<!-- 10. FAQ -->
+<section class="page-break">
+  <header class="page-head">
+    <svg class="logo" viewBox="0 0 2048 600" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" fill-rule="evenodd" d="M 1196 156 L 1152 379 L 1379 378 L 1388 325 L 1258 326 L 1247 324 L 1253 295 L 1384 295 L 1395 241 L 1263 240 L 1270 210 L 1413 209 L 1423 156 Z M 1981 180 L 1962 165 L 1944 158 L 1884 149 L 1814 153 L 1781 162 L 1765 170 L 1744 188 L 1733 206 L 1727 243 L 1734 263 L 1749 276 L 1767 283 L 1873 300 L 1880 306 L 1881 316 L 1866 331 L 1835 334 L 1816 329 L 1810 323 L 1807 312 L 1708 312 L 1706 333 L 1712 352 L 1728 368 L 1753 379 L 1820 387 L 1893 382 L 1925 373 L 1947 362 L 1971 338 L 1981 315 L 1983 283 L 1976 267 L 1962 254 L 1943 246 L 1826 227 L 1820 222 L 1819 214 L 1833 201 L 1865 198 L 1886 205 L 1892 213 L 1893 221 L 1989 221 L 1989 198 Z M 1686 180 L 1671 167 L 1650 158 L 1589 149 L 1519 153 L 1471 169 L 1449 188 L 1435 215 L 1432 240 L 1441 265 L 1454 276 L 1472 283 L 1575 299 L 1585 306 L 1586 317 L 1573 330 L 1541 334 L 1521 329 L 1515 323 L 1512 312 L 1413 312 L 1411 328 L 1417 352 L 1429 365 L 1445 374 L 1467 381 L 1502 386 L 1544 387 L 1591 383 L 1618 377 L 1647 365 L 1674 341 L 1686 316 L 1689 291 L 1680 265 L 1665 253 L 1648 246 L 1538 229 L 1528 225 L 1524 216 L 1527 209 L 1536 202 L 1570 198 L 1591 205 L 1598 214 L 1598 221 L 1694 221 L 1694 196 Z M 1127 183 L 1111 168 L 1096 160 L 1067 152 L 1039 149 L 1000 149 L 962 154 L 930 164 L 908 176 L 895 186 L 875 209 L 855 253 L 848 299 L 850 322 L 859 346 L 875 364 L 887 372 L 908 380 L 943 386 L 989 387 L 1026 383 L 1059 374 L 1082 362 L 1113 331 L 1131 293 L 1037 293 L 1027 311 L 1014 323 L 993 331 L 971 331 L 953 324 L 942 311 L 938 296 L 942 257 L 951 235 L 965 218 L 980 209 L 997 204 L 1020 205 L 1034 211 L 1044 223 L 1047 243 L 1141 243 L 1140 213 Z M 814 179 L 784 159 L 758 152 L 731 149 L 666 152 L 635 160 L 608 173 L 594 183 L 571 209 L 552 250 L 546 279 L 545 310 L 548 328 L 556 347 L 571 364 L 592 376 L 638 386 L 680 387 L 722 382 L 751 373 L 769 364 L 791 346 L 803 331 L 818 304 L 821 293 L 727 293 L 718 310 L 704 323 L 688 330 L 665 331 L 648 324 L 637 311 L 633 294 L 635 266 L 641 245 L 656 221 L 676 208 L 692 204 L 712 205 L 725 211 L 735 224 L 738 243 L 831 243 L 829 208 Z M 514 142 L 385 142 L 141 380 L 236 380 L 426 194 L 429 195 L 428 299 L 353 300 L 304 352 L 429 353 L 429 380 L 514 380 Z M 515 93 L 475 83 L 432 80 L 374 84 L 326 93 L 237 124 L 162 169 L 99 229 L 73 267 L 55 308 L 48 346 L 49 378 L 58 409 L 75 436 L 102 461 L 136 480 L 179 494 L 218 500 L 320 498 L 372 488 L 420 472 L 358 484 L 282 485 L 213 473 L 170 455 L 127 421 L 107 389 L 98 355 L 102 301 L 118 262 L 146 222 L 189 181 L 254 138 L 319 109 L 378 93 L 431 87 L 476 89 L 514 97 Z"/></svg>
+    <span class="label">10 · Tips &amp; Help</span>
+  </header>
+
+  <h1>Tips, FAQs &amp; getting help</h1>
+  <p class="lead">A grab-bag of the questions Staff users ask most in their first month with Access Recognition.</p>
+
+  <h2>Writing a great card</h2>
+  <ul>
+    <li><strong>Be specific.</strong> Name the project, the moment, the outcome. "Your push on Friday unblocked the whole pipeline" beats "great job".</li>
+    <li><strong>Pick values on purpose.</strong> Ticking all five dilutes the meaning. Choose the one or two that really applied.</li>
+    <li><strong>Recognise people outside your team.</strong> Cross-department thanks tend to mean the most — they're less expected.</li>
+    <li><strong>Keep it authentic.</strong> A short, honest card beats a long, generic one every time.</li>
+  </ul>
+
+  <h2>Frequently asked questions</h2>
+
+  <h3>Can I send a card to myself?</h3>
+  <p>No — the recipient picker won't let you pick yourself, and the app rejects the submission server-side if you try to sneak past the UI.</p>
+
+  <h3>Can I delete a card I sent?</h3>
+  <p>Yes. Open the card from your Sent tab and choose Delete. The recipient gets a small "card deleted" notification. Only the sender can delete.</p>
+
+  <h3>Who can see my cards?</h3>
+  <p>Your received and sent cards are visible to everyone at Access Group through the public feed and the card detail page, unless marked otherwise. This is by design — recognition is meant to be seen.</p>
+
+  <h3>Do I get an email when I receive a card?</h3>
+  <p>Not in v1 of the app — notifications live inside the bell icon. Email alerts are on the roadmap.</p>
+
+  <h3>Something looks wrong / I can't sign in.</h3>
+  <p>Try a refresh first. If that doesn't help, ping the HR team or the app's administrators — they have tools to reset accounts, restore deleted users, and investigate edge cases.</p>
+
+  <h2>Where to find help</h2>
+  <div class="grid-2">
+    <div class="tile">
+      <h4>App URL</h4>
+      <p><a href="https://access.cgdev.site/">access.cgdev.site</a> — bookmark it. Works on desktop and mobile.</p>
+    </div>
+    <div class="tile">
+      <h4>Admins</h4>
+      <p>Your HR team and department admins can reset your password, update your branch/department, or link your Microsoft account.</p>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>One last thing.</strong> This app only works if people use it. Every card you send makes someone's day, and a thriving culture of recognition starts with one person choosing to say thanks. That person might as well be you.
+  </div>
+
+  <footer class="page-foot">
+    <span>Access Recognition · Staff Handbook · End</span>
+    <span>11</span>
+  </footer>
+</section>
+
+</body>
+</html>
