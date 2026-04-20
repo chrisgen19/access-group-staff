@@ -144,7 +144,7 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 				Sign Out
 			</button>
 
-			<p className="px-4 pt-2 text-[11px] text-muted-foreground/70">
+			<p className="px-4 pt-2 text-[11px] text-primary">
 				Created by Chris Diomampo of Marketing/IT
 			</p>
 		</>
