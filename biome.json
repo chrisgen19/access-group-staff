@@ -13,7 +13,8 @@
 			"!.next",
 			"!prisma/generated",
 			"!app/generated",
-			"!app/globals.css"
+			"!app/globals.css",
+			"!docs"
 		]
 	},
 	"formatter": {
