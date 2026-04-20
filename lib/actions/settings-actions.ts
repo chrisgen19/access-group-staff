@@ -2,6 +2,11 @@
 
 import { env } from "@/env";
 import { requireRole } from "@/lib/auth-utils";
+import {
+	getOrCreateGlobalEntry,
+	invalidateEntry,
+	readThroughCache,
+} from "@/lib/cache/settings-cache";
 import { prisma } from "@/lib/db";
 import {
 	TOP_RECOGNIZED_DEFAULT,
@@ -26,63 +31,29 @@ const CACHE_TTL_MS = 30_000;
 
 const TOP_RECOGNIZED_KEY = "top_recognized_limit";
 
-// Caches live on globalThis so they behave as a true process-wide singleton.
-// Server Actions and Route Handlers can land in separate bundles with distinct
-// module-scoped variables — a plain module-level `let` would mean the admin
-// Server Action invalidates a different cache instance than the one readers
-// (Route Handlers, Server Components) actually consult, leaking stale data for
-// up to CACHE_TTL_MS after a settings change.
-//
-// `generation` guards against a read/invalidate race: a reader captures the
-// generation before awaiting the DB, and only publishes its result back into
-// the shared cache if no invalidation happened during the await. Without this,
-// an in-flight reader holding pre-update data would re-poison the cache right
-// after an admin invalidates it.
-type CacheEntry<T> = { data: T | null; expiry: number; generation: number };
-const globalForSettingsCache = globalThis as unknown as {
-	oauthCache: CacheEntry<OAuthSettings>;
-	topLimitCache: CacheEntry<number>;
-	leaderboardCache: CacheEntry<LeaderboardVisibilitySettings>;
-};
-globalForSettingsCache.oauthCache ??= { data: null, expiry: 0, generation: 0 };
-globalForSettingsCache.topLimitCache ??= { data: null, expiry: 0, generation: 0 };
-globalForSettingsCache.leaderboardCache ??= { data: null, expiry: 0, generation: 0 };
-const oauthCache = globalForSettingsCache.oauthCache;
-const topLimitCache = globalForSettingsCache.topLimitCache;
-const leaderboardCache = globalForSettingsCache.leaderboardCache;
-
-function invalidate<T>(entry: CacheEntry<T>): void {
-	entry.data = null;
-	entry.expiry = 0;
-	entry.generation += 1;
-}
+const oauthCache = getOrCreateGlobalEntry<OAuthSettings>("accessGroupStaff.settings.oauth");
+const topLimitCache = getOrCreateGlobalEntry<number>(
+	"accessGroupStaff.settings.topRecognizedLimit",
+);
+const leaderboardCache = getOrCreateGlobalEntry<LeaderboardVisibilitySettings>(
+	"accessGroupStaff.settings.leaderboardVisibility",
+);
 
 export async function getOAuthSettings(): Promise<OAuthSettings> {
-	if (oauthCache.data && Date.now() < oauthCache.expiry) {
-		return oauthCache.data;
-	}
-
-	const generation = oauthCache.generation;
-	const settings = await prisma.appSetting.findMany({
-		where: { key: { in: [...OAUTH_KEYS] } },
+	return readThroughCache(oauthCache, CACHE_TTL_MS, async () => {
+		const settings = await prisma.appSetting.findMany({
+			where: { key: { in: [...OAUTH_KEYS] } },
+		});
+		const map = new Map(settings.map((s) => [s.key, s.value]));
+		return {
+			oauth_google_enabled: map.get("oauth_google_enabled") !== "false",
+			oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") !== "false",
+		};
 	});
-
-	const map = new Map(settings.map((s) => [s.key, s.value]));
-	const fresh: OAuthSettings = {
-		oauth_google_enabled: map.get("oauth_google_enabled") !== "false",
-		oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") !== "false",
-	};
-
-	if (oauthCache.generation === generation) {
-		oauthCache.data = fresh;
-		oauthCache.expiry = Date.now() + CACHE_TTL_MS;
-	}
-
-	return fresh;
 }
 
 function invalidateOAuthCache() {
-	invalidate(oauthCache);
+	invalidateEntry(oauthCache);
 }
 
 export async function getOAuthProviderAvailability() {
@@ -120,31 +91,19 @@ export async function updateOAuthSetting(
 /* ── Top Recognized Limit ────────────────────────────── */
 
 function invalidateTopLimitCache() {
-	invalidate(topLimitCache);
+	invalidateEntry(topLimitCache);
 }
 
 export async function getTopRecognizedLimit(): Promise<number> {
-	if (topLimitCache.data !== null && Date.now() < topLimitCache.expiry) {
-		return topLimitCache.data;
-	}
-
-	const generation = topLimitCache.generation;
-	const row = await prisma.appSetting.findUnique({
-		where: { key: TOP_RECOGNIZED_KEY },
-	});
-
-	const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
-	const fresh =
-		Number.isNaN(parsed) || parsed < TOP_RECOGNIZED_MIN || parsed > TOP_RECOGNIZED_MAX
+	return readThroughCache(topLimitCache, CACHE_TTL_MS, async () => {
+		const row = await prisma.appSetting.findUnique({
+			where: { key: TOP_RECOGNIZED_KEY },
+		});
+		const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
+		return Number.isNaN(parsed) || parsed < TOP_RECOGNIZED_MIN || parsed > TOP_RECOGNIZED_MAX
 			? TOP_RECOGNIZED_DEFAULT
 			: parsed;
-
-	if (topLimitCache.generation === generation) {
-		topLimitCache.data = fresh;
-		topLimitCache.expiry = Date.now() + CACHE_TTL_MS;
-	}
-
-	return fresh;
+	});
 }
 
 export async function updateTopRecognizedLimit(
@@ -188,7 +147,7 @@ const LEADERBOARD_KEYS = [
 ];
 
 function invalidateLeaderboardCache() {
-	invalidate(leaderboardCache);
+	invalidateEntry(leaderboardCache);
 }
 
 function isValidIsoDate(value: string): boolean {
@@ -203,41 +162,31 @@ function isLeaderboardMode(value: string): value is LeaderboardVisibilityMode {
 }
 
 export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVisibilitySettings> {
-	if (leaderboardCache.data && Date.now() < leaderboardCache.expiry) {
-		return leaderboardCache.data;
-	}
+	return readThroughCache(leaderboardCache, CACHE_TTL_MS, async () => {
+		const rows = await prisma.appSetting.findMany({
+			where: { key: { in: LEADERBOARD_KEYS } },
+		});
+		const map = new Map(rows.map((r) => [r.key, r.value]));
 
-	const generation = leaderboardCache.generation;
-	const rows = await prisma.appSetting.findMany({
-		where: { key: { in: LEADERBOARD_KEYS } },
+		const rawMode = map.get(LEADERBOARD_MODE_KEY) ?? "always";
+		const mode: LeaderboardVisibilityMode = isLeaderboardMode(rawMode) ? rawMode : "always";
+
+		const parsedDays = Number.parseInt(map.get(LEADERBOARD_DAYS_KEY) ?? "", 10);
+		const revealDays =
+			Number.isFinite(parsedDays) && parsedDays >= REVEAL_DAYS_MIN && parsedDays <= REVEAL_DAYS_MAX
+				? parsedDays
+				: REVEAL_DAYS_DEFAULT;
+
+		const rawStart = map.get(LEADERBOARD_CUSTOM_START_KEY) ?? null;
+		const rawEnd = map.get(LEADERBOARD_CUSTOM_END_KEY) ?? null;
+
+		return {
+			mode,
+			revealDays,
+			customStart: rawStart && isValidIsoDate(rawStart) ? rawStart : null,
+			customEnd: rawEnd && isValidIsoDate(rawEnd) ? rawEnd : null,
+		};
 	});
-	const map = new Map(rows.map((r) => [r.key, r.value]));
-
-	const rawMode = map.get(LEADERBOARD_MODE_KEY) ?? "always";
-	const mode: LeaderboardVisibilityMode = isLeaderboardMode(rawMode) ? rawMode : "always";
-
-	const parsedDays = Number.parseInt(map.get(LEADERBOARD_DAYS_KEY) ?? "", 10);
-	const revealDays =
-		Number.isFinite(parsedDays) && parsedDays >= REVEAL_DAYS_MIN && parsedDays <= REVEAL_DAYS_MAX
-			? parsedDays
-			: REVEAL_DAYS_DEFAULT;
-
-	const rawStart = map.get(LEADERBOARD_CUSTOM_START_KEY) ?? null;
-	const rawEnd = map.get(LEADERBOARD_CUSTOM_END_KEY) ?? null;
-
-	const fresh: LeaderboardVisibilitySettings = {
-		mode,
-		revealDays,
-		customStart: rawStart && isValidIsoDate(rawStart) ? rawStart : null,
-		customEnd: rawEnd && isValidIsoDate(rawEnd) ? rawEnd : null,
-	};
-
-	if (leaderboardCache.generation === generation) {
-		leaderboardCache.data = fresh;
-		leaderboardCache.expiry = Date.now() + CACHE_TTL_MS;
-	}
-
-	return fresh;
 }
 
 export interface UpdateLeaderboardVisibilityInput {
