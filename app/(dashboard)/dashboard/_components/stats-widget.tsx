@@ -150,7 +150,7 @@ function StatItem({
 				<Icon size={18} className="text-primary" />
 			</div>
 			<div>
-				<p className="text-2xl font-semibold text-foreground">{value}</p>
+				<p className="text-2xl font-semibold text-foreground">{value.toLocaleString()}</p>
 				<p className="text-xs text-muted-foreground">{label}</p>
 			</div>
 		</div>
@@ -288,9 +288,9 @@ export function StatsWidget() {
 			</h3>
 
 			<div className="grid grid-cols-3 gap-4 shrink-0">
-				<StatItem icon={Send} label="Cards Sent" value={stats?.sent ?? 0} />
-				<StatItem icon={Inbox} label="Cards Received" value={stats?.received ?? 0} />
-				<StatItem icon={Calendar} label="This Month" value={stats?.monthlyTotal ?? 0} />
+				<StatItem icon={Send} label="Sent This Month" value={stats?.sent ?? 0} />
+				<StatItem icon={Inbox} label="Received This Month" value={stats?.received ?? 0} />
+				<StatItem icon={Calendar} label="Company This Month" value={stats?.monthlyTotal ?? 0} />
 			</div>
 
 			{showList ? (
@@ -348,7 +348,7 @@ export function StatsWidget() {
 											isPodium ? cn("rounded-full px-2.5 py-0.5", style?.countBg) : "text-primary",
 										)}
 									>
-										{person.count}
+										{person.count.toLocaleString()}
 									</span>
 								</li>
 							);

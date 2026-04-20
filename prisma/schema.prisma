@@ -192,6 +192,7 @@ model RecognitionCard {
 
   @@index([createdAt])
   @@index([recipientId, createdAt])
+  @@index([senderId, createdAt])
   @@map("recognition_cards")
 }
 

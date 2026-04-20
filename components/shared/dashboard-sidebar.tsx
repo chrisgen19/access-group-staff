@@ -143,6 +143,10 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 				<LogOut size={22} />
 				Sign Out
 			</button>
+
+			<p className="px-4 pt-2 text-[11px] text-primary">
+				Created by Chris Diomampo of Marketing/IT
+			</p>
 		</>
 	);
 }
