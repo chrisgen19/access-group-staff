@@ -212,7 +212,10 @@ describe("replyToTicketAction", () => {
 		vi.mocked(requireSession).mockResolvedValue(
 			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
 		);
-		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue({ id: "t1" } as never);
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue({
+			id: "t1",
+			status: "OPEN",
+		} as never);
 		vi.mocked(prisma.ticketReply.create).mockResolvedValue({ id: "r1" } as never);
 
 		const result = await replyToTicketAction("t1", {
@@ -247,6 +250,21 @@ describe("replyToTicketAction", () => {
 		const result = await replyToTicketAction("t1", { bodyHtml: "<p>   </p>" });
 
 		expect(result.success).toBe(false);
+		expect(prisma.ticketReply.create).not.toHaveBeenCalled();
+	});
+
+	test("rejects replies on CLOSED tickets even when UI would hide the form", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue({
+			id: "t1",
+			status: "CLOSED",
+		} as never);
+
+		const result = await replyToTicketAction("t1", { bodyHtml: "<p>sneaky</p>" });
+
+		expect(result).toEqual({ success: false, error: "This ticket is closed" });
 		expect(prisma.ticketReply.create).not.toHaveBeenCalled();
 	});
 });

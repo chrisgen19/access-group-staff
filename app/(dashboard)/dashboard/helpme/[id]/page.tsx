@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { getTicketByIdForCurrentUser } from "@/lib/actions/helpme-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { displayReplyAuthor } from "@/lib/helpme-display";
+import { sanitizeReplyHtml } from "@/lib/sanitize-html";
 import { ReplyForm } from "../_components/reply-form";
 import { ReplyItem } from "../_components/reply-item";
 
@@ -80,8 +81,8 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 
 				<div
 					className="prose prose-sm dark:prose-invert max-w-none text-foreground/90"
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: body is sanitized server-side via sanitizeReplyHtml before storage
-					dangerouslySetInnerHTML={{ __html: ticket.body }}
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized here on read to protect against any pre-rich-text legacy rows
+					dangerouslySetInnerHTML={{ __html: sanitizeReplyHtml(ticket.body) }}
 				/>
 			</div>
 

@@ -113,7 +113,7 @@ export async function getTicketByIdForCurrentUser(id: string) {
 async function loadTicketForAccess(ticketId: string, userId: string, isAdmin: boolean) {
 	return prisma.helpMeTicket.findFirst({
 		where: isAdmin ? { id: ticketId } : { id: ticketId, createdById: userId },
-		select: { id: true },
+		select: { id: true, status: true },
 	});
 }
 
@@ -131,6 +131,9 @@ export async function replyToTicketAction(ticketId: string, formData: unknown) {
 		const ticket = await loadTicketForAccess(ticketId, session.user.id, isAdmin);
 		if (!ticket) {
 			return { success: false as const, error: "Ticket not found" };
+		}
+		if (ticket.status === "CLOSED") {
+			return { success: false as const, error: "This ticket is closed" };
 		}
 
 		const sanitized = sanitizeReplyHtml(parsed.data.bodyHtml);
