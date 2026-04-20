@@ -55,67 +55,73 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 	const creatorDisplay = displayReplyAuthor(ticket.createdBy, viewerRole);
 
 	return (
-		<div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+		<div className="max-w-7xl mx-auto space-y-6 mt-2">
 			<Link
 				href="/dashboard/helpme"
-				className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+				className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
 			>
 				<ArrowLeft size={16} /> Back to tickets
 			</Link>
 
-			<div className="rounded-2xl border bg-card p-6 space-y-4">
-				<div className="flex flex-wrap items-start justify-between gap-3">
-					<div>
-						<h1 className="text-xl font-semibold">{ticket.subject}</h1>
-						<p className="text-xs text-muted-foreground mt-1">
-							Raised by {creatorDisplay.displayName} · {formatDateTime(ticket.createdAt)}
-						</p>
+			<div className="max-w-4xl space-y-6">
+				<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-8 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] space-y-5">
+					<div className="flex flex-wrap items-start justify-between gap-3">
+						<div>
+							<h1 className="text-[1.5rem] font-medium leading-tight text-foreground tracking-tight">
+								{ticket.subject}
+							</h1>
+							<p className="text-sm text-muted-foreground mt-1.5">
+								Raised by {creatorDisplay.displayName} · {formatDateTime(ticket.createdAt)}
+							</p>
+						</div>
+						<div className="flex items-center gap-2">
+							<span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/10">
+								{CATEGORY_LABEL[ticket.category]}
+							</span>
+							<Badge variant="secondary" className={STATUS_STYLES[ticket.status]}>
+								{STATUS_LABEL[ticket.status]}
+							</Badge>
+						</div>
 					</div>
-					<div className="flex items-center gap-2">
-						<Badge variant="outline">{CATEGORY_LABEL[ticket.category]}</Badge>
-						<Badge variant="secondary" className={STATUS_STYLES[ticket.status]}>
-							{STATUS_LABEL[ticket.status]}
-						</Badge>
-					</div>
-				</div>
 
-				<div
-					className="prose prose-sm dark:prose-invert max-w-none text-foreground/90"
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized here on read to protect against any pre-rich-text legacy rows
-					dangerouslySetInnerHTML={{ __html: sanitizeReplyHtml(ticket.body) }}
-				/>
-			</div>
-
-			<div className="space-y-3">
-				<h2 className="text-sm font-medium text-muted-foreground">
-					{ticket.replies.length === 0
-						? "No replies yet"
-						: `${ticket.replies.length} repl${ticket.replies.length === 1 ? "y" : "ies"}`}
-				</h2>
-				{ticket.replies.map((r) => (
-					<ReplyItem
-						key={r.id}
-						reply={{
-							id: r.id,
-							bodyHtml: r.bodyHtml,
-							createdAt: r.createdAt.toISOString(),
-							editedAt: r.editedAt ? r.editedAt.toISOString() : null,
-							canEdit: r.authorId === viewerId,
-							author: displayReplyAuthor(r.author, viewerRole),
-						}}
+					<div
+						className="prose prose-sm dark:prose-invert max-w-none text-foreground/90"
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized here on read to protect against any pre-rich-text legacy rows
+						dangerouslySetInnerHTML={{ __html: sanitizeReplyHtml(ticket.body) }}
 					/>
-				))}
-			</div>
+				</div>
 
-			{ticket.status === "CLOSED" ? (
-				<div className="rounded-2xl border border-dashed p-4 text-center text-sm text-muted-foreground">
-					This ticket is closed. Create a new ticket if you need further help.
+				<div className="space-y-3">
+					<h2 className="text-sm font-medium text-muted-foreground">
+						{ticket.replies.length === 0
+							? "No replies yet"
+							: `${ticket.replies.length} repl${ticket.replies.length === 1 ? "y" : "ies"}`}
+					</h2>
+					{ticket.replies.map((r) => (
+						<ReplyItem
+							key={r.id}
+							reply={{
+								id: r.id,
+								bodyHtml: r.bodyHtml,
+								createdAt: r.createdAt.toISOString(),
+								editedAt: r.editedAt ? r.editedAt.toISOString() : null,
+								canEdit: r.authorId === viewerId,
+								author: displayReplyAuthor(r.author, viewerRole),
+							}}
+						/>
+					))}
 				</div>
-			) : (
-				<div className="rounded-2xl border bg-card p-4">
-					<ReplyForm ticketId={ticket.id} />
-				</div>
-			)}
+
+				{ticket.status === "CLOSED" ? (
+					<div className="rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10 bg-card/50 p-6 text-center text-sm text-muted-foreground">
+						This ticket is closed. Create a new ticket if you need further help.
+					</div>
+				) : (
+					<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+						<ReplyForm ticketId={ticket.id} />
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
