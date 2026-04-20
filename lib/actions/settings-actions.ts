@@ -2,6 +2,11 @@
 
 import { env } from "@/env";
 import { requireRole } from "@/lib/auth-utils";
+import {
+	getOrCreateGlobalEntry,
+	invalidateEntry,
+	readThroughCache,
+} from "@/lib/cache/settings-cache";
 import { prisma } from "@/lib/db";
 import {
 	TOP_RECOGNIZED_DEFAULT,
@@ -22,38 +27,33 @@ type OAuthKey = (typeof OAUTH_KEYS)[number];
 
 export type OAuthSettings = Record<OAuthKey, boolean>;
 
-let cachedSettings: OAuthSettings | null = null;
-let cacheExpiry = 0;
 const CACHE_TTL_MS = 30_000;
 
 const TOP_RECOGNIZED_KEY = "top_recognized_limit";
 
-let cachedTopLimit: number | null = null;
-let topLimitCacheExpiry = 0;
+const oauthCache = getOrCreateGlobalEntry<OAuthSettings>("accessGroupStaff.settings.oauth");
+const topLimitCache = getOrCreateGlobalEntry<number>(
+	"accessGroupStaff.settings.topRecognizedLimit",
+);
+const leaderboardCache = getOrCreateGlobalEntry<LeaderboardVisibilitySettings>(
+	"accessGroupStaff.settings.leaderboardVisibility",
+);
 
 export async function getOAuthSettings(): Promise<OAuthSettings> {
-	if (cachedSettings && Date.now() < cacheExpiry) {
-		return cachedSettings;
-	}
-
-	const settings = await prisma.appSetting.findMany({
-		where: { key: { in: [...OAUTH_KEYS] } },
+	return readThroughCache(oauthCache, CACHE_TTL_MS, async () => {
+		const settings = await prisma.appSetting.findMany({
+			where: { key: { in: [...OAUTH_KEYS] } },
+		});
+		const map = new Map(settings.map((s) => [s.key, s.value]));
+		return {
+			oauth_google_enabled: map.get("oauth_google_enabled") !== "false",
+			oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") !== "false",
+		};
 	});
-
-	const map = new Map(settings.map((s) => [s.key, s.value]));
-
-	cachedSettings = {
-		oauth_google_enabled: map.get("oauth_google_enabled") !== "false",
-		oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") !== "false",
-	};
-	cacheExpiry = Date.now() + CACHE_TTL_MS;
-
-	return cachedSettings;
 }
 
 function invalidateOAuthCache() {
-	cachedSettings = null;
-	cacheExpiry = 0;
+	invalidateEntry(oauthCache);
 }
 
 export async function getOAuthProviderAvailability() {
@@ -91,27 +91,19 @@ export async function updateOAuthSetting(
 /* ── Top Recognized Limit ────────────────────────────── */
 
 function invalidateTopLimitCache() {
-	cachedTopLimit = null;
-	topLimitCacheExpiry = 0;
+	invalidateEntry(topLimitCache);
 }
 
 export async function getTopRecognizedLimit(): Promise<number> {
-	if (cachedTopLimit !== null && Date.now() < topLimitCacheExpiry) {
-		return cachedTopLimit;
-	}
-
-	const row = await prisma.appSetting.findUnique({
-		where: { key: TOP_RECOGNIZED_KEY },
-	});
-
-	const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
-	cachedTopLimit =
-		Number.isNaN(parsed) || parsed < TOP_RECOGNIZED_MIN || parsed > TOP_RECOGNIZED_MAX
+	return readThroughCache(topLimitCache, CACHE_TTL_MS, async () => {
+		const row = await prisma.appSetting.findUnique({
+			where: { key: TOP_RECOGNIZED_KEY },
+		});
+		const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
+		return Number.isNaN(parsed) || parsed < TOP_RECOGNIZED_MIN || parsed > TOP_RECOGNIZED_MAX
 			? TOP_RECOGNIZED_DEFAULT
 			: parsed;
-	topLimitCacheExpiry = Date.now() + CACHE_TTL_MS;
-
-	return cachedTopLimit;
+	});
 }
 
 export async function updateTopRecognizedLimit(
@@ -154,12 +146,8 @@ const LEADERBOARD_KEYS = [
 	LEADERBOARD_CUSTOM_END_KEY,
 ];
 
-let cachedLeaderboard: LeaderboardVisibilitySettings | null = null;
-let leaderboardCacheExpiry = 0;
-
 function invalidateLeaderboardCache() {
-	cachedLeaderboard = null;
-	leaderboardCacheExpiry = 0;
+	invalidateEntry(leaderboardCache);
 }
 
 function isValidIsoDate(value: string): boolean {
@@ -174,36 +162,31 @@ function isLeaderboardMode(value: string): value is LeaderboardVisibilityMode {
 }
 
 export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVisibilitySettings> {
-	if (cachedLeaderboard && Date.now() < leaderboardCacheExpiry) {
-		return cachedLeaderboard;
-	}
+	return readThroughCache(leaderboardCache, CACHE_TTL_MS, async () => {
+		const rows = await prisma.appSetting.findMany({
+			where: { key: { in: LEADERBOARD_KEYS } },
+		});
+		const map = new Map(rows.map((r) => [r.key, r.value]));
 
-	const rows = await prisma.appSetting.findMany({
-		where: { key: { in: LEADERBOARD_KEYS } },
+		const rawMode = map.get(LEADERBOARD_MODE_KEY) ?? "always";
+		const mode: LeaderboardVisibilityMode = isLeaderboardMode(rawMode) ? rawMode : "always";
+
+		const parsedDays = Number.parseInt(map.get(LEADERBOARD_DAYS_KEY) ?? "", 10);
+		const revealDays =
+			Number.isFinite(parsedDays) && parsedDays >= REVEAL_DAYS_MIN && parsedDays <= REVEAL_DAYS_MAX
+				? parsedDays
+				: REVEAL_DAYS_DEFAULT;
+
+		const rawStart = map.get(LEADERBOARD_CUSTOM_START_KEY) ?? null;
+		const rawEnd = map.get(LEADERBOARD_CUSTOM_END_KEY) ?? null;
+
+		return {
+			mode,
+			revealDays,
+			customStart: rawStart && isValidIsoDate(rawStart) ? rawStart : null,
+			customEnd: rawEnd && isValidIsoDate(rawEnd) ? rawEnd : null,
+		};
 	});
-	const map = new Map(rows.map((r) => [r.key, r.value]));
-
-	const rawMode = map.get(LEADERBOARD_MODE_KEY) ?? "always";
-	const mode: LeaderboardVisibilityMode = isLeaderboardMode(rawMode) ? rawMode : "always";
-
-	const parsedDays = Number.parseInt(map.get(LEADERBOARD_DAYS_KEY) ?? "", 10);
-	const revealDays =
-		Number.isFinite(parsedDays) && parsedDays >= REVEAL_DAYS_MIN && parsedDays <= REVEAL_DAYS_MAX
-			? parsedDays
-			: REVEAL_DAYS_DEFAULT;
-
-	const rawStart = map.get(LEADERBOARD_CUSTOM_START_KEY) ?? null;
-	const rawEnd = map.get(LEADERBOARD_CUSTOM_END_KEY) ?? null;
-
-	cachedLeaderboard = {
-		mode,
-		revealDays,
-		customStart: rawStart && isValidIsoDate(rawStart) ? rawStart : null,
-		customEnd: rawEnd && isValidIsoDate(rawEnd) ? rawEnd : null,
-	};
-	leaderboardCacheExpiry = Date.now() + CACHE_TTL_MS;
-
-	return cachedLeaderboard;
 }
 
 export interface UpdateLeaderboardVisibilityInput {
