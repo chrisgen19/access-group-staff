@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { buttonVariants } from "@/components/ui/button";
 import { listTicketsForCurrentUser } from "@/lib/actions/helpme-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { TicketList } from "./_components/ticket-list";
@@ -22,7 +21,10 @@ export default async function HelpMePage() {
 							: "Raise an issue or request help from HR/IT."}
 					</p>
 				</div>
-				<Link href="/dashboard/helpme/new" className={buttonVariants({ size: "lg" })}>
+				<Link
+					href="/dashboard/helpme/new"
+					className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90"
+				>
 					New Ticket
 				</Link>
 			</div>
