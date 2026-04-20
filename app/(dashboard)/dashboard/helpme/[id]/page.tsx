@@ -78,9 +78,11 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 					</div>
 				</div>
 
-				<div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-					{ticket.body}
-				</div>
+				<div
+					className="prose prose-sm dark:prose-invert max-w-none text-foreground/90"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: body is sanitized server-side via sanitizeReplyHtml before storage
+					dangerouslySetInnerHTML={{ __html: ticket.body }}
+				/>
 			</div>
 
 			<div className="space-y-3">

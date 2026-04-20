@@ -20,9 +20,16 @@ export async function createTicketAction(formData: unknown) {
 			};
 		}
 
+		const sanitizedBody = sanitizeReplyHtml(parsed.data.body);
+		if (sanitizedBody.length === 0) {
+			return { success: false as const, error: "Description cannot be empty" };
+		}
+
 		const ticket = await prisma.helpMeTicket.create({
 			data: {
-				...parsed.data,
+				subject: parsed.data.subject,
+				category: parsed.data.category,
+				body: sanitizedBody,
 				createdById: session.user.id,
 			},
 			select: { id: true },

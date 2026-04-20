@@ -75,6 +75,25 @@ describe("createTicketAction", () => {
 		});
 	});
 
+	test("sanitizes HTML in body on create", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID) as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.helpMeTicket.create).mockResolvedValue({ id: "ticket_2" } as never);
+
+		await createTicketAction(
+			validInput({
+				body: "<p>Legit problem description here.</p><script>alert(1)</script>",
+			}),
+		);
+
+		const call = vi.mocked(prisma.helpMeTicket.create).mock.calls[0]?.[0] as {
+			data: { body: string };
+		};
+		expect(call.data.body).not.toContain("<script>");
+		expect(call.data.body).toContain("Legit problem description");
+	});
+
 	test("returns field errors when input fails zod validation", async () => {
 		vi.mocked(requireSession).mockResolvedValue(
 			mockSession(STAFF_ID) as unknown as Awaited<ReturnType<typeof requireSession>>,
