@@ -57,6 +57,18 @@ describe("HelpFab", () => {
 		expect(create).toBeEmptyDOMElement();
 	});
 
+	it("still renders on lookalike siblings like /dashboard/helpmeout", () => {
+		mockedUsePathname.mockReturnValue("/dashboard/helpmeout");
+		setSession({ user: true, isPending: false });
+
+		render(<HelpFab />);
+
+		expect(screen.getByRole("link", { name: /open help ticket/i })).toHaveAttribute(
+			"href",
+			"/dashboard/helpme/new",
+		);
+	});
+
 	it("does not render outside /dashboard (e.g. /login, /)", () => {
 		setSession({ user: false, isPending: false });
 

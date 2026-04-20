@@ -13,7 +13,7 @@ export function HelpFab() {
 	const { data: session, isPending } = useSession();
 
 	if (!pathname.startsWith("/dashboard")) return null;
-	if (pathname.startsWith("/dashboard/helpme")) return null;
+	if (pathname === "/dashboard/helpme" || pathname.startsWith("/dashboard/helpme/")) return null;
 
 	const href =
 		isPending || session?.user
