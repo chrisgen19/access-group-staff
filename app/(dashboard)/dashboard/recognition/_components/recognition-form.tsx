@@ -12,6 +12,7 @@ import {
 	updateRecognitionCardAction,
 } from "@/lib/actions/recognition-actions";
 import { useSession } from "@/lib/auth-client";
+import { formatLocalDate } from "@/lib/date-utils";
 import {
 	type CreateRecognitionCardInput,
 	createRecognitionCardSchema,
@@ -265,6 +266,14 @@ export function RecognitionForm({
 
 	const senderName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : "";
 
+	const [todayLocal, setTodayLocal] = useState(() => formatLocalDate(new Date()));
+
+	useEffect(() => {
+		const refresh = () => setTodayLocal(formatLocalDate(new Date()));
+		window.addEventListener("focus", refresh);
+		return () => window.removeEventListener("focus", refresh);
+	}, []);
+
 	const {
 		register,
 		handleSubmit,
@@ -277,9 +286,7 @@ export function RecognitionForm({
 		defaultValues: {
 			recipientId: editDefaults?.recipientId ?? "",
 			message: editDefaults?.message ?? "",
-			date:
-				editDefaults?.date ??
-				new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().split("T")[0],
+			date: editDefaults?.date ?? formatLocalDate(new Date()),
 			valuesPeople: editDefaults?.valuesPeople ?? false,
 			valuesSafety: editDefaults?.valuesSafety ?? false,
 			valuesRespect: editDefaults?.valuesRespect ?? false,
@@ -485,6 +492,7 @@ export function RecognitionForm({
 										<span className="text-xs font-black text-black mb-1">DATE</span>
 										<input
 											type="date"
+											max={todayLocal}
 											{...register("date")}
 											className="w-full outline-none text-lg bg-transparent text-[#222]"
 										/>
@@ -600,6 +608,7 @@ export function RecognitionForm({
 										<span className="text-xs font-black text-black mb-1">DATE</span>
 										<input
 											type="date"
+											max={todayLocal}
 											{...register("date")}
 											className="w-full outline-none text-lg bg-transparent text-[#222]"
 										/>

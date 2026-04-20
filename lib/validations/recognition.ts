@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isNotFutureIsoDate, isValidIsoDate } from "@/lib/date-utils";
 
 export const createRecognitionCardSchema = z
 	.object({
@@ -7,7 +8,11 @@ export const createRecognitionCardSchema = z
 			.string()
 			.min(1, "Message is required")
 			.max(500, "Message must be 500 characters or less"),
-		date: z.string().min(1, "Date is required"),
+		date: z
+			.string()
+			.min(1, "Date is required")
+			.refine(isValidIsoDate, { message: "Invalid date" })
+			.refine(isNotFutureIsoDate, { message: "Date cannot be in the future" }),
 		valuesPeople: z.boolean(),
 		valuesSafety: z.boolean(),
 		valuesRespect: z.boolean(),
