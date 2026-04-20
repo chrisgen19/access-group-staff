@@ -19,6 +19,8 @@ Internal employee recognition app for Access Group. Team members publicly recogn
 | Linting | Biome |
 | Dark Mode | next-themes |
 | Env Validation | @t3-oss/env-nextjs |
+| Unit Tests | Vitest + React Testing Library + jsdom |
+| E2E Tests | Playwright |
 
 ## Getting Started
 
@@ -158,18 +160,24 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 ## Scripts
 
 ```bash
-bun run dev          # Start dev server (Turbopack)
-bun run build        # Production build
-bun run start        # Start production server
-bun run lint         # Biome check
-bun run lint:fix     # Biome auto-fix
-bun run format       # Biome format
-bun run db:push      # Push schema to database
-bun run db:seed      # Seed database
-bun run db:studio    # Open Prisma Studio
-bun run wt:new       # Create a git worktree (see Git Worktrees below)
-bun run wt:ls        # List all worktrees
-bun run wt:rm        # Remove a worktree
+bun run dev              # Start dev server (Turbopack)
+bun run build            # Production build
+bun run start            # Start production server
+bun run lint             # Biome check
+bun run lint:fix         # Biome auto-fix
+bun run format           # Biome format
+bun run db:push          # Push schema to database
+bun run db:seed          # Seed database
+bun run db:e2e:seed      # Seed E2E test users (sender + recipient)
+bun run db:studio        # Open Prisma Studio
+bun run test             # Run unit tests (alias for test:unit)
+bun run test:unit        # Run Vitest unit tests once
+bun run test:unit:watch  # Run Vitest in watch mode
+bun run test:e2e         # Run Playwright E2E tests
+bun run test:e2e:ui      # Run Playwright in UI mode
+bun run wt:new           # Create a git worktree (see Git Worktrees below)
+bun run wt:ls            # List all worktrees
+bun run wt:rm            # Remove a worktree
 ```
 
 ## Git Worktrees
@@ -228,6 +236,64 @@ Always use `bun run wt:rm` (or `git worktree remove`) instead of `rm -rf` — ma
 - **Ports must differ.** Use `--port 3001`, `3002`, … or set `PORT` in the worktree's `.env.local`.
 - **Same branch can't be checked out twice.** If you need the currently-checked-out branch in a worktree, switch the main clone to `main` first.
 - **`.claude/` state is per-worktree.** Claude Code sessions don't bleed across branches.
+
+## Testing
+
+Two layers, both enforced in CI on every PR.
+
+### Layout
+
+```
+vitest.config.ts                 # Vitest config (jsdom, @ alias)
+vitest.setup.ts                  # @testing-library/jest-dom matchers
+playwright.config.ts             # Playwright config (chromium, webServer)
+lib/**/*.test.ts                 # Unit tests (co-located with source)
+e2e/
+├── fixtures.ts                  # loggedInPage fixture (logs in via better-auth API)
+├── test-users.ts                # E2E test user constants
+└── recognition-create.spec.ts   # E2E specs for /dashboard/recognition/create
+prisma/seed.e2e.ts               # Creates sender + recipient users
+```
+
+### Unit tests (Vitest)
+
+```bash
+bun run test:unit           # run once
+bun run test:unit:watch     # watch mode
+```
+
+- Import from `vitest` (not `bun:test`). Runs on jsdom.
+- Mock Prisma, auth, and `next/cache` at the top of action tests using `vi.mock(...)`.
+- Unit test every Zod schema and every Server Action.
+
+### E2E tests (Playwright)
+
+```bash
+# 1. Seed E2E users (safe to re-run — only touches E2E fixtures)
+bun run db:e2e:seed
+
+# 2. Build Next — must bake the right public URL into the client bundle:
+NEXT_PUBLIC_APP_URL=http://localhost:3100 BETTER_AUTH_URL=http://localhost:3100 bun run next build
+
+# 3. Run Playwright (starts `next start -p 3100` automatically)
+bun run test:e2e
+```
+
+E2E fixture users (created by `db:e2e:seed`):
+
+| Email | Password | Role |
+|-------|----------|------|
+| e2e.sender@example.test | E2ePassword123! | STAFF |
+| e2e.recipient@example.test | E2ePassword123! | STAFF |
+
+**Local gotcha — `NEXT_PUBLIC_APP_URL` must match the E2E port.** `NEXT_PUBLIC_*` vars are baked into the client bundle at build time. If your `.env` has `http://localhost:3000` but Playwright runs on `:3100`, `useSession()` will fetch from the wrong origin and never hydrate client-side. Rebuild with the E2E URL (see step 2) before running `bun run test:e2e`. CI does this automatically.
+
+### CI
+
+`.github/workflows/ci.yml` has two jobs:
+
+- **unit** — runs on every push and PR. Lint + Vitest.
+- **e2e** — runs only on PRs. Postgres service container → `prisma db push` → seed E2E users → `next build` with `NEXT_PUBLIC_APP_URL=http://localhost:3100` → Playwright. Uploads `playwright-report/` as an artifact on failure.
 
 ## Deployment
 

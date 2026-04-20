@@ -113,11 +113,16 @@ tied to company values. Phase 1 covers project setup, auth, and user management.
 - Do not generate or reference a `tailwind.config.ts` file — it does not exist in v4.
 
 ### Testing
-- Unit test all utility functions in lib/ and Server Actions.
-- Component tests go in __tests__/ next to the component file.
-- E2E tests go in /e2e and cover critical user flows only (auth, checkout, etc.).
-- Mock external services (DB, email, payments) in unit/component tests using msw or vi.mock().
-- Never test implementation details — test behavior and output.
+- **Unit runner: Vitest.** Import test helpers from `"vitest"` (never `"bun:test"`). Config is `vitest.config.ts` (jsdom env, `@` alias, setup file loads `@testing-library/jest-dom/vitest`).
+- **Unit test all utility functions in `lib/` and Server Actions.** Co-locate as `*.test.ts` next to the source.
+- **Component tests** live next to the component file as `*.test.tsx` (use React Testing Library).
+- **Mock external services** (DB, auth, `next/cache`, email, payments) with `vi.mock(...)` at the top of the test file. Never hit a real DB in unit tests.
+- **E2E runner: Playwright.** Specs live in `/e2e`. Use the `loggedInPage` fixture from `e2e/fixtures.ts` (it logs in via `POST /api/auth/sign-in/email`). E2E fixture users are seeded by `bun run db:e2e:seed` (reads constants from `e2e/test-users.ts`).
+- **E2E baseURL / port.** Playwright runs against `next start -p 3100`. `NEXT_PUBLIC_APP_URL` is baked into the client bundle at build time — **rebuild with `NEXT_PUBLIC_APP_URL=http://localhost:3100`** before running `bun run test:e2e`, otherwise `useSession()` fetches from the wrong origin and never hydrates client-side.
+- **E2E scope.** Critical user flows only (auth, recognition create, etc.). Keep assertions behavior-focused — no implementation details.
+- **Session hydration.** When a spec depends on client-side `useSession()` having resolved, wait for it explicitly (e.g. `page.waitForFunction` polling `/api/auth/get-session`) before asserting on session-derived UI.
+- **CI.** `.github/workflows/ci.yml` splits into `unit` (push + PR: lint + Vitest) and `e2e` (PR only: Postgres service → `prisma db push` → seed → `next build` → Playwright). Never add slow tests to the `unit` job.
+- **Never test implementation details** — test behavior and output.
 
 ### Do NOT
 - Create barrel files (`index.ts` re-exports) — import directly from the source file.
