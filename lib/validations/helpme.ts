@@ -22,3 +22,15 @@ export const createTicketSchema = z.object({
 });
 
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;
+
+const stripTags = (s: string) => s.replace(/<[^>]*>/g, "").trim();
+
+export const replySchema = z.object({
+	bodyHtml: z
+		.string()
+		.max(20_000, "Reply is too long")
+		.refine((v) => stripTags(v).length >= 1, "Reply cannot be empty")
+		.refine((v) => stripTags(v).length <= 5000, "Reply must be 5000 characters or less"),
+});
+
+export type ReplyInput = z.infer<typeof replySchema>;

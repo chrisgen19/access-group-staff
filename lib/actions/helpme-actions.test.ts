@@ -15,6 +15,12 @@ vi.mock("@/lib/db", () => ({
 			findMany: vi.fn(),
 			findFirst: vi.fn(),
 		},
+		ticketReply: {
+			create: vi.fn(),
+			findUnique: vi.fn(),
+			update: vi.fn(),
+			delete: vi.fn(),
+		},
 	},
 }));
 
@@ -22,8 +28,11 @@ import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
 	createTicketAction,
+	deleteReplyAction,
+	editReplyAction,
 	getTicketByIdForCurrentUser,
 	listTicketsForCurrentUser,
+	replyToTicketAction,
 } from "./helpme-actions";
 
 const STAFF_ID = "staff_1";
@@ -176,5 +185,121 @@ describe("getTicketByIdForCurrentUser", () => {
 		const result = await getTicketByIdForCurrentUser("missing");
 
 		expect(result).toBeNull();
+	});
+});
+
+describe("replyToTicketAction", () => {
+	test("STAFF can reply to own ticket and HTML is sanitized on write", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue({ id: "t1" } as never);
+		vi.mocked(prisma.ticketReply.create).mockResolvedValue({ id: "r1" } as never);
+
+		const result = await replyToTicketAction("t1", {
+			bodyHtml: "<p>Hello <script>alert(1)</script></p>",
+		});
+
+		expect(result).toEqual({ success: true, data: { id: "r1" } });
+		const call = vi.mocked(prisma.ticketReply.create).mock.calls[0]?.[0] as {
+			data: { bodyHtml: string };
+		};
+		expect(call.data.bodyHtml).not.toContain("<script>");
+		expect(call.data.bodyHtml).toContain("Hello");
+	});
+
+	test("rejects when STAFF tries to reply to a ticket they don't own", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue(null);
+
+		const result = await replyToTicketAction("t1", { bodyHtml: "<p>ok</p>" });
+
+		expect(result).toEqual({ success: false, error: "Ticket not found" });
+		expect(prisma.ticketReply.create).not.toHaveBeenCalled();
+	});
+
+	test("rejects empty bodies (after tag stripping)", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+
+		const result = await replyToTicketAction("t1", { bodyHtml: "<p>   </p>" });
+
+		expect(result.success).toBe(false);
+		expect(prisma.ticketReply.create).not.toHaveBeenCalled();
+	});
+});
+
+describe("editReplyAction", () => {
+	test("author can edit their own reply", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.ticketReply.findUnique).mockResolvedValue({
+			authorId: STAFF_ID,
+			ticketId: "t1",
+		} as never);
+		vi.mocked(prisma.ticketReply.update).mockResolvedValue({} as never);
+
+		const result = await editReplyAction("r1", { bodyHtml: "<p>updated</p>" });
+
+		expect(result).toEqual({ success: true });
+		expect(prisma.ticketReply.update).toHaveBeenCalled();
+	});
+
+	test("rejects edit from non-author", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.ticketReply.findUnique).mockResolvedValue({
+			authorId: OTHER_STAFF_ID,
+			ticketId: "t1",
+		} as never);
+
+		const result = await editReplyAction("r1", { bodyHtml: "<p>updated</p>" });
+
+		expect(result).toEqual({
+			success: false,
+			error: "You can only edit your own replies",
+		});
+		expect(prisma.ticketReply.update).not.toHaveBeenCalled();
+	});
+});
+
+describe("deleteReplyAction", () => {
+	test("author can delete their own reply", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.ticketReply.findUnique).mockResolvedValue({
+			authorId: STAFF_ID,
+			ticketId: "t1",
+		} as never);
+		vi.mocked(prisma.ticketReply.delete).mockResolvedValue({} as never);
+
+		const result = await deleteReplyAction("r1");
+
+		expect(result).toEqual({ success: true });
+		expect(prisma.ticketReply.delete).toHaveBeenCalledWith({ where: { id: "r1" } });
+	});
+
+	test("rejects delete from non-author (even if ADMIN)", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(ADMIN_ID, "ADMIN") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.ticketReply.findUnique).mockResolvedValue({
+			authorId: STAFF_ID,
+			ticketId: "t1",
+		} as never);
+
+		const result = await deleteReplyAction("r1");
+
+		expect(result).toEqual({
+			success: false,
+			error: "You can only delete your own replies",
+		});
+		expect(prisma.ticketReply.delete).not.toHaveBeenCalled();
 	});
 });
