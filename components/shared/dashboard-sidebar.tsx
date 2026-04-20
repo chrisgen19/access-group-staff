@@ -2,6 +2,7 @@
 
 import {
 	Building2,
+	ChevronDown,
 	Heart,
 	LayoutDashboard,
 	LogOut,
@@ -24,12 +25,20 @@ import { cn } from "@/lib/utils";
 
 type MinRole = "STAFF" | "ADMIN" | "SUPERADMIN";
 
-const NAV_ITEMS: {
+interface NavChild {
+	label: string;
+	href: string;
+}
+
+interface NavItem {
 	label: string;
 	href: string;
 	icon: React.ComponentType<{ size?: number }>;
 	minRole: MinRole;
-}[] = [
+	children?: NavChild[];
+}
+
+const NAV_ITEMS: NavItem[] = [
 	{
 		label: "Dashboard",
 		href: "/dashboard",
@@ -71,6 +80,12 @@ const NAV_ITEMS: {
 		href: "/dashboard/admin-settings",
 		icon: Settings,
 		minRole: "ADMIN",
+		children: [
+			{
+				label: "Activity Logs",
+				href: "/dashboard/admin-settings/activity-logs",
+			},
+		],
 	},
 	{
 		label: "Super Admin",
@@ -112,25 +127,63 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 
 			<nav className="flex-1 space-y-1">
 				{filteredItems.map((item) => {
-					const isActive =
-						pathname === item.href ||
-						(item.href !== "/dashboard" && pathname.startsWith(item.href));
+					const hasChildren = !!item.children?.length;
+					const isInGroup = item.href !== "/dashboard" && pathname.startsWith(item.href);
+					const isActive = hasChildren
+						? pathname === item.href
+						: pathname === item.href ||
+							(item.href !== "/dashboard" && pathname.startsWith(item.href));
+
 					return (
-						<Link
-							key={item.href}
-							href={item.href}
-							onClick={onNavigate}
-							className={cn(
-								"flex w-full items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200",
-								isActive
-									? "bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15 dark:text-primary"
-									: "text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5",
+						<div key={item.href}>
+							<Link
+								href={item.href}
+								onClick={onNavigate}
+								className={cn(
+									"flex w-full items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200",
+									isActive
+										? "bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15 dark:text-primary"
+										: "text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5",
+								)}
+							>
+								<item.icon size={22} />
+								<span className="flex-1">{item.label}</span>
+								{item.href === "/dashboard/recognition" && <NotificationBadge />}
+								{hasChildren && (
+									<ChevronDown
+										size={16}
+										className={cn(
+											"transition-transform duration-200",
+											isInGroup ? "rotate-0" : "-rotate-90",
+										)}
+									/>
+								)}
+							</Link>
+
+							{hasChildren && isInGroup && (
+								<div className="mt-1 ml-7 space-y-1 border-l border-gray-200/60 dark:border-white/10 pl-3">
+									{item.children?.map((child) => {
+										const childActive =
+											pathname === child.href || pathname.startsWith(`${child.href}/`);
+										return (
+											<Link
+												key={child.href}
+												href={child.href}
+												onClick={onNavigate}
+												className={cn(
+													"flex w-full items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
+													childActive
+														? "bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15 dark:text-primary"
+														: "text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5",
+												)}
+											>
+												{child.label}
+											</Link>
+										);
+									})}
+								</div>
 							)}
-						>
-							<item.icon size={22} />
-							{item.label}
-							{item.href === "/dashboard/recognition" && <NotificationBadge />}
-						</Link>
+						</div>
 					);
 				})}
 			</nav>

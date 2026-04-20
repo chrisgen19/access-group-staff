@@ -1,6 +1,11 @@
 import { redirect } from "next/navigation";
-import { getOAuthProviderAvailability, getOAuthSettings } from "@/lib/actions/settings-actions";
+import {
+	getActivityLogRetentionDays,
+	getOAuthProviderAvailability,
+	getOAuthSettings,
+} from "@/lib/actions/settings-actions";
 import { requireRole } from "@/lib/auth-utils";
+import { ActivityLogRetentionPanel } from "./_components/activity-log-retention";
 import { OAuthSettingsPanel } from "./_components/oauth-settings";
 
 export default async function SuperAdminPage() {
@@ -10,8 +15,11 @@ export default async function SuperAdminPage() {
 		redirect("/dashboard");
 	}
 
-	const oauthSettings = await getOAuthSettings();
-	const providerAvailability = await getOAuthProviderAvailability();
+	const [oauthSettings, providerAvailability, retentionDays] = await Promise.all([
+		getOAuthSettings(),
+		getOAuthProviderAvailability(),
+		getActivityLogRetentionDays(),
+	]);
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
@@ -28,6 +36,8 @@ export default async function SuperAdminPage() {
 				initialSettings={oauthSettings}
 				providerAvailability={providerAvailability}
 			/>
+
+			<ActivityLogRetentionPanel initialDays={retentionDays} />
 		</div>
 	);
 }

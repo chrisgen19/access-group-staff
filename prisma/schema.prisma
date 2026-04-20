@@ -26,6 +26,15 @@ enum NotificationType {
   CARD_COMMENT
 }
 
+enum ActivityAction {
+  USER_SIGNED_IN
+  USER_SIGNED_OUT
+  SIGN_IN_FAILED
+  OAUTH_ACCOUNT_LINKED
+  PASSWORD_CHANGED
+  PASSWORD_RESET
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -60,6 +69,7 @@ model User {
   cardReactions        CardReaction[]
   cardComments         CardComment[]
   shiftSchedule        ShiftSchedule?
+  activityLogs         ActivityLog[]     @relation("activityActor")
 
   @@map("users")
 }
@@ -224,6 +234,25 @@ model CardComment {
 
   @@index([cardId, createdAt])
   @@map("card_comments")
+}
+
+model ActivityLog {
+  id         String         @id @default(cuid())
+  action     ActivityAction
+  actorId    String?        @map("actor_id")
+  targetType String?        @map("target_type")
+  targetId   String?        @map("target_id")
+  metadata   Json?
+  ipAddress  String?        @map("ip_address")
+  userAgent  String?        @map("user_agent")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  actor User? @relation("activityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+  @@map("activity_logs")
 }
 
 model Notification {
