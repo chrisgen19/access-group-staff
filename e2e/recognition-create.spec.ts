@@ -48,6 +48,16 @@ test.describe("/dashboard/recognition/create", () => {
 	}) => {
 		await page.goto("/dashboard/recognition/create");
 
+		await page.waitForFunction(
+			async () => {
+				const res = await fetch("/api/auth/get-session");
+				const data = (await res.json().catch(() => null)) as { user?: { id?: string } } | null;
+				return Boolean(data?.user?.id);
+			},
+			null,
+			{ timeout: 15_000 },
+		);
+
 		const input = page.getByPlaceholder("Search for a colleague...");
 		await input.click();
 		await input.fill(E2E_SENDER.firstName);
