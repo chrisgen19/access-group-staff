@@ -1,6 +1,12 @@
 "use server";
 
 import { env } from "@/env";
+import {
+	ACTIVITY_LOG_RETENTION_DEFAULT,
+	ACTIVITY_LOG_RETENTION_KEY,
+	ACTIVITY_LOG_RETENTION_MAX,
+	ACTIVITY_LOG_RETENTION_MIN,
+} from "@/lib/activity-log-retention";
 import { requireRole } from "@/lib/auth-utils";
 import {
 	getOrCreateGlobalEntry,
@@ -129,6 +135,49 @@ export async function updateTopRecognizedLimit(
 	});
 
 	invalidateTopLimitCache();
+
+	return { success: true };
+}
+
+/* ── Activity Log Retention ──────────────────────────── */
+
+export async function getActivityLogRetentionDays(): Promise<number> {
+	const row = await prisma.appSetting.findUnique({
+		where: { key: ACTIVITY_LOG_RETENTION_KEY },
+	});
+	const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
+	return Number.isInteger(parsed) &&
+		parsed >= ACTIVITY_LOG_RETENTION_MIN &&
+		parsed <= ACTIVITY_LOG_RETENTION_MAX
+		? parsed
+		: ACTIVITY_LOG_RETENTION_DEFAULT;
+}
+
+export async function updateActivityLogRetentionDays(
+	days: number,
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		await requireRole("SUPERADMIN");
+	} catch {
+		return { success: false, error: "Unauthorized" };
+	}
+
+	if (
+		!Number.isInteger(days) ||
+		days < ACTIVITY_LOG_RETENTION_MIN ||
+		days > ACTIVITY_LOG_RETENTION_MAX
+	) {
+		return {
+			success: false,
+			error: `Retention must be between ${ACTIVITY_LOG_RETENTION_MIN} and ${ACTIVITY_LOG_RETENTION_MAX} days`,
+		};
+	}
+
+	await prisma.appSetting.upsert({
+		where: { key: ACTIVITY_LOG_RETENTION_KEY },
+		update: { value: String(days) },
+		create: { key: ACTIVITY_LOG_RETENTION_KEY, value: String(days) },
+	});
 
 	return { success: true };
 }

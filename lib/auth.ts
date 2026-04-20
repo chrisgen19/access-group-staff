@@ -1,7 +1,9 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { createAuthMiddleware } from "better-auth/api";
 import { after } from "next/server";
 import { env } from "@/env";
+import { extractRequestMeta, logActivity } from "@/lib/activity-log";
 import { mapGoogleProfile, mapMicrosoftProfile } from "@/lib/auth/profile-mappers";
 import { prisma } from "@/lib/db";
 import { syncMicrosoftAvatar } from "@/lib/microsoft-avatar";
@@ -43,10 +45,87 @@ export const auth = betterAuth({
 			trustedProviders: ["google", "microsoft"],
 		},
 	},
+	hooks: {
+		after: createAuthMiddleware(async (ctx) => {
+			const headers = ctx.request?.headers ?? ctx.headers ?? new Headers();
+			const { ipAddress, userAgent } = extractRequestMeta(headers);
+			const returned = ctx.context?.returned;
+			const isError = returned instanceof Response && !returned.ok;
+			const actorId = ctx.context?.session?.user?.id ?? null;
+			const bodyEmail =
+				typeof ctx.body === "object" && ctx.body && "email" in ctx.body
+					? String((ctx.body as { email?: unknown }).email ?? "")
+					: null;
+
+			switch (ctx.path) {
+				case "/sign-in/email":
+					if (isError) {
+						await logActivity({
+							action: "SIGN_IN_FAILED",
+							metadata: bodyEmail ? { email: bodyEmail } : undefined,
+							ipAddress,
+							userAgent,
+						});
+					}
+					break;
+				case "/sign-out":
+					if (!isError && actorId) {
+						await logActivity({
+							action: "USER_SIGNED_OUT",
+							actorId,
+							ipAddress,
+							userAgent,
+						});
+					}
+					break;
+				case "/change-password":
+					if (!isError && actorId) {
+						await logActivity({
+							action: "PASSWORD_CHANGED",
+							actorId,
+							ipAddress,
+							userAgent,
+						});
+					}
+					break;
+				case "/reset-password":
+					if (!isError) {
+						await logActivity({
+							action: "PASSWORD_RESET",
+							metadata: bodyEmail ? { email: bodyEmail } : undefined,
+							ipAddress,
+							userAgent,
+						});
+					}
+					break;
+			}
+		}),
+	},
 	databaseHooks: {
+		session: {
+			create: {
+				after: async (session) => {
+					await logActivity({
+						action: "USER_SIGNED_IN",
+						actorId: session.userId,
+						ipAddress: session.ipAddress ?? null,
+						userAgent: session.userAgent ?? null,
+					});
+				},
+			},
+		},
 		account: {
 			create: {
 				after: async (account) => {
+					if (account.providerId === "google" || account.providerId === "microsoft") {
+						await logActivity({
+							action: "OAUTH_ACCOUNT_LINKED",
+							actorId: account.userId,
+							targetType: "provider",
+							targetId: account.providerId,
+						});
+					}
+
 					if (account.providerId !== "microsoft" || !account.accessToken) return;
 					const { userId, accessToken } = account;
 					const run = () =>
