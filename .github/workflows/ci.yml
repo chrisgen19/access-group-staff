@@ -7,7 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  ci:
+  unit:
+    name: Lint + Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,5 +28,75 @@ jobs:
       - name: Lint
         run: bun run lint
 
-      - name: Test
-        run: bun test
+      - name: Unit tests
+        run: bun run test:unit
+
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: access_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/access_e2e
+      BETTER_AUTH_URL: http://localhost:3100
+      NEXT_PUBLIC_APP_URL: http://localhost:3100
+      GOOGLE_CLIENT_ID: test-google-id
+      GOOGLE_CLIENT_SECRET: test-google-secret
+      E2E_PORT: "3100"
+      E2E_BASE_URL: http://localhost:3100
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate ephemeral auth secret
+        run: echo "BETTER_AUTH_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+        env:
+          PRISMA_SKIP_POSTINSTALL_GENERATE: "1"
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+
+      - name: Push schema to test DB
+        run: bunx prisma db push --skip-generate
+
+      - name: Seed E2E users
+        run: bun run db:e2e:seed
+
+      - name: Build Next.js app
+        run: bun run next build
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: bun run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
