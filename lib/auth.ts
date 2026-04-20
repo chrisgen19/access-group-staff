@@ -31,10 +31,15 @@ if (env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET) {
 	};
 }
 
+const isE2E = process.env.E2E_TEST === "true" && env.BETTER_AUTH_URL.startsWith("http://localhost");
+
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, { provider: "postgresql" }),
 	secret: env.BETTER_AUTH_SECRET,
 	baseURL: env.BETTER_AUTH_URL,
+	rateLimit: {
+		enabled: !isE2E,
+	},
 	emailAndPassword: {
 		enabled: true,
 	},

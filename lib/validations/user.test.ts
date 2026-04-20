@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { shiftDaySchema, shiftScheduleSchema } from "./user";
 
 const workingDay = (overrides: Partial<Record<string, unknown>> = {}) => ({
