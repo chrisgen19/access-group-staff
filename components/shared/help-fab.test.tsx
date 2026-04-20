@@ -57,8 +57,20 @@ describe("HelpFab", () => {
 		expect(create).toBeEmptyDOMElement();
 	});
 
-	it("redirects unauthenticated users to login with the callbackUrl set", () => {
+	it("does not render outside /dashboard (e.g. /login, /)", () => {
+		setSession({ user: false, isPending: false });
+
 		mockedUsePathname.mockReturnValue("/login");
+		const { container: login } = render(<HelpFab />);
+		expect(login).toBeEmptyDOMElement();
+
+		mockedUsePathname.mockReturnValue("/");
+		const { container: root } = render(<HelpFab />);
+		expect(root).toBeEmptyDOMElement();
+	});
+
+	it("points unauthenticated dashboard visitors at /login with a callbackUrl", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
 		setSession({ user: false, isPending: false });
 
 		render(<HelpFab />);
