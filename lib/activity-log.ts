@@ -1,4 +1,5 @@
 import type { ActivityAction, Prisma } from "@/app/generated/prisma/client";
+import { env } from "@/env";
 import {
 	ACTIVITY_LOG_RETENTION_DEFAULT,
 	ACTIVITY_LOG_RETENTION_KEY,
@@ -36,9 +37,16 @@ export async function logActivity(input: LogActivityInput) {
 	}
 }
 
+function firstIp(value: string | null): string | null {
+	return value?.split(",")[0]?.trim() || null;
+}
+
 export function extractRequestMeta(headers: Headers) {
-	const forwarded = headers.get("x-forwarded-for");
-	const ipAddress = forwarded?.split(",")[0]?.trim() || headers.get("x-real-ip") || null;
+	const vercel = firstIp(headers.get("x-vercel-forwarded-for"));
+	let ipAddress = vercel;
+	if (!ipAddress && env.TRUST_PROXY_HEADERS) {
+		ipAddress = headers.get("x-real-ip") || firstIp(headers.get("x-forwarded-for"));
+	}
 	const userAgent = headers.get("user-agent");
 	return { ipAddress, userAgent };
 }

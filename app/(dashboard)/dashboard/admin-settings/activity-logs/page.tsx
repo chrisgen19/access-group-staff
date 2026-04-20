@@ -26,10 +26,23 @@ interface SearchParams {
 	page?: string;
 }
 
-function parseDate(value: string | undefined, endOfDay = false): Date | null {
-	if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-	const d = new Date(`${value}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}Z`);
-	return Number.isNaN(d.getTime()) ? null : d;
+const MANILA_TZ_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function parseManilaDayStart(value: string | undefined): Date | null {
+	if (!value) return null;
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+	if (!match) return null;
+	const year = Number.parseInt(match[1] ?? "", 10);
+	const month = Number.parseInt(match[2] ?? "", 10) - 1;
+	const day = Number.parseInt(match[3] ?? "", 10);
+	if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return null;
+	return new Date(Date.UTC(year, month, day, 0, 0, 0, 0) - MANILA_TZ_OFFSET_MS);
+}
+
+function parseManilaDayEndExclusive(value: string | undefined): Date | null {
+	const start = parseManilaDayStart(value);
+	if (!start) return null;
+	return new Date(start.getTime() + 24 * 60 * 60 * 1000);
 }
 
 export default async function ActivityLogsPage({
@@ -46,19 +59,19 @@ export default async function ActivityLogsPage({
 	await pruneActivityLogsIfNeeded();
 
 	const params = await searchParams;
-	const page = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
+	const requestedPage = Math.max(1, Number.parseInt(params.page ?? "1", 10) || 1);
 
 	const where: Prisma.ActivityLogWhereInput = {};
 	if (params.actor) where.actorId = params.actor;
 	if (params.action && (ACTIONS as readonly string[]).includes(params.action)) {
 		where.action = params.action as ActivityAction;
 	}
-	const from = parseDate(params.from);
-	const to = parseDate(params.to, true);
+	const from = parseManilaDayStart(params.from);
+	const to = parseManilaDayEndExclusive(params.to);
 	if (from || to) {
 		where.createdAt = {
 			...(from ? { gte: from } : {}),
-			...(to ? { lte: to } : {}),
+			...(to ? { lt: to } : {}),
 		};
 	}
 	if (params.target) {
@@ -68,19 +81,8 @@ export default async function ActivityLogsPage({
 		];
 	}
 
-	const [total, logs, users] = await Promise.all([
+	const [total, users] = await Promise.all([
 		prisma.activityLog.count({ where }),
-		prisma.activityLog.findMany({
-			where,
-			orderBy: { createdAt: "desc" },
-			include: {
-				actor: {
-					select: { id: true, firstName: true, lastName: true, email: true },
-				},
-			},
-			take: PAGE_SIZE,
-			skip: (page - 1) * PAGE_SIZE,
-		}),
 		prisma.user.findMany({
 			where: { deletedAt: null },
 			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
@@ -89,6 +91,19 @@ export default async function ActivityLogsPage({
 	]);
 
 	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	const page = Math.min(requestedPage, totalPages);
+
+	const logs = await prisma.activityLog.findMany({
+		where,
+		orderBy: { createdAt: "desc" },
+		include: {
+			actor: {
+				select: { id: true, firstName: true, lastName: true, email: true },
+			},
+		},
+		take: PAGE_SIZE,
+		skip: (page - 1) * PAGE_SIZE,
+	});
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-8 mt-2">
