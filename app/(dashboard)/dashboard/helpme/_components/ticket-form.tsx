@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { createTicketAction } from "@/lib/actions/helpme-actions";
 import {
@@ -12,6 +12,7 @@ import {
 	createTicketSchema,
 	TICKET_CATEGORIES,
 } from "@/lib/validations/helpme";
+import { RichTextEditor } from "./rich-text-editor";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";
@@ -23,6 +24,7 @@ export function TicketForm() {
 	const {
 		register,
 		handleSubmit,
+		control,
 		formState: { errors },
 	} = useForm<CreateTicketInput>({
 		resolver: zodResolver(createTicketSchema),
@@ -88,18 +90,20 @@ export function TicketForm() {
 			</div>
 
 			<div>
-				<label
-					htmlFor="ticket-body"
-					className="mb-1.5 ml-1 block text-sm font-medium text-foreground/70"
-				>
+				<span className="mb-1.5 ml-1 block text-sm font-medium text-foreground/70">
 					Description
-				</label>
-				<textarea
-					id="ticket-body"
-					rows={8}
-					placeholder="Please describe the issue in detail..."
-					className={inputClass}
-					{...register("body")}
+				</span>
+				<Controller
+					control={control}
+					name="body"
+					render={({ field }) => (
+						<RichTextEditor
+							value={field.value}
+							onChange={field.onChange}
+							placeholder="Please describe the issue in detail..."
+							disabled={isLoading}
+						/>
+					)}
 				/>
 				{errors.body && <p className="mt-1 text-sm text-destructive">{errors.body.message}</p>}
 			</div>
