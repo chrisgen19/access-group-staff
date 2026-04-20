@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getAvatarKey, getPublicUrl, uploadToR2 } from "@/lib/r2";
+import { deleteFromR2, getAvatarKey, getPublicUrl, uploadToR2 } from "@/lib/r2";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE = 2_000_000;
@@ -27,8 +27,15 @@ export async function syncMicrosoftAvatar(userId: string, accessToken: string): 
 	const key = getAvatarKey(userId, contentType);
 	await uploadToR2(key, buffer, contentType);
 
-	await prisma.user.update({
-		where: { id: userId },
+	// Conditional update: only writes if avatar is still null. If the user
+	// uploaded a custom avatar while we were fetching from Graph, count === 0
+	// and we clean up the orphaned R2 object. Guarantees manual upload wins.
+	const result = await prisma.user.updateMany({
+		where: { id: userId, avatar: null },
 		data: { avatar: getPublicUrl(key) },
 	});
+
+	if (result.count === 0) {
+		await deleteFromR2(key).catch(() => {});
+	}
 }
