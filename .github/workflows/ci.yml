@@ -79,7 +79,7 @@ jobs:
         run: bunx prisma generate
 
       - name: Push schema to test DB
-        run: bunx prisma db push --skip-generate
+        run: bunx prisma db push
 
       - name: Seed E2E users
         run: bun run db:e2e:seed
