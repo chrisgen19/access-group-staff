@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { getTicketByIdForCurrentUser } from "@/lib/actions/helpme-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { displayReplyAuthor } from "@/lib/helpme-display";
-import { TICKET_CATEGORIES } from "@/lib/validations/helpme";
 import { ReplyForm } from "../_components/reply-form";
 import { ReplyItem } from "../_components/reply-item";
 
@@ -24,7 +23,13 @@ const STATUS_LABEL: Record<string, string> = {
 	CLOSED: "Closed",
 };
 
-const CATEGORY_LABEL = Object.fromEntries(TICKET_CATEGORIES.map((c) => [c.value, c.label]));
+const CATEGORY_LABEL: Record<string, string> = {
+	HR: "HR",
+	IT_WEBSITE: "IT / Website",
+	PAYROLL: "Payroll",
+	FACILITIES: "Facilities",
+	OTHER: "Other",
+};
 
 function formatDateTime(date: Date) {
 	return new Intl.DateTimeFormat("en-AU", {

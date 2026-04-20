@@ -8,12 +8,11 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
-import { TICKET_CATEGORIES } from "@/lib/validations/helpme";
 
 type TicketRow = {
 	id: string;
 	subject: string;
-	category: "HR" | "IT_WEBSITE" | "FACILITIES" | "OTHER";
+	category: "HR" | "IT_WEBSITE" | "PAYROLL" | "FACILITIES" | "OTHER";
 	status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 	createdAt: Date;
 	updatedAt: Date;
@@ -40,9 +39,13 @@ const STATUS_LABEL: Record<TicketRow["status"], string> = {
 	CLOSED: "Closed",
 };
 
-const CATEGORY_LABEL = Object.fromEntries(
-	TICKET_CATEGORIES.map((c) => [c.value, c.label]),
-) as Record<TicketRow["category"], string>;
+const CATEGORY_LABEL: Record<TicketRow["category"], string> = {
+	HR: "HR",
+	IT_WEBSITE: "IT / Website",
+	PAYROLL: "Payroll",
+	FACILITIES: "Facilities",
+	OTHER: "Other",
+};
 
 function formatDate(date: Date) {
 	return new Intl.DateTimeFormat("en-AU", {
