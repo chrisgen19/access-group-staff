@@ -22,18 +22,31 @@ type OAuthKey = (typeof OAUTH_KEYS)[number];
 
 export type OAuthSettings = Record<OAuthKey, boolean>;
 
-let cachedSettings: OAuthSettings | null = null;
-let cacheExpiry = 0;
 const CACHE_TTL_MS = 30_000;
 
 const TOP_RECOGNIZED_KEY = "top_recognized_limit";
 
-let cachedTopLimit: number | null = null;
-let topLimitCacheExpiry = 0;
+// Caches live on globalThis so they behave as a true process-wide singleton.
+// Server Actions and Route Handlers can land in separate bundles with distinct
+// module-scoped variables — a plain module-level `let` would mean the admin
+// Server Action invalidates a different cache instance than the one readers
+// (Route Handlers, Server Components) actually consult, leaking stale data for
+// up to CACHE_TTL_MS after a settings change.
+const globalForSettingsCache = globalThis as unknown as {
+	oauthCache: { data: OAuthSettings | null; expiry: number };
+	topLimitCache: { data: number | null; expiry: number };
+	leaderboardCache: { data: LeaderboardVisibilitySettings | null; expiry: number };
+};
+globalForSettingsCache.oauthCache ??= { data: null, expiry: 0 };
+globalForSettingsCache.topLimitCache ??= { data: null, expiry: 0 };
+globalForSettingsCache.leaderboardCache ??= { data: null, expiry: 0 };
+const oauthCache = globalForSettingsCache.oauthCache;
+const topLimitCache = globalForSettingsCache.topLimitCache;
+const leaderboardCache = globalForSettingsCache.leaderboardCache;
 
 export async function getOAuthSettings(): Promise<OAuthSettings> {
-	if (cachedSettings && Date.now() < cacheExpiry) {
-		return cachedSettings;
+	if (oauthCache.data && Date.now() < oauthCache.expiry) {
+		return oauthCache.data;
 	}
 
 	const settings = await prisma.appSetting.findMany({
@@ -42,18 +55,18 @@ export async function getOAuthSettings(): Promise<OAuthSettings> {
 
 	const map = new Map(settings.map((s) => [s.key, s.value]));
 
-	cachedSettings = {
+	oauthCache.data = {
 		oauth_google_enabled: map.get("oauth_google_enabled") !== "false",
 		oauth_microsoft_enabled: map.get("oauth_microsoft_enabled") !== "false",
 	};
-	cacheExpiry = Date.now() + CACHE_TTL_MS;
+	oauthCache.expiry = Date.now() + CACHE_TTL_MS;
 
-	return cachedSettings;
+	return oauthCache.data;
 }
 
 function invalidateOAuthCache() {
-	cachedSettings = null;
-	cacheExpiry = 0;
+	oauthCache.data = null;
+	oauthCache.expiry = 0;
 }
 
 export async function getOAuthProviderAvailability() {
@@ -91,13 +104,13 @@ export async function updateOAuthSetting(
 /* ── Top Recognized Limit ────────────────────────────── */
 
 function invalidateTopLimitCache() {
-	cachedTopLimit = null;
-	topLimitCacheExpiry = 0;
+	topLimitCache.data = null;
+	topLimitCache.expiry = 0;
 }
 
 export async function getTopRecognizedLimit(): Promise<number> {
-	if (cachedTopLimit !== null && Date.now() < topLimitCacheExpiry) {
-		return cachedTopLimit;
+	if (topLimitCache.data !== null && Date.now() < topLimitCache.expiry) {
+		return topLimitCache.data;
 	}
 
 	const row = await prisma.appSetting.findUnique({
@@ -105,13 +118,13 @@ export async function getTopRecognizedLimit(): Promise<number> {
 	});
 
 	const parsed = row ? Number.parseInt(row.value, 10) : Number.NaN;
-	cachedTopLimit =
+	topLimitCache.data =
 		Number.isNaN(parsed) || parsed < TOP_RECOGNIZED_MIN || parsed > TOP_RECOGNIZED_MAX
 			? TOP_RECOGNIZED_DEFAULT
 			: parsed;
-	topLimitCacheExpiry = Date.now() + CACHE_TTL_MS;
+	topLimitCache.expiry = Date.now() + CACHE_TTL_MS;
 
-	return cachedTopLimit;
+	return topLimitCache.data;
 }
 
 export async function updateTopRecognizedLimit(
@@ -154,12 +167,9 @@ const LEADERBOARD_KEYS = [
 	LEADERBOARD_CUSTOM_END_KEY,
 ];
 
-let cachedLeaderboard: LeaderboardVisibilitySettings | null = null;
-let leaderboardCacheExpiry = 0;
-
 function invalidateLeaderboardCache() {
-	cachedLeaderboard = null;
-	leaderboardCacheExpiry = 0;
+	leaderboardCache.data = null;
+	leaderboardCache.expiry = 0;
 }
 
 function isValidIsoDate(value: string): boolean {
@@ -174,8 +184,8 @@ function isLeaderboardMode(value: string): value is LeaderboardVisibilityMode {
 }
 
 export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVisibilitySettings> {
-	if (cachedLeaderboard && Date.now() < leaderboardCacheExpiry) {
-		return cachedLeaderboard;
+	if (leaderboardCache.data && Date.now() < leaderboardCache.expiry) {
+		return leaderboardCache.data;
 	}
 
 	const rows = await prisma.appSetting.findMany({
@@ -195,15 +205,15 @@ export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVis
 	const rawStart = map.get(LEADERBOARD_CUSTOM_START_KEY) ?? null;
 	const rawEnd = map.get(LEADERBOARD_CUSTOM_END_KEY) ?? null;
 
-	cachedLeaderboard = {
+	leaderboardCache.data = {
 		mode,
 		revealDays,
 		customStart: rawStart && isValidIsoDate(rawStart) ? rawStart : null,
 		customEnd: rawEnd && isValidIsoDate(rawEnd) ? rawEnd : null,
 	};
-	leaderboardCacheExpiry = Date.now() + CACHE_TTL_MS;
+	leaderboardCache.expiry = Date.now() + CACHE_TTL_MS;
 
-	return cachedLeaderboard;
+	return leaderboardCache.data;
 }
 
 export interface UpdateLeaderboardVisibilityInput {
