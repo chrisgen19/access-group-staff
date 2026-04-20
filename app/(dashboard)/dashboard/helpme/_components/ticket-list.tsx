@@ -1,8 +1,5 @@
-"use client";
-
 import { LifeBuoy } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import {
 	Table,
@@ -12,6 +9,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { ClickableTicketRow } from "./clickable-ticket-row";
 
 type TicketRow = {
 	id: string;
@@ -60,8 +58,6 @@ function formatDate(date: Date) {
 }
 
 export function TicketList({ tickets, isAdmin }: { tickets: TicketRow[]; isAdmin: boolean }) {
-	const router = useRouter();
-
 	if (tickets.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
@@ -97,20 +93,10 @@ export function TicketList({ tickets, isAdmin }: { tickets: TicketRow[]; isAdmin
 					{tickets.map((t) => {
 						const href = `/dashboard/helpme/${t.id}`;
 						return (
-							<TableRow
-								key={t.id}
-								onClick={() => {
-									const selection = window.getSelection();
-									if (selection && selection.toString().length > 0) return;
-									router.push(href);
-								}}
-								onMouseEnter={() => router.prefetch(href)}
-								className="cursor-pointer hover:bg-muted/40"
-							>
+							<ClickableTicketRow key={t.id} href={href}>
 								<TableCell className="font-medium">
 									<Link
 										href={href}
-										onClick={(e) => e.stopPropagation()}
 										className="hover:underline focus-visible:underline focus-visible:outline-none"
 									>
 										{t.subject}
@@ -133,7 +119,7 @@ export function TicketList({ tickets, isAdmin }: { tickets: TicketRow[]; isAdmin
 								)}
 								<TableCell>{t._count.replies}</TableCell>
 								<TableCell className="text-muted-foreground">{formatDate(t.createdAt)}</TableCell>
-							</TableRow>
+							</ClickableTicketRow>
 						);
 					})}
 				</TableBody>
