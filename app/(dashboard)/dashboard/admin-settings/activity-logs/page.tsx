@@ -116,8 +116,12 @@ export default async function ActivityLogsPage({
 			<ActivityLogTable
 				logs={logs}
 				page={page}
+				pageSize={PAGE_SIZE}
 				totalPages={totalPages}
 				total={total}
+				hasActiveFilters={
+					!!params.actor || !!params.action || !!params.from || !!params.to || !!params.target
+				}
 				baseQuery={{
 					...(params.actor ? { actor: params.actor } : {}),
 					...(params.action ? { action: params.action } : {}),

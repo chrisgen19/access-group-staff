@@ -1,7 +1,7 @@
+import { ChevronLeft, ChevronRight, FileSearch } from "lucide-react";
 import Link from "next/link";
 import type { ActivityAction, ActivityLog } from "@/app/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
 import {
 	Table,
 	TableBody,
@@ -10,6 +10,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 const ACTION_LABELS: Record<ActivityAction, string> = {
 	USER_SIGNED_IN: "Signed in",
@@ -29,8 +30,10 @@ type LogWithActor = ActivityLog & {
 interface ActivityLogTableProps {
 	logs: LogWithActor[];
 	page: number;
+	pageSize: number;
 	totalPages: number;
 	total: number;
+	hasActiveFilters: boolean;
 	baseQuery: Record<string, string>;
 }
 
@@ -51,13 +54,9 @@ function formatTarget(log: LogWithActor): string {
 function formatMetadata(metadata: unknown): string {
 	if (!metadata) return "—";
 	if (typeof metadata === "object") {
-		try {
-			const entries = Object.entries(metadata as Record<string, unknown>);
-			if (entries.length === 0) return "—";
-			return entries.map(([k, v]) => `${k}: ${String(v)}`).join(", ");
-		} catch {
-			return "—";
-		}
+		const entries = Object.entries(metadata as Record<string, unknown>);
+		if (entries.length === 0) return "—";
+		return entries.map(([k, v]) => `${k}: ${String(v)}`).join(", ");
 	}
 	return String(metadata);
 }
@@ -71,42 +70,58 @@ function buildPageHref(base: Record<string, string>, page: number): string {
 export function ActivityLogTable({
 	logs,
 	page,
+	pageSize,
 	totalPages,
 	total,
+	hasActiveFilters,
 	baseQuery,
 }: ActivityLogTableProps) {
-	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="flex items-center justify-between px-8 pt-6 pb-2">
-				<p className="text-sm text-muted-foreground">
-					{total} {total === 1 ? "entry" : "entries"}
+	if (logs.length === 0) {
+		return (
+			<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
+				<div className="mb-6 rounded-full bg-background p-6">
+					<FileSearch size={48} className="text-muted-foreground opacity-40" />
+				</div>
+				<p className="text-[1.5rem] font-medium text-foreground">
+					{hasActiveFilters ? "No matching activity" : "No activity yet"}
 				</p>
-				<p className="text-xs text-muted-foreground">
-					Page {page} of {totalPages}
+				<p className="mt-2 text-base text-muted-foreground">
+					{hasActiveFilters
+						? "No entries match your current filters."
+						: "Auth events will appear here as they happen."}
 				</p>
+				{hasActiveFilters && (
+					<Link
+						href="?"
+						className="mt-4 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+					>
+						Clear all filters
+					</Link>
+				)}
 			</div>
+		);
+	}
 
-			<div className="overflow-x-auto">
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>When</TableHead>
-							<TableHead>Actor</TableHead>
-							<TableHead>Action</TableHead>
-							<TableHead>Target</TableHead>
-							<TableHead>Metadata</TableHead>
-							<TableHead>IP</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{logs.length === 0 ? (
-							<TableRow>
-								<TableCell colSpan={6} className="text-center text-sm text-muted-foreground py-10">
-									No activity found.
-								</TableCell>
+	const from = (page - 1) * pageSize + 1;
+	const to = Math.min(page * pageSize, total);
+
+	return (
+		<>
+			<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<div className="overflow-x-auto">
+					<Table>
+						<TableHeader>
+							<TableRow className="bg-muted/30 hover:bg-muted/30">
+								<TableHead>When</TableHead>
+								<TableHead>Actor</TableHead>
+								<TableHead>Action</TableHead>
+								<TableHead>Target</TableHead>
+								<TableHead>Metadata</TableHead>
+								<TableHead>IP</TableHead>
 							</TableRow>
-						) : (
-							logs.map((log) => (
+						</TableHeader>
+						<TableBody>
+							{logs.map((log) => (
 								<TableRow key={log.id}>
 									<TableCell className="whitespace-nowrap text-sm">
 										{formatDateTime(log.createdAt)}
@@ -141,40 +156,65 @@ export function ActivityLogTable({
 										{log.ipAddress ?? "—"}
 									</TableCell>
 								</TableRow>
-							))
-						)}
-					</TableBody>
-				</Table>
+							))}
+						</TableBody>
+					</Table>
+				</div>
 			</div>
 
 			{totalPages > 1 && (
-				<div className="flex items-center justify-end gap-2 px-8 py-4">
-					{page > 1 ? (
-						<Link
-							href={buildPageHref(baseQuery, page - 1)}
-							className={buttonVariants({ variant: "outline", size: "sm" })}
+				<div className="flex items-center justify-between pt-2">
+					<p className="text-sm text-muted-foreground">
+						Showing {from}–{to} of {total} {total === 1 ? "entry" : "entries"}
+					</p>
+					<div className="flex items-center gap-2">
+						<PagerButton
+							disabled={page <= 1}
+							href={page > 1 ? buildPageHref(baseQuery, page - 1) : undefined}
 						>
+							<ChevronLeft size={16} />
 							Previous
-						</Link>
-					) : (
-						<Button variant="outline" size="sm" disabled>
-							Previous
-						</Button>
-					)}
-					{page < totalPages ? (
-						<Link
-							href={buildPageHref(baseQuery, page + 1)}
-							className={buttonVariants({ variant: "outline", size: "sm" })}
+						</PagerButton>
+						<span className="text-sm font-medium text-foreground">
+							{page} / {totalPages}
+						</span>
+						<PagerButton
+							disabled={page >= totalPages}
+							href={page < totalPages ? buildPageHref(baseQuery, page + 1) : undefined}
 						>
 							Next
-						</Link>
-					) : (
-						<Button variant="outline" size="sm" disabled>
-							Next
-						</Button>
-					)}
+							<ChevronRight size={16} />
+						</PagerButton>
+					</div>
 				</div>
 			)}
-		</div>
+		</>
+	);
+}
+
+function PagerButton({
+	disabled,
+	href,
+	children,
+}: {
+	disabled: boolean;
+	href?: string;
+	children: React.ReactNode;
+}) {
+	const classes = cn(
+		"inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-gray-100 dark:hover:bg-white/5 transition-colors",
+		disabled && "opacity-30 pointer-events-none",
+	);
+	if (disabled || !href) {
+		return (
+			<span aria-disabled className={classes}>
+				{children}
+			</span>
+		);
+	}
+	return (
+		<Link href={href} className={classes}>
+			{children}
+		</Link>
 	);
 }

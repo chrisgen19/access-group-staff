@@ -1,18 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Search, X } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { ActivityAction } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const ACTION_LABELS: Record<ActivityAction, string> = {
 	USER_SIGNED_IN: "Signed in",
@@ -35,108 +28,135 @@ interface ActivityLogFiltersProps {
 	};
 }
 
-const ALL = "__all__";
-
 export function ActivityLogFilters({ users, actions, initial }: ActivityLogFiltersProps) {
 	const router = useRouter();
-	const [actor, setActor] = useState(initial.actor || ALL);
-	const [action, setAction] = useState(initial.action || ALL);
-	const [from, setFrom] = useState(initial.from);
-	const [to, setTo] = useState(initial.to);
+	const searchParams = useSearchParams();
+	const [, startTransition] = useTransition();
 	const [target, setTarget] = useState(initial.target);
+	const skipInitialDebounce = useRef(true);
 
-	function apply() {
-		const sp = new URLSearchParams();
-		if (actor && actor !== ALL) sp.set("actor", actor);
-		if (action && action !== ALL) sp.set("action", action);
-		if (from) sp.set("from", from);
-		if (to) sp.set("to", to);
-		if (target.trim()) sp.set("target", target.trim());
-		const qs = sp.toString();
-		router.push(qs ? `?${qs}` : "?");
-	}
+	const updateParam = useCallback(
+		(key: string, value: string) => {
+			const sp = new URLSearchParams(searchParams.toString());
+			if (value) {
+				sp.set(key, value);
+			} else {
+				sp.delete(key);
+			}
+			sp.delete("page");
+			const qs = sp.toString();
+			startTransition(() => {
+				router.push(qs ? `?${qs}` : "?");
+			});
+		},
+		[router, searchParams],
+	);
 
-	function reset() {
-		setActor(ALL);
-		setAction(ALL);
-		setFrom("");
-		setTo("");
+	useEffect(() => {
+		if (skipInitialDebounce.current) {
+			skipInitialDebounce.current = false;
+			return;
+		}
+		const timer = setTimeout(() => {
+			updateParam("target", target);
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [target, updateParam]);
+
+	const hasActiveFilters =
+		!!initial.actor || !!initial.action || !!initial.from || !!initial.to || !!initial.target;
+
+	function clearAll() {
 		setTarget("");
-		router.push("?");
+		skipInitialDebounce.current = true;
+		startTransition(() => {
+			router.push("?");
+		});
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] p-6 space-y-4">
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-				<div className="space-y-1.5">
-					<Label>Actor</Label>
-					<Select
-						value={actor}
-						onValueChange={(val) => {
-							if (val !== null) setActor(val);
-						}}
-					>
-						<SelectTrigger>
-							<SelectValue placeholder="All actors" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value={ALL}>All actors</SelectItem>
-							{users.map((u) => (
-								<SelectItem key={u.id} value={u.id}>
-									{u.firstName} {u.lastName}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="space-y-1.5">
-					<Label>Action</Label>
-					<Select
-						value={action}
-						onValueChange={(val) => {
-							if (val !== null) setAction(val);
-						}}
-					>
-						<SelectTrigger>
-							<SelectValue placeholder="All actions" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value={ALL}>All actions</SelectItem>
-							{actions.map((a) => (
-								<SelectItem key={a} value={a}>
-									{ACTION_LABELS[a]}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
-				</div>
-
-				<div className="space-y-1.5">
-					<Label>From</Label>
-					<Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-				</div>
-
-				<div className="space-y-1.5">
-					<Label>To</Label>
-					<Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-				</div>
-
-				<div className="space-y-1.5">
-					<Label>Target</Label>
-					<Input
-						placeholder="e.g. google"
+		<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card p-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center">
+				<div className="relative min-w-0 lg:w-56">
+					<Search
+						size={16}
+						className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+					/>
+					<input
+						type="text"
+						placeholder="Search target..."
 						value={target}
 						onChange={(e) => setTarget(e.target.value)}
+						className="h-9 w-full rounded-full border border-input bg-transparent pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
 					/>
 				</div>
-			</div>
 
-			<div className="flex justify-end gap-2">
-				<Button variant="outline" onClick={reset}>
-					Reset
-				</Button>
-				<Button onClick={apply}>Apply filters</Button>
+				<div className="flex flex-wrap items-center gap-2">
+					<select
+						value={initial.actor}
+						onChange={(e) => updateParam("actor", e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!initial.actor && "text-muted-foreground",
+						)}
+					>
+						<option value="">All actors</option>
+						{users.map((u) => (
+							<option key={u.id} value={u.id}>
+								{u.firstName} {u.lastName}
+							</option>
+						))}
+					</select>
+					<select
+						value={initial.action}
+						onChange={(e) => updateParam("action", e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!initial.action && "text-muted-foreground",
+						)}
+					>
+						<option value="">All actions</option>
+						{actions.map((a) => (
+							<option key={a} value={a}>
+								{ACTION_LABELS[a]}
+							</option>
+						))}
+					</select>
+				</div>
+
+				<div className="flex items-center gap-2">
+					<input
+						type="date"
+						value={initial.from}
+						onChange={(e) => updateParam("from", e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!initial.from && "text-muted-foreground",
+						)}
+					/>
+					<span className="text-xs text-muted-foreground">to</span>
+					<input
+						type="date"
+						value={initial.to}
+						onChange={(e) => updateParam("to", e.target.value)}
+						className={cn(
+							"h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
+							!initial.to && "text-muted-foreground",
+						)}
+					/>
+				</div>
+
+				<div className="flex items-center gap-1 shrink-0 lg:ml-auto">
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={clearAll}
+						className={cn("gap-1 text-muted-foreground", !hasActiveFilters && "invisible")}
+					>
+						<X size={14} />
+						Clear
+					</Button>
+				</div>
 			</div>
 		</div>
 	);
