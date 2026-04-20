@@ -1,4 +1,8 @@
+"use client";
+
+import { LifeBuoy } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import {
 	Table,
@@ -56,19 +60,31 @@ function formatDate(date: Date) {
 }
 
 export function TicketList({ tickets, isAdmin }: { tickets: TicketRow[]; isAdmin: boolean }) {
+	const router = useRouter();
+
 	if (tickets.length === 0) {
 		return (
-			<div className="rounded-lg border border-dashed p-10 text-center text-sm text-muted-foreground">
-				{isAdmin ? "No tickets have been raised yet." : "You haven’t raised any tickets yet."}
+			<div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 bg-card p-16">
+				<div className="mb-6 rounded-full bg-background p-6">
+					<LifeBuoy size={48} className="text-muted-foreground opacity-40" />
+				</div>
+				<p className="text-[1.5rem] font-medium text-foreground">
+					{isAdmin ? "No tickets yet" : "No tickets raised yet"}
+				</p>
+				<p className="mt-2 text-base text-muted-foreground">
+					{isAdmin
+						? "Tickets raised by staff will appear here."
+						: "Need a hand? Raise a ticket and the right team will follow up."}
+				</p>
 			</div>
 		);
 	}
 
 	return (
-		<div className="rounded-lg border">
+		<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 			<Table>
 				<TableHeader>
-					<TableRow>
+					<TableRow className="bg-muted/30 hover:bg-muted/30">
 						<TableHead>Subject</TableHead>
 						<TableHead>Category</TableHead>
 						<TableHead>Status</TableHead>
@@ -78,28 +94,44 @@ export function TicketList({ tickets, isAdmin }: { tickets: TicketRow[]; isAdmin
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{tickets.map((t) => (
-						<TableRow key={t.id} className="cursor-pointer hover:bg-muted/40">
-							<TableCell className="font-medium">
-								<Link href={`/dashboard/helpme/${t.id}`} className="hover:underline">
-									{t.subject}
-								</Link>
-							</TableCell>
-							<TableCell>{CATEGORY_LABEL[t.category]}</TableCell>
-							<TableCell>
-								<Badge variant="secondary" className={STATUS_STYLES[t.status]}>
-									{STATUS_LABEL[t.status]}
-								</Badge>
-							</TableCell>
-							{isAdmin && (
-								<TableCell>
-									{t.createdBy.firstName} {t.createdBy.lastName}
+					{tickets.map((t) => {
+						const href = `/dashboard/helpme/${t.id}`;
+						return (
+							<TableRow
+								key={t.id}
+								onClick={() => router.push(href)}
+								onMouseEnter={() => router.prefetch(href)}
+								className="cursor-pointer hover:bg-muted/40"
+							>
+								<TableCell className="font-medium">
+									<Link
+										href={href}
+										onClick={(e) => e.stopPropagation()}
+										className="hover:underline focus-visible:underline focus-visible:outline-none"
+									>
+										{t.subject}
+									</Link>
 								</TableCell>
-							)}
-							<TableCell>{t._count.replies}</TableCell>
-							<TableCell className="text-muted-foreground">{formatDate(t.createdAt)}</TableCell>
-						</TableRow>
-					))}
+								<TableCell>
+									<span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/10">
+										{CATEGORY_LABEL[t.category]}
+									</span>
+								</TableCell>
+								<TableCell>
+									<Badge variant="secondary" className={STATUS_STYLES[t.status]}>
+										{STATUS_LABEL[t.status]}
+									</Badge>
+								</TableCell>
+								{isAdmin && (
+									<TableCell>
+										{t.createdBy.firstName} {t.createdBy.lastName}
+									</TableCell>
+								)}
+								<TableCell>{t._count.replies}</TableCell>
+								<TableCell className="text-muted-foreground">{formatDate(t.createdAt)}</TableCell>
+							</TableRow>
+						);
+					})}
 				</TableBody>
 			</Table>
 		</div>

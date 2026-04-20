@@ -85,7 +85,7 @@ export function ReplyItem({ reply }: { reply: ReplyItemData }) {
 	}
 
 	return (
-		<div className="rounded-2xl border bg-card p-4">
+		<div className="rounded-2xl border border-gray-200/60 dark:border-white/10 bg-card p-5 shadow-[0_1px_12px_-4px_rgba(0,0,0,0.03)]">
 			<div className="flex items-start gap-3">
 				<Avatar author={reply.author} />
 				<div className="min-w-0 flex-1">

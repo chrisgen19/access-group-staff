@@ -51,7 +51,10 @@ export function TicketForm() {
 	}
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="space-y-5 rounded-2xl border bg-card p-6">
+		<form
+			onSubmit={handleSubmit(onSubmit)}
+			className="space-y-5 rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-8 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]"
+		>
 			<div>
 				<label
 					htmlFor="ticket-category"
