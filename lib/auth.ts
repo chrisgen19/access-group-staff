@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { after } from "next/server";
 import { env } from "@/env";
 import { prisma } from "@/lib/db";
 import { syncMicrosoftAvatar } from "@/lib/microsoft-avatar";
@@ -50,12 +51,21 @@ export const auth = betterAuth({
 				after: async (account) => {
 					if (account.providerId !== "microsoft" || !account.accessToken) return;
 					const { userId, accessToken } = account;
-					void syncMicrosoftAvatar(userId, accessToken).catch((err) => {
-						console.error("Microsoft avatar sync failed", {
-							userId,
-							error: err instanceof Error ? err.message : String(err),
+					const run = () =>
+						syncMicrosoftAvatar(userId, accessToken).catch((err) => {
+							console.error("Microsoft avatar sync failed", {
+								userId,
+								error: err instanceof Error ? err.message : String(err),
+							});
 						});
-					});
+					// next/server `after` uses Vercel's waitUntil so the serverless
+					// invocation stays alive until the sync completes. Falls back to
+					// awaiting inline when called outside a request (e.g. seed scripts).
+					try {
+						after(run);
+					} catch {
+						await run();
+					}
 				},
 			},
 		},

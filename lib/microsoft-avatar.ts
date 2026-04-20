@@ -27,15 +27,20 @@ export async function syncMicrosoftAvatar(userId: string, accessToken: string): 
 	const key = getAvatarKey(userId, contentType);
 	await uploadToR2(key, buffer, contentType);
 
-	// Conditional update: only writes if avatar is still null. If the user
-	// uploaded a custom avatar while we were fetching from Graph, count === 0
-	// and we clean up the orphaned R2 object. Guarantees manual upload wins.
-	const result = await prisma.user.updateMany({
-		where: { id: userId, avatar: null },
-		data: { avatar: getPublicUrl(key) },
-	});
+	// Conditional update: only writes if avatar is still null, so a manual
+	// upload that landed during the Graph fetch always wins. Any failure path
+	// after uploadToR2 must clean up the R2 object to avoid orphaned blobs.
+	try {
+		const result = await prisma.user.updateMany({
+			where: { id: userId, avatar: null },
+			data: { avatar: getPublicUrl(key) },
+		});
 
-	if (result.count === 0) {
+		if (result.count === 0) {
+			await deleteFromR2(key).catch(() => {});
+		}
+	} catch (err) {
 		await deleteFromR2(key).catch(() => {});
+		throw err;
 	}
 }
