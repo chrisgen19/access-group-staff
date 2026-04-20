@@ -5,6 +5,7 @@ import {
 	ChevronDown,
 	Heart,
 	LayoutDashboard,
+	LifeBuoy,
 	LogOut,
 	Menu,
 	Settings,
@@ -32,6 +33,7 @@ interface NavChild {
 
 interface NavItem {
 	label: string;
+	adminLabel?: string;
 	href: string;
 	icon: React.ComponentType<{ size?: number }>;
 	minRole: MinRole;
@@ -73,6 +75,13 @@ const NAV_ITEMS: NavItem[] = [
 		label: "My Profile",
 		href: "/dashboard/profile",
 		icon: UserCircle,
+		minRole: "STAFF",
+	},
+	{
+		label: "My Tickets",
+		adminLabel: "Help Me Tickets",
+		href: "/dashboard/helpme",
+		icon: LifeBuoy,
 		minRole: "STAFF",
 	},
 	{
@@ -147,7 +156,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 								)}
 							>
 								<item.icon size={22} />
-								<span className="flex-1">{item.label}</span>
+								<span className="flex-1">
+									{roleLevel[userRole] >= roleLevel.ADMIN && item.adminLabel
+										? item.adminLabel
+										: item.label}
+								</span>
 								{item.href === "/dashboard/recognition" && <NotificationBadge />}
 								{hasChildren && (
 									<ChevronDown
