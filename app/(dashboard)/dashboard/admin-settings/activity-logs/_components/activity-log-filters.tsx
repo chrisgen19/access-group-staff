@@ -15,6 +15,7 @@ const ACTION_LABELS: Record<ActivityAction, string> = {
 	OAUTH_ACCOUNT_LINKED: "OAuth linked",
 	PASSWORD_CHANGED: "Password changed",
 	PASSWORD_RESET: "Password reset",
+	USER_VISITED: "Visited",
 };
 
 interface ActivityLogFiltersProps {

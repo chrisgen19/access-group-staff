@@ -1,11 +1,15 @@
 import { getCookies } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { extractRequestMeta, logActivity } from "@/lib/activity-log";
 import { auth } from "@/lib/auth";
 import { safeCallbackUrl, sanitizeCallbackUrl } from "@/lib/auth/safe-callback";
 import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
+
+// Cookie set once per UTC day to throttle USER_VISITED log writes
+const VISIT_COOKIE = "vl";
 
 async function resolveSession(request: NextRequest) {
 	try {
@@ -29,6 +33,9 @@ export async function proxy(request: NextRequest) {
 		return NextResponse.redirect(loginUrl);
 	}
 
+	const todayUtc = new Date().toISOString().slice(0, 10);
+	let pendingVisitActorId: string | null = null;
+
 	if (isProtected && sessionCookie) {
 		const session = await resolveSession(request);
 		if (!session) {
@@ -44,6 +51,10 @@ export async function proxy(request: NextRequest) {
 			const response = NextResponse.redirect(new URL("/login", request.url));
 			response.cookies.delete(sessionToken.name);
 			return response;
+		}
+
+		if (request.cookies.get(VISIT_COOKIE)?.value !== todayUtc) {
+			pendingVisitActorId = session.user.id;
 		}
 	}
 
@@ -63,7 +74,25 @@ export async function proxy(request: NextRequest) {
 		return NextResponse.redirect(new URL(safeCallback, request.url));
 	}
 
-	return NextResponse.next();
+	const response = NextResponse.next();
+
+	if (pendingVisitActorId) {
+		const { ipAddress, userAgent } = extractRequestMeta(request.headers);
+		void logActivity({
+			action: "USER_VISITED",
+			actorId: pendingVisitActorId,
+			ipAddress,
+			userAgent,
+		});
+		response.cookies.set(VISIT_COOKIE, todayUtc, {
+			path: "/",
+			httpOnly: true,
+			sameSite: "lax",
+			maxAge: 86400,
+		});
+	}
+
+	return response;
 }
 
 export const config = {

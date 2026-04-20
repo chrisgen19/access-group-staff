@@ -33,6 +33,7 @@ enum ActivityAction {
   OAUTH_ACCOUNT_LINKED
   PASSWORD_CHANGED
   PASSWORD_RESET
+  USER_VISITED
 }
 
 enum TicketCategory {
