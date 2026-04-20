@@ -40,12 +40,6 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 			return { success: false as const, error: "Card not found" };
 		}
 
-		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isParticipant = card.senderId === session.user.id || card.recipientId === session.user.id;
-		if (!isParticipant && !isAdmin) {
-			return { success: false as const, error: "Forbidden" };
-		}
-
 		const deleted = await prisma.cardReaction.deleteMany({
 			where: { cardId, userId: session.user.id, emoji },
 		});
@@ -108,12 +102,6 @@ export async function addCommentAction(cardId: string, body: string) {
 			return { success: false as const, error: "Card not found" };
 		}
 
-		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isParticipant = card.senderId === session.user.id || card.recipientId === session.user.id;
-		if (!isParticipant && !isAdmin) {
-			return { success: false as const, error: "Forbidden" };
-		}
-
 		const comment = await prisma.$transaction(async (tx) => {
 			const created = await tx.cardComment.create({
 				data: { cardId, userId: session.user.id, body: parsedBody.data },
@@ -167,21 +155,11 @@ export async function editCommentAction(commentId: string, body: string) {
 
 		const comment = await prisma.cardComment.findUnique({
 			where: { id: commentId },
-			select: {
-				userId: true,
-				card: { select: { senderId: true, recipientId: true } },
-			},
+			select: { userId: true },
 		});
 
 		if (!comment) {
 			return { success: false as const, error: "Comment not found" };
-		}
-
-		const isEditAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isEditParticipant =
-			comment.card.senderId === session.user.id || comment.card.recipientId === session.user.id;
-		if (!isEditParticipant && !isEditAdmin) {
-			return { success: false as const, error: "Forbidden" };
 		}
 
 		if (comment.userId !== session.user.id) {
@@ -222,10 +200,7 @@ export async function deleteCommentAction(commentId: string) {
 
 		const comment = await prisma.cardComment.findUnique({
 			where: { id: commentId },
-			select: {
-				userId: true,
-				card: { select: { senderId: true, recipientId: true } },
-			},
+			select: { userId: true },
 		});
 
 		if (!comment) {
@@ -233,12 +208,6 @@ export async function deleteCommentAction(commentId: string) {
 		}
 
 		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-		const isDeleteParticipant =
-			comment.card.senderId === session.user.id || comment.card.recipientId === session.user.id;
-		if (!isDeleteParticipant && !isAdmin) {
-			return { success: false as const, error: "Forbidden" };
-		}
-
 		if (comment.userId !== session.user.id && !isAdmin) {
 			return { success: false as const, error: "Not allowed" };
 		}
