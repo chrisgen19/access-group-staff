@@ -226,17 +226,10 @@ export async function GET(request: NextRequest) {
 
 		return Response.json({
 			success: true,
-			data: cards.map((card) => {
-				const mapped = mapCounts(card);
-				const isCardParticipant =
-					card.senderId === session.user.id || card.recipientId === session.user.id || isAdmin;
-				return {
-					...mapped,
-					reactionSummary: isCardParticipant
-						? Array.from(reactionsByCard.get(card.id)?.values() ?? [])
-						: undefined,
-				};
-			}),
+			data: cards.map((card) => ({
+				...mapCounts(card),
+				reactionSummary: Array.from(reactionsByCard.get(card.id)?.values() ?? []),
+			})),
 		});
 	} catch {
 		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
