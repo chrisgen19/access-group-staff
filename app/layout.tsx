@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Roboto } from "next/font/google";
+import { HelpFab } from "@/components/shared/help-fab";
 import { Providers } from "@/components/shared/providers";
 import { env } from "@/env";
 import "./globals.css";
@@ -33,7 +34,10 @@ export default function RootLayout({
 			className={`${roboto.variable} ${geistMono.variable} h-full antialiased`}
 		>
 			<body className="min-h-full font-sans">
-				<Providers>{children}</Providers>
+				<Providers>
+					{children}
+					<HelpFab />
+				</Providers>
 			</body>
 		</html>
 	);
