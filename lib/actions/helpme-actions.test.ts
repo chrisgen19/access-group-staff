@@ -13,7 +13,7 @@ vi.mock("@/lib/db", () => ({
 		helpMeTicket: {
 			create: vi.fn(),
 			findMany: vi.fn(),
-			findUnique: vi.fn(),
+			findFirst: vi.fn(),
 		},
 	},
 }));
@@ -126,7 +126,7 @@ describe("getTicketByIdForCurrentUser", () => {
 		vi.mocked(requireSession).mockResolvedValue(
 			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
 		);
-		vi.mocked(prisma.helpMeTicket.findUnique).mockResolvedValue({
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue({
 			id: "t1",
 			createdById: STAFF_ID,
 		} as never);
@@ -136,25 +136,25 @@ describe("getTicketByIdForCurrentUser", () => {
 		expect(result).not.toBeNull();
 	});
 
-	test("returns null when STAFF tries to access another user's ticket", async () => {
+	test("scopes query to creator when STAFF requests a ticket", async () => {
 		vi.mocked(requireSession).mockResolvedValue(
 			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
 		);
-		vi.mocked(prisma.helpMeTicket.findUnique).mockResolvedValue({
-			id: "t1",
-			createdById: OTHER_STAFF_ID,
-		} as never);
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue(null);
 
 		const result = await getTicketByIdForCurrentUser("t1");
 
 		expect(result).toBeNull();
+		expect(prisma.helpMeTicket.findFirst).toHaveBeenCalledWith(
+			expect.objectContaining({ where: { id: "t1", createdById: STAFF_ID } }),
+		);
 	});
 
 	test("returns ticket for ADMIN regardless of creator", async () => {
 		vi.mocked(requireSession).mockResolvedValue(
 			mockSession(ADMIN_ID, "ADMIN") as unknown as Awaited<ReturnType<typeof requireSession>>,
 		);
-		vi.mocked(prisma.helpMeTicket.findUnique).mockResolvedValue({
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue({
 			id: "t1",
 			createdById: OTHER_STAFF_ID,
 		} as never);
@@ -162,13 +162,16 @@ describe("getTicketByIdForCurrentUser", () => {
 		const result = await getTicketByIdForCurrentUser("t1");
 
 		expect(result).not.toBeNull();
+		expect(prisma.helpMeTicket.findFirst).toHaveBeenCalledWith(
+			expect.objectContaining({ where: { id: "t1" } }),
+		);
 	});
 
 	test("returns null when ticket does not exist", async () => {
 		vi.mocked(requireSession).mockResolvedValue(
 			mockSession(ADMIN_ID, "ADMIN") as unknown as Awaited<ReturnType<typeof requireSession>>,
 		);
-		vi.mocked(prisma.helpMeTicket.findUnique).mockResolvedValue(null);
+		vi.mocked(prisma.helpMeTicket.findFirst).mockResolvedValue(null);
 
 		const result = await getTicketByIdForCurrentUser("missing");
 

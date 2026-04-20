@@ -70,8 +70,8 @@ export async function getTicketByIdForCurrentUser(id: string) {
 	const role = session.user.role as Role;
 	const isAdmin = hasMinRole(role, "ADMIN");
 
-	const ticket = await prisma.helpMeTicket.findUnique({
-		where: { id },
+	const ticket = await prisma.helpMeTicket.findFirst({
+		where: isAdmin ? { id } : { id, createdById: session.user.id },
 		include: {
 			createdBy: {
 				select: {
@@ -79,14 +79,10 @@ export async function getTicketByIdForCurrentUser(id: string) {
 					firstName: true,
 					lastName: true,
 					avatar: true,
-					email: true,
 				},
 			},
 		},
 	});
-
-	if (!ticket) return null;
-	if (!isAdmin && ticket.createdById !== session.user.id) return null;
 
 	return ticket;
 }
