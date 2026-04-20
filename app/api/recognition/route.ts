@@ -34,8 +34,6 @@ export async function GET(request: NextRequest) {
 			} else {
 				where = { id: "none" };
 			}
-		} else if (!isAdmin) {
-			where = { recipientId: session.user.id };
 		}
 
 		const include = {
@@ -62,22 +60,12 @@ export async function GET(request: NextRequest) {
 			},
 		};
 
-		const mapCounts = <
-			T extends {
-				_count: { reactions: number; comments: number };
-				senderId: string;
-				recipientId: string;
-			},
-		>({
+		const mapCounts = <T extends { _count: { reactions: number; comments: number } }>({
 			_count,
 			...card
 		}: T) => ({
 			...card,
-			// Only expose interaction counts to participants (sender/recipient/admin)
-			interactionCounts:
-				card.senderId === session.user.id || card.recipientId === session.user.id || isAdmin
-					? _count
-					: null,
+			interactionCounts: _count,
 		});
 
 		const isExport = request.nextUrl.searchParams.get("export") === "true";
