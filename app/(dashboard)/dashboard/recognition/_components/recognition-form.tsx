@@ -265,6 +265,14 @@ export function RecognitionForm({
 
 	const senderName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : "";
 
+	const todayLocal = (() => {
+		const d = new Date();
+		const yyyy = d.getFullYear();
+		const mm = String(d.getMonth() + 1).padStart(2, "0");
+		const dd = String(d.getDate()).padStart(2, "0");
+		return `${yyyy}-${mm}-${dd}`;
+	})();
+
 	const {
 		register,
 		handleSubmit,
@@ -485,6 +493,7 @@ export function RecognitionForm({
 										<span className="text-xs font-black text-black mb-1">DATE</span>
 										<input
 											type="date"
+											max={todayLocal}
 											{...register("date")}
 											className="w-full outline-none text-lg bg-transparent text-[#222]"
 										/>
@@ -600,6 +609,7 @@ export function RecognitionForm({
 										<span className="text-xs font-black text-black mb-1">DATE</span>
 										<input
 											type="date"
+											max={todayLocal}
 											{...register("date")}
 											className="w-full outline-none text-lg bg-transparent text-[#222]"
 										/>
