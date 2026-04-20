@@ -12,6 +12,7 @@ import {
 	updateRecognitionCardAction,
 } from "@/lib/actions/recognition-actions";
 import { useSession } from "@/lib/auth-client";
+import { formatLocalDate } from "@/lib/date-utils";
 import {
 	type CreateRecognitionCardInput,
 	createRecognitionCardSchema,
@@ -265,13 +266,13 @@ export function RecognitionForm({
 
 	const senderName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : "";
 
-	const todayLocal = (() => {
-		const d = new Date();
-		const yyyy = d.getFullYear();
-		const mm = String(d.getMonth() + 1).padStart(2, "0");
-		const dd = String(d.getDate()).padStart(2, "0");
-		return `${yyyy}-${mm}-${dd}`;
-	})();
+	const [todayLocal, setTodayLocal] = useState(() => formatLocalDate(new Date()));
+
+	useEffect(() => {
+		const refresh = () => setTodayLocal(formatLocalDate(new Date()));
+		window.addEventListener("focus", refresh);
+		return () => window.removeEventListener("focus", refresh);
+	}, []);
 
 	const {
 		register,
@@ -285,9 +286,7 @@ export function RecognitionForm({
 		defaultValues: {
 			recipientId: editDefaults?.recipientId ?? "",
 			message: editDefaults?.message ?? "",
-			date:
-				editDefaults?.date ??
-				new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().split("T")[0],
+			date: editDefaults?.date ?? formatLocalDate(new Date()),
 			valuesPeople: editDefaults?.valuesPeople ?? false,
 			valuesSafety: editDefaults?.valuesSafety ?? false,
 			valuesRespect: editDefaults?.valuesRespect ?? false,
