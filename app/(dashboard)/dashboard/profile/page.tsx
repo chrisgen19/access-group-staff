@@ -49,7 +49,9 @@ export default async function ProfilePage() {
 							<Send size={18} className="text-primary" />
 						</div>
 						<div>
-							<p className="text-2xl font-semibold text-foreground">{lifetimeSent}</p>
+							<p className="text-2xl font-semibold text-foreground">
+								{lifetimeSent.toLocaleString()}
+							</p>
 							<p className="text-xs text-muted-foreground">Cards Sent</p>
 						</div>
 					</div>
@@ -58,7 +60,9 @@ export default async function ProfilePage() {
 							<Inbox size={18} className="text-primary" />
 						</div>
 						<div>
-							<p className="text-2xl font-semibold text-foreground">{lifetimeReceived}</p>
+							<p className="text-2xl font-semibold text-foreground">
+								{lifetimeReceived.toLocaleString()}
+							</p>
 							<p className="text-xs text-muted-foreground">Cards Received</p>
 						</div>
 					</div>

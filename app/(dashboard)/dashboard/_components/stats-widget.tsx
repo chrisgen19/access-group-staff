@@ -150,7 +150,7 @@ function StatItem({
 				<Icon size={18} className="text-primary" />
 			</div>
 			<div>
-				<p className="text-2xl font-semibold text-foreground">{value}</p>
+				<p className="text-2xl font-semibold text-foreground">{value.toLocaleString()}</p>
 				<p className="text-xs text-muted-foreground">{label}</p>
 			</div>
 		</div>
@@ -348,7 +348,7 @@ export function StatsWidget() {
 											isPodium ? cn("rounded-full px-2.5 py-0.5", style?.countBg) : "text-primary",
 										)}
 									>
-										{person.count}
+										{person.count.toLocaleString()}
 									</span>
 								</li>
 							);
