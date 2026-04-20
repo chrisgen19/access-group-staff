@@ -25,15 +25,25 @@ export function mapGoogleProfile(profile: GoogleProfile): MappedUser {
 	};
 }
 
+function stripEmailDomain(value: string | undefined): string | undefined {
+	if (!value) return undefined;
+	const at = value.indexOf("@");
+	return at === -1 ? value : value.slice(0, at);
+}
+
 export function mapMicrosoftProfile(profile: MicrosoftProfile): MappedUser {
-	const fallbackSource =
-		profile.name ?? profile.preferred_username ?? profile.email?.split("@")[0] ?? "";
-	const [fallbackFirst, ...fallbackRest] = fallbackSource.trim().split(/\s+/);
+	const fallbackSource = (
+		profile.name ??
+		stripEmailDomain(profile.preferred_username) ??
+		stripEmailDomain(profile.email) ??
+		""
+	).trim();
+	const [fallbackFirst, ...fallbackRest] = fallbackSource.split(/\s+/);
 	const firstName = profile.given_name ?? fallbackFirst ?? "";
 	const lastName = profile.family_name ?? (fallbackRest.join(" ") || firstName);
 	return {
 		firstName,
 		lastName,
-		name: profile.name ?? `${firstName} ${lastName}`.trim(),
+		name: profile.name ?? (fallbackSource || `${firstName} ${lastName}`.trim()),
 	};
 }

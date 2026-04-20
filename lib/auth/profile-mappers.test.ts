@@ -52,7 +52,7 @@ describe("mapMicrosoftProfile", () => {
 		});
 	});
 
-	it("uses firstName for lastName when name is single-word", () => {
+	it("uses firstName for lastName when name is single-word but keeps name as-is", () => {
 		expect(
 			mapMicrosoftProfile({
 				name: "Cher",
@@ -64,21 +64,32 @@ describe("mapMicrosoftProfile", () => {
 		});
 	});
 
-	it("falls back to preferred_username when name is missing", () => {
+	it("strips email domain from preferred_username when name is missing", () => {
+		const result = mapMicrosoftProfile({
+			preferred_username: "alice@company.com",
+			email: "alice@company.com",
+		});
+		expect(result.firstName).toBe("alice");
+		expect(result.lastName).toBe("alice");
+		expect(result.name).toBe("alice");
+	});
+
+	it("uses preferred_username as-is when it does not contain @", () => {
 		const result = mapMicrosoftProfile({
 			preferred_username: "jane.doe",
-			email: "jane.doe@example.com",
 		});
 		expect(result.firstName).toBe("jane.doe");
 		expect(result.lastName).toBe("jane.doe");
+		expect(result.name).toBe("jane.doe");
 	});
 
-	it("falls back to email local-part as last resort", () => {
+	it("falls back to email local-part as last resort without duplicating name", () => {
 		const result = mapMicrosoftProfile({
 			email: "bob@example.com",
 		});
 		expect(result.firstName).toBe("bob");
 		expect(result.lastName).toBe("bob");
+		expect(result.name).toBe("bob");
 	});
 
 	it("mixes partial claims: given_name present, family_name missing", () => {
