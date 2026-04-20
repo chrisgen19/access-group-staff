@@ -1,8 +1,4 @@
-import {
-	SkeletonCard,
-	SkeletonLine,
-	SkeletonPageHeader,
-} from "@/components/shared/skeleton-primitives";
+import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 
 export default function DashboardLoading() {
 	return (
@@ -12,15 +8,51 @@ export default function DashboardLoading() {
 			aria-busy="true"
 			aria-label="Loading dashboard"
 		>
-			<SkeletonPageHeader action />
+			{/* Welcome header + Send button */}
+			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+				<div className="space-y-3">
+					<SkeletonLine className="h-10 w-80" />
+					<SkeletonLine className="h-5 w-72" />
+				</div>
+				<SkeletonLine className="h-12 w-56 rounded-full" />
+			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-8">
+			{/* Feed (left on lg) + Stats (right on lg). On mobile, stats comes first. */}
+			<div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8">
+				{/* Feed widget skeleton */}
+				<SkeletonCard className="overflow-hidden flex flex-col order-2 lg:order-1">
+					<div className="px-6 pt-6 pb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+						<SkeletonLine className="h-6 w-44" />
+						<SkeletonLine className="h-8 w-52 rounded-full" />
+					</div>
+					<div className="px-6 pb-6 space-y-4">
+						{["f0", "f1", "f2"].map((key) => (
+							<SkeletonCard key={key} className="p-6">
+								<div className="flex items-center gap-3 mb-4">
+									<SkeletonLine className="h-10 w-10 rounded-full" />
+									<SkeletonLine className="h-4 w-6" />
+									<SkeletonLine className="h-10 w-10 rounded-full" />
+									<SkeletonLine className="h-4 w-24" />
+								</div>
+								<div className="space-y-2 mb-4">
+									<SkeletonLine className="h-4 w-full" />
+									<SkeletonLine className="h-4 w-2/3" />
+								</div>
+								<div className="flex gap-2">
+									<SkeletonLine className="h-6 w-16 rounded-full" />
+									<SkeletonLine className="h-6 w-20 rounded-full" />
+								</div>
+							</SkeletonCard>
+						))}
+					</div>
+				</SkeletonCard>
+
 				{/* Stats widget skeleton */}
-				<SkeletonCard className="p-6 space-y-6">
-					<SkeletonLine className="h-5 w-32" />
+				<SkeletonCard className="p-6 space-y-6 h-full order-1 lg:order-2">
+					<SkeletonLine className="h-6 w-40" />
 					<div className="grid grid-cols-3 gap-4">
-						{[1, 2, 3].map((i) => (
-							<div key={`stat-${i}`} className="flex items-center gap-3">
+						{["s0", "s1", "s2"].map((key) => (
+							<div key={key} className="flex items-center gap-3">
 								<SkeletonLine className="h-10 w-10 rounded-full" />
 								<div className="space-y-1">
 									<SkeletonLine className="h-6 w-8" />
@@ -30,42 +62,16 @@ export default function DashboardLoading() {
 						))}
 					</div>
 					<div className="space-y-3">
-						{[1, 2, 3].map((i) => (
-							<div key={`user-${i}`} className="flex items-center gap-3">
-								<SkeletonLine className="h-8 w-8 rounded-full" />
-								<SkeletonLine className="h-4 w-24" />
-							</div>
-						))}
-					</div>
-				</SkeletonCard>
-
-				{/* Feed widget skeleton */}
-				<SkeletonCard className="p-6 space-y-4">
-					<SkeletonLine className="h-5 w-40" />
-					<div className="flex gap-2">
-						<SkeletonLine className="h-8 w-20 rounded-full" />
-						<SkeletonLine className="h-8 w-28 rounded-full" />
-					</div>
-					<div className="space-y-4">
-						{[1, 2, 3].map((i) => (
+						<SkeletonLine className="h-4 w-36" />
+						{["u0", "u1", "u2"].map((key) => (
 							<div
-								key={`card-${i}`}
-								className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 p-6 space-y-3"
+								key={key}
+								className="flex items-center gap-3 rounded-xl border border-gray-200/60 dark:border-white/10 px-3 py-2.5"
 							>
-								<div className="flex items-center gap-3">
-									<SkeletonLine className="h-10 w-10 rounded-full" />
-									<SkeletonLine className="h-4 w-6" />
-									<SkeletonLine className="h-10 w-10 rounded-full" />
-									<SkeletonLine className="h-4 w-24" />
-								</div>
-								<div className="space-y-2">
-									<SkeletonLine className="h-4 w-full" />
-									<SkeletonLine className="h-4 w-2/3" />
-								</div>
-								<div className="flex gap-2">
-									<SkeletonLine className="h-6 w-16 rounded-full" />
-									<SkeletonLine className="h-6 w-20 rounded-full" />
-								</div>
+								<SkeletonLine className="h-[18px] w-[18px] rounded-full" />
+								<SkeletonLine className="h-8 w-8 rounded-full" />
+								<SkeletonLine className="h-4 w-24 flex-1" />
+								<SkeletonLine className="h-5 w-8 rounded-full" />
 							</div>
 						))}
 					</div>
