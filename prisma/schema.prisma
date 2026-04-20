@@ -38,7 +38,6 @@ enum ActivityAction {
 enum TicketCategory {
   HR
   IT_WEBSITE
-  PAYROLL
   FACILITIES
   OTHER
 }

@@ -13,7 +13,7 @@ import { TICKET_CATEGORIES } from "@/lib/validations/helpme";
 type TicketRow = {
 	id: string;
 	subject: string;
-	category: "HR" | "IT_WEBSITE" | "PAYROLL" | "FACILITIES" | "OTHER";
+	category: "HR" | "IT_WEBSITE" | "FACILITIES" | "OTHER";
 	status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
 	createdAt: Date;
 	updatedAt: Date;

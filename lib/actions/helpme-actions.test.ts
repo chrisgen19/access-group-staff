@@ -36,9 +36,9 @@ const mockSession = (userId: string, role: "STAFF" | "ADMIN" | "SUPERADMIN" = "S
 });
 
 const validInput = (overrides: Partial<Record<string, unknown>> = {}) => ({
-	subject: "Need help with payroll",
-	body: "My last payslip seems incorrect — please advise.",
-	category: "PAYROLL" as const,
+	subject: "Need help with HR",
+	body: "I have a question about leave balances — please advise.",
+	category: "HR" as const,
 	...overrides,
 });
 
@@ -58,8 +58,8 @@ describe("createTicketAction", () => {
 		expect(result).toEqual({ success: true, data: { id: "ticket_1" } });
 		expect(prisma.helpMeTicket.create).toHaveBeenCalledWith({
 			data: expect.objectContaining({
-				subject: "Need help with payroll",
-				category: "PAYROLL",
+				subject: "Need help with HR",
+				category: "HR",
 				createdById: STAFF_ID,
 			}),
 			select: { id: true },
