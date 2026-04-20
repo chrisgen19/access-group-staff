@@ -169,7 +169,7 @@ export function RecognitionFeed({
 						<div
 							key={card.id}
 							className={cn(
-								"group relative rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden",
+								"group relative isolate rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden",
 								cardMaxWidth,
 							)}
 						>
