@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { ActivityAction } from "@/app/generated/prisma/client";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { StaffCombobox } from "./staff-combobox";
 
 const ACTION_LABELS: Record<ActivityAction, string> = {
 	USER_SIGNED_IN: "Signed in",
@@ -92,21 +93,13 @@ export function ActivityLogFilters({ users, actions, initial }: ActivityLogFilte
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					<select
+					<StaffCombobox
 						value={initial.actor}
-						onChange={(e) => updateParam("actor", e.target.value)}
-						className={cn(
-							"h-9 rounded-lg border border-input bg-transparent px-2.5 pr-8 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30",
-							!initial.actor && "text-muted-foreground",
-						)}
-					>
-						<option value="">All actors</option>
-						{users.map((u) => (
-							<option key={u.id} value={u.id}>
-								{u.firstName} {u.lastName}
-							</option>
-						))}
-					</select>
+						staff={users}
+						onChange={(id) => updateParam("actor", id)}
+						placeholder="All Staff"
+						className="w-full sm:w-56"
+					/>
 					<select
 						value={initial.action}
 						onChange={(e) => updateParam("action", e.target.value)}
