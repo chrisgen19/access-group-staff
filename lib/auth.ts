@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { after } from "next/server";
 import { env } from "@/env";
+import { mapGoogleProfile, mapMicrosoftProfile } from "@/lib/auth/profile-mappers";
 import { prisma } from "@/lib/db";
 import { syncMicrosoftAvatar } from "@/lib/microsoft-avatar";
 
@@ -9,11 +10,7 @@ const socialProviders: Record<string, unknown> = {
 	google: {
 		clientId: env.GOOGLE_CLIENT_ID,
 		clientSecret: env.GOOGLE_CLIENT_SECRET,
-		mapProfileToUser: (profile: { given_name: string; family_name: string }) => ({
-			firstName: profile.given_name,
-			lastName: profile.family_name,
-			name: `${profile.given_name} ${profile.family_name}`,
-		}),
+		mapProfileToUser: mapGoogleProfile,
 	},
 };
 
@@ -23,11 +20,7 @@ if (env.MICROSOFT_CLIENT_ID && env.MICROSOFT_CLIENT_SECRET) {
 		clientSecret: env.MICROSOFT_CLIENT_SECRET,
 		tenantId: env.MICROSOFT_TENANT_ID ?? "common",
 		scope: ["User.Read", "openid", "profile", "email"],
-		mapProfileToUser: (profile: { given_name: string; family_name: string }) => ({
-			firstName: profile.given_name,
-			lastName: profile.family_name,
-			name: `${profile.given_name} ${profile.family_name}`,
-		}),
+		mapProfileToUser: mapMicrosoftProfile,
 	};
 }
 
