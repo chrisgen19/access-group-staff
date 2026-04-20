@@ -163,10 +163,6 @@ export function RecognitionFeed({
 						<CardActions cardId={card.id} isSender={isSender} onShare={handleShare} />
 					) : null;
 
-				const isParticipant =
-					currentUserId === card.sender.id || currentUserId === card.recipient.id;
-				const canInteract = isParticipant || isAdmin;
-
 				if (cardView === "physical") {
 					const isNew = filter === "received" && unreadCardIds.has(card.id);
 					return (
@@ -181,17 +177,15 @@ export function RecognitionFeed({
 								<RecognitionCardMini card={card} size={cardSize} isNew={isNew} />
 								{actions && <div className="absolute top-3 right-3 z-10">{actions}</div>}
 							</div>
-							{canInteract && (
-								<div className="px-5 pb-4">
-									<CardInteractionBar
-										cardId={card.id}
-										currentUserId={currentUserId}
-										isAdmin={isAdmin}
-										initialCommentCount={card.interactionCounts?.comments ?? 0}
-										initialReactions={card.reactionSummary}
-									/>
-								</div>
-							)}
+							<div className="px-5 pb-4">
+								<CardInteractionBar
+									cardId={card.id}
+									currentUserId={currentUserId}
+									isAdmin={isAdmin}
+									initialCommentCount={card.interactionCounts?.comments ?? 0}
+									initialReactions={card.reactionSummary}
+								/>
+							</div>
 						</div>
 					);
 				}
@@ -267,15 +261,13 @@ export function RecognitionFeed({
 							</span>
 						</div>
 
-						{canInteract && (
-							<CardInteractionBar
-								cardId={card.id}
-								currentUserId={currentUserId}
-								isAdmin={isAdmin}
-								initialCommentCount={card.interactionCounts?.comments ?? 0}
-								initialReactions={card.reactionSummary}
-							/>
-						)}
+						<CardInteractionBar
+							cardId={card.id}
+							currentUserId={currentUserId}
+							isAdmin={isAdmin}
+							initialCommentCount={card.interactionCounts?.comments ?? 0}
+							initialReactions={card.reactionSummary}
+						/>
 					</div>
 				);
 			})}

@@ -91,13 +91,8 @@ export default async function RecognitionDetailPage({
 	const isSender = card.sender.id === session.user.id;
 	const isRecipient = card.recipient.id === session.user.id;
 	const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
-	const canInteract = isSender || isRecipient || isAdmin;
 
-	const { initialReactions, commentCount } = canInteract
-		? await getCardReactionSummary(id, session.user.id)
-		: { initialReactions: [], commentCount: 0 };
-
-	if (!isSender && !isRecipient && !isAdmin) notFound();
+	const { initialReactions, commentCount } = await getCardReactionSummary(id, session.user.id);
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
 	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
@@ -278,17 +273,15 @@ export default async function RecognitionDetailPage({
 				<FlipCard front={card1Front} back={card2Back} />
 			</div>
 
-			{canInteract && (
-				<div className="relative z-10 max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
-					<CardInteractionBar
-						cardId={id}
-						currentUserId={session.user.id}
-						isAdmin={isAdmin}
-						initialCommentCount={commentCount}
-						initialReactions={initialReactions}
-					/>
-				</div>
-			)}
+			<div className="relative z-10 max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+				<CardInteractionBar
+					cardId={id}
+					currentUserId={session.user.id}
+					isAdmin={isAdmin}
+					initialCommentCount={commentCount}
+					initialReactions={initialReactions}
+				/>
+			</div>
 		</div>
 	);
 }

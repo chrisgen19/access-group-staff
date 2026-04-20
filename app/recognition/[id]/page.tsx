@@ -129,14 +129,12 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 	if (!card) notFound();
 
 	const userId = session?.user.id;
-	const isSender = userId === card.sender.id;
-	const isRecipient = userId === card.recipient.id;
 	const isAdmin = session ? hasMinRole(session.user.role as Role, "ADMIN") : false;
-	const canInteract = session && (isSender || isRecipient || isAdmin);
+	const canInteract = Boolean(session);
 
 	const { publicReactions, initialReactions, commentCount } = await getCardReactionSummary(
 		id,
-		canInteract ? userId : undefined,
+		userId,
 	);
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
