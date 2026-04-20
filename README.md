@@ -85,6 +85,10 @@ app/
 │       ├── departments/           # Department management (CRUD)
 │       ├── recognition/           # Personal recognition inbox (received/sent tabs)
 │       │   └── create/            # Send Recognition Card (branded 2-step form)
+│       ├── helpme/                # Help Me Tickets (staff raise, admins respond)
+│       │   ├── new/               # Create ticket form (rich text)
+│       │   └── [id]/              # Ticket detail + threaded replies
+│       ├── leaderboard/           # Monthly leaderboard
 │       ├── admin-settings/        # Admin settings (ADMIN+)
 │       ├── super-admin/           # Super admin panel (SUPERADMIN only)
 │       └── profile/               # Profile + Preferences
@@ -100,7 +104,7 @@ app/
 
 components/
 ├── ui/                            # shadcn/ui primitives (do not edit)
-└── shared/                        # Shared components (sidebar, header, logos, etc.)
+└── shared/                        # Shared components (sidebar, header, logos, help-fab, etc.)
 
 lib/
 ├── auth.ts                        # better-auth server config
@@ -108,8 +112,8 @@ lib/
 ├── auth-utils.ts                  # Session helpers (requireSession, requireRole)
 ├── permissions.ts                 # Role-based permission checks
 ├── recognition.ts                 # Shared types, constants, and utils for recognition
-├── actions/                       # Server Actions (user, department, profile, recognition)
-├── validations/                   # Zod schemas (user, auth, department, recognition)
+├── actions/                       # Server Actions (user, department, profile, recognition, helpme, notifications)
+├── validations/                   # Zod schemas (user, auth, department, recognition, helpme)
 └── db/index.ts                    # Prisma client singleton
 
 stores/                            # Zustand stores
@@ -122,7 +126,7 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 
 ## Database Schema
 
-**Models:** User, Session, Account, Verification, Department, RecognitionCard
+**Models:** User, Session, Account, Verification, Department, RecognitionCard, CardReaction, CardComment, ActivityLog, Notification, HelpMeTicket, TicketReply, ShiftSchedule, AppSetting, MonthlyLeaderboardSnapshot
 
 **Roles:** `SUPERADMIN` > `ADMIN` > `STAFF`
 
@@ -156,6 +160,19 @@ env.ts                             # Typed env via @t3-oss/env-nextjs
 - Background color: Light Gray, Warm White, Cool White, Pure White, Cream (default), Slate
 - Card view: Physical Card (branded mini card) or Simple (compact list)
 - Card size: Compact, Normal, Expanded
+
+### Help Me Tickets
+
+Internal HR / IT / company-issue ticketing with threaded replies.
+
+- `/dashboard/helpme` — role-branched list: STAFF see only their own tickets, ADMIN/SUPERADMIN see all with the raiser column
+- `/dashboard/helpme/new` — create form (TipTap rich text, react-hook-form + zod)
+- `/dashboard/helpme/[id]` — ticket detail + threaded replies (edit/delete for own replies; admins cannot delete others' replies)
+- **Admin name masking** — STAFF viewers see "Admin" + shield icon on ADMIN/SUPERADMIN replies; admins see real names
+- **Server-side sanitization** — all rich-text writes pass through `isomorphic-dompurify` (formatting tags allowlist, `http`/`https`/`mailto` URLs only; `javascript:` and event handlers stripped)
+- **Global Help FAB** — floating action button on all `/dashboard/*` pages (hidden on `/dashboard/helpme/*` to avoid duplicating the in-page CTA); links unauthenticated visitors through `/login?callbackUrl=...`
+- **Categories**: HR, IT & Website, Facilities, Other (`PAYROLL` retained in the Prisma enum but inactive — see `prisma/schema.prisma` notes)
+- **Statuses**: OPEN → IN_PROGRESS → RESOLVED → CLOSED. Reply form is hidden and server-rejected when the ticket is CLOSED; staff cannot reopen — they must create a new ticket.
 
 ## Scripts
 
