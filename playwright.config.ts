@@ -32,6 +32,7 @@ export default defineConfig({
 			NODE_ENV: "production",
 			BETTER_AUTH_URL: baseURL,
 			NEXT_PUBLIC_APP_URL: baseURL,
+			E2E_TEST: "true",
 		},
 	},
 });

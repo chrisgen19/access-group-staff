@@ -59,6 +59,7 @@ jobs:
       GOOGLE_CLIENT_SECRET: test-google-secret
       E2E_PORT: "3100"
       E2E_BASE_URL: http://localhost:3100
+      E2E_TEST: "true"
 
     steps:
       - uses: actions/checkout@v4
