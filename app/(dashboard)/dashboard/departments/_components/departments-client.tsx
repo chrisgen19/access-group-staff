@@ -2,7 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { getDepartmentsAction } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 import { DepartmentTable } from "./department-table";
@@ -54,10 +54,15 @@ export function DepartmentsClient() {
 			</div>
 
 			{isLoading ? (
-				<div className="space-y-4">
-					<Skeleton className="h-10 w-full" />
-					<Skeleton className="h-10 w-full" />
-					<Skeleton className="h-10 w-full" />
+				<div
+					className="space-y-4 animate-pulse"
+					role="status"
+					aria-busy="true"
+					aria-label="Loading departments"
+				>
+					<SkeletonLine className="h-10 w-full" />
+					<SkeletonLine className="h-10 w-full" />
+					<SkeletonLine className="h-10 w-full" />
 				</div>
 			) : (
 				<DepartmentTable departments={departments} onMutate={loadDepartments} />

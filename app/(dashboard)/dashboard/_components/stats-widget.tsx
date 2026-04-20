@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Heart, Inbox, Lock, Medal, Send, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { cn } from "@/lib/utils";
 
@@ -159,33 +160,33 @@ function StatItem({
 
 function StatsWidgetSkeleton() {
 	return (
-		<div
-			className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] animate-pulse space-y-6 h-full"
+		<SkeletonCard
+			className="p-6 animate-pulse space-y-6 h-full"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition stats"
 		>
-			<div className="h-5 w-32 bg-gray-200 dark:bg-white/10 rounded" />
+			<SkeletonLine className="h-5 w-32" />
 			<div className="grid grid-cols-3 gap-4">
-				{[1, 2, 3].map((i) => (
-					<div key={i} className="flex items-center gap-3">
-						<div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-white/10" />
+				{["s0", "s1", "s2"].map((key) => (
+					<div key={key} className="flex items-center gap-3">
+						<SkeletonLine className="h-10 w-10 rounded-full" />
 						<div className="space-y-1">
-							<div className="h-6 w-8 bg-gray-200 dark:bg-white/10 rounded" />
-							<div className="h-3 w-16 bg-gray-200 dark:bg-white/10 rounded" />
+							<SkeletonLine className="h-6 w-8" />
+							<SkeletonLine className="h-3 w-16" />
 						</div>
 					</div>
 				))}
 			</div>
 			<div className="space-y-3">
-				{[1, 2, 3].map((i) => (
-					<div key={i} className="flex items-center gap-3">
-						<div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-white/10" />
-						<div className="h-4 w-24 bg-gray-200 dark:bg-white/10 rounded" />
+				{["u0", "u1", "u2"].map((key) => (
+					<div key={key} className="flex items-center gap-3">
+						<SkeletonLine className="h-8 w-8 rounded-full" />
+						<SkeletonLine className="h-4 w-24" />
 					</div>
 				))}
 			</div>
-		</div>
+		</SkeletonCard>
 	);
 }
 
