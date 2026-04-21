@@ -25,16 +25,22 @@ function p2002Error(): Prisma.PrismaClientKnownRequestError {
 	);
 }
 
+const FROZEN_NOW = new Date("2026-04-21T12:34:56.000Z");
+const FROZEN_DAY_UTC = "2026-04-21T00:00:00.000Z";
+
 describe("logActivity", () => {
 	let errorSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.useFakeTimers();
+		vi.setSystemTime(FROZEN_NOW);
 		errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 	});
 
 	afterEach(() => {
 		errorSpy.mockRestore();
+		vi.useRealTimers();
 	});
 
 	test("USER_VISITED writes populate visitDayUtc with UTC midnight", async () => {
@@ -44,8 +50,7 @@ describe("logActivity", () => {
 
 		const arg = vi.mocked(prisma.activityLog.create).mock.calls[0][0];
 		const visitDayUtc = arg.data.visitDayUtc as Date;
-		const expected = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
-		expect(visitDayUtc.toISOString()).toBe(expected.toISOString());
+		expect(visitDayUtc.toISOString()).toBe(FROZEN_DAY_UTC);
 	});
 
 	test("non-USER_VISITED writes leave visitDayUtc null", async () => {
