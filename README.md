@@ -174,6 +174,40 @@ Internal HR / IT / company-issue ticketing with threaded replies.
 - **Categories**: HR, IT & Website, Facilities, Other (`PAYROLL` retained in the Prisma enum but inactive — see `prisma/schema.prisma` notes)
 - **Statuses**: OPEN → IN_PROGRESS → RESOLVED → CLOSED. Reply form is hidden and server-rejected when the ticket is CLOSED; staff cannot reopen — they must create a new ticket.
 
+## Database Migrations
+
+Migrations live in `prisma/migrations/` and are the source of truth for schema changes across environments. CI replays them on every push/PR (the **Migrations replay** job) and fails if a migration can't apply to a fresh DB or if `schema.prisma` has drifted away from what the migrations produce.
+
+### Day-to-day
+
+```bash
+# After editing prisma/schema.prisma:
+bunx prisma migrate dev --name <short_description>   # creates + applies a new migration locally
+bunx prisma generate                                  # refresh the client (runs automatically via postinstall)
+```
+
+Commit the generated `prisma/migrations/<timestamp>_<name>/` directory alongside the schema change.
+
+### Production
+
+`bunx prisma migrate deploy` is the only command used in prod — it applies pending migrations and is tolerant of checksum drift on already-applied ones. Never run `migrate dev` against production.
+
+### Checksum drift
+
+When a PR edits an already-applied migration file (e.g. #116 fixing `0001_init` / `0002_add_missing_schema`), the file's sha256 no longer matches what Prisma stored in your local `_prisma_migrations` table, and `migrate dev` will halt with a drift error.
+
+That halt is a **deliberate tripwire** — it catches legitimate history rewrites *and* accidents (force-pushes, bad rebases, merge-conflict mangling). Don't mask it. When the drift is expected and approved (like #116), run:
+
+```bash
+bun run db:reconcile-checksums
+```
+
+The script reads every migration file, recomputes the sha256, and `UPDATE`s only rows whose stored checksum doesn't match the file. It's idempotent, soft-fails on DB unreachable, and skips cleanly if `_prisma_migrations` doesn't exist yet (fresh clones using `db push`). No data loss.
+
+If the drift is *unexpected*, investigate first — check `git log -- prisma/migrations/` and ask whoever last touched those files.
+
+**Production and CI need no action** — prod uses `migrate deploy` (tolerant of drift on already-applied rows), CI uses `db push` for E2E (bypasses `_prisma_migrations` entirely), and the `Migrations replay` CI job guards against unintended history rewrites on every PR.
+
 ## Scripts
 
 ```bash
