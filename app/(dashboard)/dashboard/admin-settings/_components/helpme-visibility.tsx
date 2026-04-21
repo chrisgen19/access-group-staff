@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -12,6 +13,7 @@ export interface HelpMeVisibilityPanelProps {
 export function HelpMeVisibilityPanel({ initialEnabled }: HelpMeVisibilityPanelProps) {
 	const [enabled, setEnabled] = useState(initialEnabled);
 	const [isPending, startTransition] = useTransition();
+	const router = useRouter();
 
 	function handleChange(next: boolean) {
 		const previous = enabled;
@@ -26,6 +28,9 @@ export function HelpMeVisibilityPanel({ initialEnabled }: HelpMeVisibilityPanelP
 					return;
 				}
 				toast.success(next ? "Help Me module enabled" : "Help Me module hidden");
+				// Re-render the dashboard layout so the sidebar link and FAB reflect the new state
+				// without requiring a hard reload.
+				router.refresh();
 			} catch {
 				setEnabled(previous);
 				toast.error("Failed to update Help Me visibility");
@@ -40,18 +45,18 @@ export function HelpMeVisibilityPanel({ initialEnabled }: HelpMeVisibilityPanelP
 					Help Me Module
 				</h3>
 				<p className="mt-2 text-sm text-muted-foreground">
-					Control whether staff can access the Help Me Tickets module. Admins always retain access
-					so existing tickets stay reachable.
+					Control whether the Help Me Tickets module is available across the app.
 				</p>
 			</div>
 
 			<div className="px-8 py-6">
 				<div className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-white/10 p-5 gap-4">
 					<div className="min-w-0">
-						<p className="text-sm font-medium text-foreground">Show Help Me for staff</p>
+						<p className="text-sm font-medium text-foreground">Enable Help Me</p>
 						<p className="text-xs text-muted-foreground">
 							When off, the sidebar entry, floating help button, and `/dashboard/helpme` pages are
-							hidden from non-admin users.
+							hidden for everyone. Existing tickets stay in the database and become reachable again
+							when you turn this back on.
 						</p>
 					</div>
 					<Switch

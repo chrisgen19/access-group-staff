@@ -7,7 +7,6 @@ import { getTicketByIdForCurrentUser } from "@/lib/actions/helpme-actions";
 import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { displayReplyAuthor } from "@/lib/helpme-display";
-import { hasMinRole } from "@/lib/permissions";
 import { sanitizeReplyHtml } from "@/lib/sanitize-html";
 import { ReplyForm } from "../_components/reply-form";
 import { ReplyItem } from "../_components/reply-item";
@@ -48,9 +47,9 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 
+	if (!(await getHelpMeEnabled())) notFound();
+
 	const viewerRole = session.user.role as Role;
-	const viewerIsAdmin = hasMinRole(viewerRole, "ADMIN");
-	if (!viewerIsAdmin && !(await getHelpMeEnabled())) notFound();
 
 	const { id } = await params;
 	const ticket = await getTicketByIdForCurrentUser(id);
