@@ -19,12 +19,19 @@ interface ReactorPopoverProps {
 	emoji: string;
 	users: CardReactionUser[];
 	onActivate: () => void;
+	align?: "start" | "center" | "end";
 	children: (trigger: TriggerProps) => ReactNode;
 }
 
 const HOVER_CLOSE_DELAY = 150;
 
-export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPopoverProps) {
+export function ReactorPopover({
+	emoji,
+	users,
+	onActivate,
+	align = "center",
+	children,
+}: ReactorPopoverProps) {
 	const [open, setOpen] = useState(false);
 	const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const hoverCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,6 +109,12 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 	}
 
 	const hasUsers = users.length > 0;
+	const popoverPositionClass =
+		align === "start"
+			? "absolute bottom-full left-0 z-50 pt-1 pb-2"
+			: align === "end"
+				? "absolute bottom-full right-0 z-50 pt-1 pb-2"
+				: "absolute bottom-full left-1/2 -translate-x-1/2 z-50 pt-1 pb-2";
 
 	return (
 		<span ref={containerRef} className="relative inline-flex">
@@ -120,7 +133,7 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 					onMouseEnter={cancelHoverClose}
 					onMouseLeave={scheduleHoverClose}
 					className={cn(
-						"absolute bottom-full left-1/2 -translate-x-1/2 z-50 pt-1 pb-2",
+						popoverPositionClass,
 						"min-w-[180px] max-w-[240px]",
 						"animate-in fade-in-0 zoom-in-95 duration-100",
 					)}

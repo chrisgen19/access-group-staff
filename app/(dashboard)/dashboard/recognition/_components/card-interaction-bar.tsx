@@ -177,12 +177,13 @@ export function CardInteractionBar({
 			{/* Reaction row */}
 			<div className="flex flex-wrap items-center gap-1.5">
 				{/* Active reactions with counts */}
-				{activeReactions.map((r) => (
+				{activeReactions.map((r, index) => (
 					<ReactorPopover
 						key={r.emoji}
 						emoji={r.emoji}
 						users={r.users ?? []}
 						onActivate={() => handleReaction(r.emoji)}
+						align={index === 0 ? "start" : index === activeReactions.length - 1 ? "end" : "center"}
 					>
 						{(trigger) => (
 							<button
