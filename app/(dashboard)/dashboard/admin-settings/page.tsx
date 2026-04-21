@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 import {
+	getHelpMeEnabled,
 	getLeaderboardVisibilitySettings,
 	getTopRecognizedLimit,
 } from "@/lib/actions/settings-actions";
 import { requireRole } from "@/lib/auth-utils";
+import { HelpMeVisibilityPanel } from "./_components/helpme-visibility";
 import { LeaderboardVisibilityPanel } from "./_components/leaderboard-visibility";
 import { RecognitionSettingsPanel } from "./_components/recognition-settings";
 
@@ -14,9 +16,10 @@ export default async function AdminSettingsPage() {
 		redirect("/dashboard");
 	}
 
-	const [topLimit, visibility] = await Promise.all([
+	const [topLimit, visibility, helpMeEnabled] = await Promise.all([
 		getTopRecognizedLimit(),
 		getLeaderboardVisibilitySettings(),
+		getHelpMeEnabled(),
 	]);
 
 	return (
@@ -38,6 +41,8 @@ export default async function AdminSettingsPage() {
 				initialCustomStart={visibility.customStart}
 				initialCustomEnd={visibility.customEnd}
 			/>
+
+			<HelpMeVisibilityPanel initialEnabled={helpMeEnabled} />
 		</div>
 	);
 }

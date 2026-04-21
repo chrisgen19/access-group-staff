@@ -2,14 +2,20 @@
 
 import { revalidatePath } from "next/cache";
 import type { Role } from "@/app/generated/prisma/client";
+import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
 import { sanitizeReplyHtml } from "@/lib/sanitize-html";
 import { createTicketSchema, replySchema } from "@/lib/validations/helpme";
 
+const MODULE_DISABLED_ERROR = "Help Me module is disabled";
+
 export async function createTicketAction(formData: unknown) {
 	try {
+		if (!(await getHelpMeEnabled())) {
+			return { success: false as const, error: MODULE_DISABLED_ERROR };
+		}
 		const session = await requireSession();
 		const parsed = createTicketSchema.safeParse(formData);
 
@@ -48,6 +54,10 @@ export async function listTicketsForCurrentUser() {
 	const role = session.user.role as Role;
 	const isAdmin = hasMinRole(role, "ADMIN");
 
+	if (!(await getHelpMeEnabled())) {
+		return { tickets: [], isAdmin };
+	}
+
 	const tickets = await prisma.helpMeTicket.findMany({
 		where: isAdmin ? undefined : { createdById: session.user.id },
 		orderBy: { createdAt: "desc" },
@@ -77,6 +87,8 @@ export async function getTicketByIdForCurrentUser(id: string) {
 	const session = await requireSession();
 	const role = session.user.role as Role;
 	const isAdmin = hasMinRole(role, "ADMIN");
+
+	if (!(await getHelpMeEnabled())) return null;
 
 	const ticket = await prisma.helpMeTicket.findFirst({
 		where: isAdmin ? { id } : { id, createdById: session.user.id },
@@ -119,6 +131,9 @@ async function loadTicketForAccess(ticketId: string, userId: string, isAdmin: bo
 
 export async function replyToTicketAction(ticketId: string, formData: unknown) {
 	try {
+		if (!(await getHelpMeEnabled())) {
+			return { success: false as const, error: MODULE_DISABLED_ERROR };
+		}
 		const session = await requireSession();
 		const role = session.user.role as Role;
 		const isAdmin = hasMinRole(role, "ADMIN");
@@ -161,6 +176,9 @@ export async function replyToTicketAction(ticketId: string, formData: unknown) {
 
 export async function editReplyAction(replyId: string, formData: unknown) {
 	try {
+		if (!(await getHelpMeEnabled())) {
+			return { success: false as const, error: MODULE_DISABLED_ERROR };
+		}
 		const session = await requireSession();
 		const parsed = replySchema.safeParse(formData);
 		if (!parsed.success) {
@@ -196,6 +214,9 @@ export async function editReplyAction(replyId: string, formData: unknown) {
 
 export async function deleteReplyAction(replyId: string) {
 	try {
+		if (!(await getHelpMeEnabled())) {
+			return { success: false as const, error: MODULE_DISABLED_ERROR };
+		}
 		const session = await requireSession();
 		const existing = await prisma.ticketReply.findUnique({
 			where: { id: replyId },

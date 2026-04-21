@@ -8,6 +8,10 @@ vi.mock("@/lib/auth-utils", () => ({
 	requireSession: vi.fn(),
 }));
 
+vi.mock("@/lib/actions/settings-actions", () => ({
+	getHelpMeEnabled: vi.fn(),
+}));
+
 vi.mock("@/lib/db", () => ({
 	prisma: {
 		helpMeTicket: {
@@ -24,6 +28,7 @@ vi.mock("@/lib/db", () => ({
 	},
 }));
 
+import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
@@ -53,6 +58,8 @@ const validInput = (overrides: Partial<Record<string, unknown>> = {}) => ({
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	// Default to module-enabled; individual tests opt into disabled state.
+	vi.mocked(getHelpMeEnabled).mockResolvedValue(true);
 });
 
 describe("createTicketAction", () => {
@@ -338,5 +345,56 @@ describe("deleteReplyAction", () => {
 			error: "You can only delete your own replies",
 		});
 		expect(prisma.ticketReply.delete).not.toHaveBeenCalled();
+	});
+});
+
+describe("when Help Me module is disabled", () => {
+	beforeEach(() => {
+		vi.mocked(getHelpMeEnabled).mockResolvedValue(false);
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(STAFF_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+	});
+
+	test("createTicketAction rejects and does not write", async () => {
+		const result = await createTicketAction(validInput());
+
+		expect(result).toEqual({ success: false, error: "Help Me module is disabled" });
+		expect(prisma.helpMeTicket.create).not.toHaveBeenCalled();
+	});
+
+	test("replyToTicketAction rejects and does not write", async () => {
+		const result = await replyToTicketAction("t1", { bodyHtml: "<p>ok</p>" });
+
+		expect(result).toEqual({ success: false, error: "Help Me module is disabled" });
+		expect(prisma.ticketReply.create).not.toHaveBeenCalled();
+	});
+
+	test("editReplyAction rejects and does not write", async () => {
+		const result = await editReplyAction("r1", { bodyHtml: "<p>ok</p>" });
+
+		expect(result).toEqual({ success: false, error: "Help Me module is disabled" });
+		expect(prisma.ticketReply.update).not.toHaveBeenCalled();
+	});
+
+	test("deleteReplyAction rejects and does not delete", async () => {
+		const result = await deleteReplyAction("r1");
+
+		expect(result).toEqual({ success: false, error: "Help Me module is disabled" });
+		expect(prisma.ticketReply.delete).not.toHaveBeenCalled();
+	});
+
+	test("listTicketsForCurrentUser returns an empty list and does not query", async () => {
+		const result = await listTicketsForCurrentUser();
+
+		expect(result).toEqual({ tickets: [], isAdmin: false });
+		expect(prisma.helpMeTicket.findMany).not.toHaveBeenCalled();
+	});
+
+	test("getTicketByIdForCurrentUser returns null and does not query", async () => {
+		const result = await getTicketByIdForCurrentUser("t1");
+
+		expect(result).toBeNull();
+		expect(prisma.helpMeTicket.findFirst).not.toHaveBeenCalled();
 	});
 });

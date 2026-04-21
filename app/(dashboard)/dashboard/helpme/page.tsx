@@ -1,13 +1,16 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { listTicketsForCurrentUser } from "@/lib/actions/helpme-actions";
+import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { TicketList } from "./_components/ticket-list";
 
 export default async function HelpMePage() {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
+
+	if (!(await getHelpMeEnabled())) notFound();
 
 	const { tickets, isAdmin } = await listTicketsForCurrentUser();
 

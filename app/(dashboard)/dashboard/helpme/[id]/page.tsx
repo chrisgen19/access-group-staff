@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { getTicketByIdForCurrentUser } from "@/lib/actions/helpme-actions";
+import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { displayReplyAuthor } from "@/lib/helpme-display";
 import { sanitizeReplyHtml } from "@/lib/sanitize-html";
@@ -46,11 +47,14 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 
+	if (!(await getHelpMeEnabled())) notFound();
+
+	const viewerRole = session.user.role as Role;
+
 	const { id } = await params;
 	const ticket = await getTicketByIdForCurrentUser(id);
 	if (!ticket) notFound();
 
-	const viewerRole = session.user.role as Role;
 	const viewerId = session.user.id;
 	const creatorDisplay = displayReplyAuthor(ticket.createdBy, viewerRole);
 
