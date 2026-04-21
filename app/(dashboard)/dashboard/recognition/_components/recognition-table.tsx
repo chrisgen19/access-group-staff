@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
 	AlertDialog,
@@ -61,19 +62,80 @@ interface PaginatedResponse {
 
 function TableSkeleton() {
 	return (
-		<div className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden">
-			<div className="animate-pulse">
-				<div className="h-10 bg-muted/30 border-b" />
-				{["r0", "r1", "r2", "r3", "r4"].map((key) => (
-					<div key={key} className="flex items-center gap-4 px-4 py-3 border-b last:border-0">
-						<div className="h-4 w-24 bg-gray-200 dark:bg-white/10 rounded" />
-						<div className="h-4 w-24 bg-gray-200 dark:bg-white/10 rounded" />
-						<div className="h-4 w-48 bg-gray-200 dark:bg-white/10 rounded flex-1" />
-						<div className="h-4 w-20 bg-gray-200 dark:bg-white/10 rounded" />
-						<div className="h-4 w-20 bg-gray-200 dark:bg-white/10 rounded" />
-					</div>
-				))}
-			</div>
+		<div
+			className="rounded-xl border border-gray-200/60 dark:border-white/10 bg-card overflow-hidden animate-pulse shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]"
+			role="status"
+			aria-busy="true"
+			aria-label="Loading recognition cards"
+		>
+			<Table>
+				<TableHeader>
+					<TableRow className="bg-muted/30 hover:bg-muted/30">
+						<TableHead>
+							<SkeletonLine className="h-3 w-10" />
+						</TableHead>
+						<TableHead>
+							<SkeletonLine className="h-3 w-8" />
+						</TableHead>
+						<TableHead className="w-full">
+							<SkeletonLine className="h-3 w-16" />
+						</TableHead>
+						<TableHead>
+							<SkeletonLine className="h-3 w-12" />
+						</TableHead>
+						<TableHead>
+							<SkeletonLine className="h-3 w-10" />
+						</TableHead>
+						<TableHead className="text-right">
+							<SkeletonLine className="h-3 w-14 ml-auto" />
+						</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{["r0", "r1", "r2", "r3", "r4"].map((key) => (
+						<TableRow key={key}>
+							<TableCell>
+								<div className="flex items-center gap-2">
+									<SkeletonLine className="h-8 w-8 rounded-full shrink-0" />
+									<div className="space-y-1 min-w-0">
+										<SkeletonLine className="h-4 w-24" />
+										<SkeletonLine className="h-3 w-16" />
+									</div>
+								</div>
+							</TableCell>
+							<TableCell>
+								<div className="flex items-center gap-2">
+									<SkeletonLine className="h-8 w-8 rounded-full shrink-0" />
+									<div className="space-y-1 min-w-0">
+										<SkeletonLine className="h-4 w-24" />
+										<SkeletonLine className="h-3 w-16" />
+									</div>
+								</div>
+							</TableCell>
+							<TableCell>
+								<SkeletonLine className="h-4 w-48" />
+							</TableCell>
+							<TableCell>
+								<div className="flex flex-wrap gap-1">
+									<SkeletonLine className="h-5 w-14 rounded-full" />
+									<SkeletonLine className="h-5 w-16 rounded-full" />
+								</div>
+							</TableCell>
+							<TableCell>
+								<SkeletonLine className="h-4 w-20" />
+							</TableCell>
+							<TableCell className="text-right">
+								<div className="flex justify-end gap-1">
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+								</div>
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }

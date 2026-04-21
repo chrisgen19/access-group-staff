@@ -20,16 +20,15 @@ function SkeletonPageHeader({ action, className }: { action?: boolean; className
 	);
 }
 
-function SkeletonCard({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SkeletonCard({ className, ...props }: React.ComponentProps<"div">) {
 	return (
 		<div
 			className={cn(
 				"rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]",
 				className,
 			)}
-		>
-			{children}
-		</div>
+			{...props}
+		/>
 	);
 }
 
