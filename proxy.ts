@@ -1,6 +1,6 @@
 import { getCookies } from "better-auth/cookies";
 import type { NextRequest } from "next/server";
-import { after, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { extractRequestMeta, logActivity } from "@/lib/activity-log";
 import { auth } from "@/lib/auth";
 import { safeCallbackUrl, sanitizeCallbackUrl } from "@/lib/auth/safe-callback";
@@ -78,14 +78,12 @@ export async function proxy(request: NextRequest) {
 	if (pendingVisitActorId) {
 		const { ipAddress, userAgent } = extractRequestMeta(request.headers);
 		const actorId = pendingVisitActorId;
-		after(() =>
-			logActivity({
-				action: "USER_VISITED",
-				actorId,
-				ipAddress,
-				userAgent,
-			}),
-		);
+		void logActivity({
+			action: "USER_VISITED",
+			actorId,
+			ipAddress,
+			userAgent,
+		});
 		response.cookies.set(VISIT_COOKIE, `${actorId}:${todayUtc}`, {
 			path: "/",
 			httpOnly: true,

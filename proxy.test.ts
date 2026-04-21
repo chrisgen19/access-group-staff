@@ -27,16 +27,6 @@ vi.mock("@/lib/auth/safe-callback", () => ({
 	sanitizeCallbackUrl: vi.fn(() => null),
 }));
 
-vi.mock("next/server", async () => {
-	const actual = await vi.importActual<typeof import("next/server")>("next/server");
-	return {
-		...actual,
-		after: (fn: () => void | Promise<void>) => {
-			void fn();
-		},
-	};
-});
-
 import { NextRequest } from "next/server";
 import { logActivity } from "@/lib/activity-log";
 import { auth } from "@/lib/auth";
