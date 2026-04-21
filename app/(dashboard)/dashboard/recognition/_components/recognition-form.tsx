@@ -410,6 +410,7 @@ export function RecognitionForm({
 	return (
 		<>
 			<form onSubmit={handleSubmit(onSubmit)} className="flex flex-col items-center gap-8">
+				<input type="hidden" {...register("recipientId")} />
 				{/* Progress Bar */}
 				<ProgressBar currentStep={step} />
 
