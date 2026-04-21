@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
 			prisma.user.findMany({
 				where,
 				include: { department: { select: { name: true } } },
-				orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { id: "asc" }],
+				orderBy: [{ createdAt: "desc" }, { id: "desc" }],
 				take: EXPORT_LIMIT,
 			}),
 			prisma.user.count({ where }),

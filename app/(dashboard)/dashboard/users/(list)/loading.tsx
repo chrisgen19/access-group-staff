@@ -79,10 +79,10 @@ export default function UsersListLoading() {
 									<SkeletonLine className="h-4 w-16" />
 								</TableCell>
 								<TableCell>
-									<SkeletonLine className="h-5 w-16 rounded-full" />
+									<SkeletonLine className="h-4 w-20" />
 								</TableCell>
 								<TableCell>
-									<SkeletonLine className="h-4 w-20" />
+									<SkeletonLine className="h-5 w-16 rounded-full" />
 								</TableCell>
 								<TableCell className="text-right">
 									<div className="flex justify-end gap-1">

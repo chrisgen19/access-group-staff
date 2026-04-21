@@ -145,10 +145,10 @@ function TableSkeleton() {
 								<SkeletonLine className="h-4 w-24" />
 							</TableCell>
 							<TableCell>
-								<SkeletonLine className="h-5 w-16 rounded-md" />
+								<SkeletonLine className="h-4 w-24" />
 							</TableCell>
 							<TableCell>
-								<SkeletonLine className="h-4 w-24" />
+								<SkeletonLine className="h-5 w-16 rounded-md" />
 							</TableCell>
 							<TableCell className="text-right">
 								<div className="flex justify-end gap-1">
