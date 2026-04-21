@@ -17,7 +17,7 @@ export async function getCardReactionSummary(cardId: string, userId?: string) {
 					},
 				},
 			},
-			orderBy: { createdAt: "asc" },
+			orderBy: { createdAt: "desc" },
 		}),
 		prisma.cardComment.count({ where: { cardId } }),
 	]);

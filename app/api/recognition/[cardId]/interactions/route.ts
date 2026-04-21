@@ -39,7 +39,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ cardId:
 						},
 					},
 				},
-				orderBy: { createdAt: "asc" },
+				orderBy: { createdAt: "desc" },
 			}),
 			prisma.cardComment.findMany({
 				where: { cardId },

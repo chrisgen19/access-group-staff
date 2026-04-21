@@ -193,11 +193,11 @@ export function RecognitionFeed({
 						<div
 							key={card.id}
 							className={cn(
-								"group relative isolate rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden",
+								"group relative isolate rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]",
 								cardMaxWidth,
 							)}
 						>
-							<div className="relative">
+							<div className="relative overflow-hidden rounded-t-[2rem]">
 								<RecognitionCardMini card={card} size={cardSize} isNew={isNew} />
 								{actions && <div className="absolute top-3 right-3 z-10">{actions}</div>}
 							</div>

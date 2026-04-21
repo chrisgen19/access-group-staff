@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
 					},
 				},
 			},
-			orderBy: { createdAt: "asc" },
+			orderBy: { createdAt: "desc" },
 		});
 
 		type ReactorEntry = {

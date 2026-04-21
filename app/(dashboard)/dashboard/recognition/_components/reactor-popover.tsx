@@ -23,6 +23,7 @@ interface ReactorPopoverProps {
 }
 
 const HOVER_CLOSE_DELAY = 150;
+const MAX_VISIBLE_REACTORS = 7;
 
 export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPopoverProps) {
 	const [open, setOpen] = useState(false);
@@ -102,6 +103,8 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 	}
 
 	const hasUsers = users.length > 0;
+	const visibleUsers = users.slice(0, MAX_VISIBLE_REACTORS);
+	const remainingUsers = Math.max(0, users.length - visibleUsers.length);
 
 	return (
 		<span ref={containerRef} className="relative inline-flex">
@@ -120,7 +123,7 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 					onMouseEnter={cancelHoverClose}
 					onMouseLeave={scheduleHoverClose}
 					className={cn(
-						"absolute bottom-full left-1/2 -translate-x-1/2 z-50 pt-1 pb-2",
+						"absolute bottom-full left-0 z-50 pt-1 pb-2",
 						"min-w-[180px] max-w-[240px]",
 						"animate-in fade-in-0 zoom-in-95 duration-100",
 					)}
@@ -136,8 +139,8 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 								{users.length} {users.length === 1 ? "person" : "people"}
 							</span>
 						</div>
-						<ul className="max-h-48 overflow-y-auto space-y-1">
-							{users.map((u) => (
+						<ul className="space-y-1">
+							{visibleUsers.map((u) => (
 								<li key={u.id} className="flex items-center gap-2 rounded-md px-1.5 py-1">
 									<UserAvatar
 										firstName={u.firstName}
@@ -152,6 +155,11 @@ export function ReactorPopover({ emoji, users, onActivate, children }: ReactorPo
 								</li>
 							))}
 						</ul>
+						{remainingUsers > 0 && (
+							<p className="px-1.5 pt-1 text-[11px] font-medium text-muted-foreground">
+								+ {remainingUsers} more
+							</p>
+						)}
 					</div>
 				</div>
 			)}

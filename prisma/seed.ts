@@ -3,6 +3,11 @@ import { auth } from "../lib/auth";
 import { prisma } from "../lib/db";
 
 const PASSWORD = "Password123!";
+const SHOWCASE_CARD_IDS = [
+	"showcase-popover-card-1",
+	"showcase-popover-card-2",
+	"showcase-popover-card-3",
+] as const;
 
 async function seed() {
 	console.log("Seeding departments...");
@@ -417,6 +422,8 @@ async function seed() {
 	}
 
 	console.log(`Created ${recognitionCards.length} recognition cards`);
+	await prisma.recognitionCard.deleteMany({ where: { id: { in: [...SHOWCASE_CARD_IDS] } } });
+	console.log("Removed any previously seeded showcase cards from the default seed path");
 	console.log("Seeding notifications...");
 
 	await prisma.notification.deleteMany();
