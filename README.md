@@ -192,19 +192,19 @@ Commit the generated `prisma/migrations/<timestamp>_<name>/` directory alongside
 
 `bunx prisma migrate deploy` is the only command used in prod — it applies pending migrations and is tolerant of checksum drift on already-applied ones. Never run `migrate dev` against production.
 
-### One-time local recovery (after PR #116 / this section landing)
+### Checksum drift (handled automatically)
 
-PR #116 fixes two broken migrations (`0001_init` had a stray non-SQL line; `0002_add_missing_schema` was redundant after the schema was regenerated in #111). That changes the checksums of already-applied rows in your local `_prisma_migrations` table. The next time you run `prisma migrate dev`, Prisma will complain about the drift.
+When a PR edits an already-applied migration file (e.g. #116 fixing `0001_init` / `0002_add_missing_schema`), the file's sha256 no longer matches what Prisma stored in your local `_prisma_migrations` table. The next `migrate dev` would halt on the drift.
 
-Fix it once with a local reset (loses local dev data — E2E users and seed data are restored by the seed script):
+`bun run dev` runs `scripts/reconcile-migration-checksums.ts` as a `predev` hook — it recomputes each migration's sha256 and silently `UPDATE`s any drifted rows. No data loss, no manual step. You can also run it directly:
 
 ```bash
-bunx prisma migrate reset --force
-bun prisma/seed.ts
-bun run db:e2e:seed   # only if you run E2E locally
+bun run db:reconcile-checksums
 ```
 
-**Production and CI need no action** — prod uses `migrate deploy` (tolerant), CI uses `db push` for E2E (bypasses the migrations table entirely).
+The script is idempotent (no-op when everything matches), soft-fails if the DB is unreachable, and skips cleanly if `_prisma_migrations` doesn't exist yet (fresh clones using `db push`).
+
+**Production and CI need no action** — prod uses `migrate deploy` (tolerant of drift on already-applied rows), CI uses `db push` for E2E (bypasses `_prisma_migrations` entirely).
 
 ## Scripts
 

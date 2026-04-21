@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
+		"predev": "bun scripts/reconcile-migration-checksums.ts",
 		"dev": "next dev --turbopack",
 		"build": "prisma generate && prisma migrate deploy && next build",
 		"start": "next start",
@@ -14,6 +15,7 @@
 		"db:seed": "bunx prisma db seed",
 		"db:e2e:seed": "bun prisma/seed.e2e.ts",
 		"db:studio": "bunx prisma studio",
+		"db:reconcile-checksums": "bun scripts/reconcile-migration-checksums.ts",
 		"test": "bun run test:unit",
 		"test:unit": "vitest run",
 		"test:unit:watch": "vitest",
