@@ -38,7 +38,7 @@ test.describe("/dashboard/recognition/create", () => {
 
 		await page.getByRole("button", { name: /Review Before Submit/i }).click();
 
-		await expect(page.getByText(/recipient.*required|required/i)).toBeVisible();
+		await expect(page.getByText("Recipient is required")).toBeVisible();
 		await expect(page.getByText("Message is required")).toBeVisible();
 		await expect(page.getByText(/At least one company value/i)).toBeVisible();
 	});
