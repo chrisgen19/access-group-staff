@@ -174,6 +174,38 @@ Internal HR / IT / company-issue ticketing with threaded replies.
 - **Categories**: HR, IT & Website, Facilities, Other (`PAYROLL` retained in the Prisma enum but inactive — see `prisma/schema.prisma` notes)
 - **Statuses**: OPEN → IN_PROGRESS → RESOLVED → CLOSED. Reply form is hidden and server-rejected when the ticket is CLOSED; staff cannot reopen — they must create a new ticket.
 
+## Database Migrations
+
+Migrations live in `prisma/migrations/` and are the source of truth for schema changes across environments. CI replays them on every push/PR (the **Migrations replay** job) and fails if a migration can't apply to a fresh DB or if `schema.prisma` has drifted away from what the migrations produce.
+
+### Day-to-day
+
+```bash
+# After editing prisma/schema.prisma:
+bunx prisma migrate dev --name <short_description>   # creates + applies a new migration locally
+bunx prisma generate                                  # refresh the client (runs automatically via postinstall)
+```
+
+Commit the generated `prisma/migrations/<timestamp>_<name>/` directory alongside the schema change.
+
+### Production
+
+`bunx prisma migrate deploy` is the only command used in prod — it applies pending migrations and is tolerant of checksum drift on already-applied ones. Never run `migrate dev` against production.
+
+### One-time local recovery (after PR #116 / this section landing)
+
+PR #116 fixes two broken migrations (`0001_init` had a stray non-SQL line; `0002_add_missing_schema` was redundant after the schema was regenerated in #111). That changes the checksums of already-applied rows in your local `_prisma_migrations` table. The next time you run `prisma migrate dev`, Prisma will complain about the drift.
+
+Fix it once with a local reset (loses local dev data — E2E users and seed data are restored by the seed script):
+
+```bash
+bunx prisma migrate reset --force
+bun prisma/seed.ts
+bun run db:e2e:seed   # only if you run E2E locally
+```
+
+**Production and CI need no action** — prod uses `migrate deploy` (tolerant), CI uses `db push` for E2E (bypasses the migrations table entirely).
+
 ## Scripts
 
 ```bash

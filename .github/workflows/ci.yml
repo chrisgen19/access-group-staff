@@ -31,6 +31,62 @@ jobs:
       - name: Unit tests
         run: bun run test:unit
 
+  migrations:
+    name: Migrations replay
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: access_migrations
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5433/access_migrations
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+        env:
+          PRISMA_SKIP_POSTINSTALL_GENERATE: "1"
+
+      - name: Generate Prisma client
+        run: bunx prisma generate
+
+      - name: Replay migrations against fresh DB
+        run: bunx prisma migrate deploy
+
+      - name: Detect schema / migration drift
+        run: |
+          bunx prisma migrate dev --name ci_probe --create-only
+          probe=$(find prisma/migrations -type d -name "*_ci_probe" | head -1)
+          if [ -z "$probe" ]; then
+            echo "Expected a probe migration directory — CI logic bug."
+            exit 1
+          fi
+          body=$(grep -Ev '^\s*(--|$)' "$probe/migration.sql" || true)
+          if [ -n "$body" ]; then
+            echo "::error::Schema drift — prisma/schema.prisma has changes not captured by migrations:"
+            cat "$probe/migration.sql"
+            exit 1
+          fi
+          echo "Schema and migrations are in sync."
+
   e2e:
     name: E2E tests
     runs-on: ubuntu-latest
