@@ -59,11 +59,12 @@ export function ActivityLogFilters({ users, actions, initial }: ActivityLogFilte
 			skipInitialDebounce.current = false;
 			return;
 		}
+		if (target === initial.target) return;
 		const timer = setTimeout(() => {
 			updateParam("target", target);
 		}, 300);
 		return () => clearTimeout(timer);
-	}, [target, updateParam]);
+	}, [initial.target, target, updateParam]);
 
 	const hasActiveFilters =
 		!!initial.actor || !!initial.action || !!initial.from || !!initial.to || !!initial.target;
