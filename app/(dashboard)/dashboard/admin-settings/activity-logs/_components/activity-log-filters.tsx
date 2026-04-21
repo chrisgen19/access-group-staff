@@ -37,6 +37,11 @@ export function ActivityLogFilters({ users, actions, initial }: ActivityLogFilte
 	const [target, setTarget] = useState(initial.target);
 	const skipInitialDebounce = useRef(true);
 
+	useEffect(() => {
+		setTarget(initial.target);
+		skipInitialDebounce.current = true;
+	}, [initial.target]);
+
 	const updateParam = useCallback(
 		(key: string, value: string) => {
 			const sp = new URLSearchParams(searchParams.toString());
