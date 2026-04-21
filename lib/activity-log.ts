@@ -1,5 +1,4 @@
-import type { ActivityAction, Prisma } from "@/app/generated/prisma/client";
-import { Prisma as PrismaRuntime } from "@/app/generated/prisma/client";
+import { type ActivityAction, Prisma } from "@/app/generated/prisma/client";
 import { env } from "@/env";
 import {
 	ACTIVITY_LOG_RETENTION_DEFAULT,
@@ -38,7 +37,7 @@ export async function logActivity(input: LogActivityInput) {
 		// cookie cleared, race on first request).
 		if (
 			input.action === "USER_VISITED" &&
-			err instanceof PrismaRuntime.PrismaClientKnownRequestError &&
+			err instanceof Prisma.PrismaClientKnownRequestError &&
 			err.code === "P2002"
 		) {
 			return;
