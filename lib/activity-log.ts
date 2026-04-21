@@ -28,12 +28,14 @@ export async function logActivity(input: LogActivityInput) {
 				metadata: input.metadata,
 				ipAddress: input.ipAddress ?? null,
 				userAgent: input.userAgent ?? null,
+				visitDayUtc: input.action === "USER_VISITED" ? utcDayToday() : null,
 			},
 		});
 	} catch (err) {
-		// USER_VISITED is guarded by a partial unique index on (actor_id, created_at::date)
-		// so idempotency is enforced server-side even when the per-browser cookie
-		// throttle misses (multi-device, cookie cleared, race on first request).
+		// USER_VISITED is guarded by a partial unique index on
+		// (actor_id, visit_day_utc) so idempotency is enforced server-side
+		// even when the per-browser cookie throttle misses (multi-device,
+		// cookie cleared, race on first request).
 		if (
 			input.action === "USER_VISITED" &&
 			err instanceof PrismaRuntime.PrismaClientKnownRequestError &&
@@ -46,6 +48,10 @@ export async function logActivity(input: LogActivityInput) {
 			error: err instanceof Error ? err.message : String(err),
 		});
 	}
+}
+
+function utcDayToday(): Date {
+	return new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
 }
 
 function firstIp(value: string | null): string | null {

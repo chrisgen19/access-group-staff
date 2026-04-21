@@ -255,15 +255,16 @@ model CardComment {
 }
 
 model ActivityLog {
-  id         String         @id @default(cuid())
-  action     ActivityAction
-  actorId    String?        @map("actor_id")
-  targetType String?        @map("target_type")
-  targetId   String?        @map("target_id")
-  metadata   Json?
-  ipAddress  String?        @map("ip_address")
-  userAgent  String?        @map("user_agent")
-  createdAt  DateTime       @default(now()) @map("created_at")
+  id          String         @id @default(cuid())
+  action      ActivityAction
+  actorId     String?        @map("actor_id")
+  targetType  String?        @map("target_type")
+  targetId    String?        @map("target_id")
+  metadata    Json?
+  ipAddress   String?        @map("ip_address")
+  userAgent   String?        @map("user_agent")
+  visitDayUtc DateTime?      @map("visit_day_utc") @db.Date
+  createdAt   DateTime       @default(now()) @map("created_at")
 
   actor User? @relation("activityActor", fields: [actorId], references: [id], onDelete: SetNull)
 
