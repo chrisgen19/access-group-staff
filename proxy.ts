@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 
 const { sessionToken } = getCookies(auth.options);
 
-const VISIT_COOKIE = "vl";
+const VISIT_COOKIE = "ag.vl";
 
 async function resolveSession(request: NextRequest) {
 	try {
@@ -52,7 +52,7 @@ export async function proxy(request: NextRequest) {
 			return response;
 		}
 
-		if (request.cookies.get(VISIT_COOKIE)?.value !== todayUtc) {
+		if (request.cookies.get(VISIT_COOKIE)?.value !== `${session.user.id}:${todayUtc}`) {
 			pendingVisitActorId = session.user.id;
 		}
 	}
@@ -77,13 +77,14 @@ export async function proxy(request: NextRequest) {
 
 	if (pendingVisitActorId) {
 		const { ipAddress, userAgent } = extractRequestMeta(request.headers);
+		const actorId = pendingVisitActorId;
 		void logActivity({
 			action: "USER_VISITED",
-			actorId: pendingVisitActorId,
+			actorId,
 			ipAddress,
 			userAgent,
 		});
-		response.cookies.set(VISIT_COOKIE, todayUtc, {
+		response.cookies.set(VISIT_COOKIE, `${actorId}:${todayUtc}`, {
 			path: "/",
 			httpOnly: true,
 			sameSite: "lax",
