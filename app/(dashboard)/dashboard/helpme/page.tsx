@@ -1,13 +1,19 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import type { Role } from "@/app/generated/prisma/client";
 import { listTicketsForCurrentUser } from "@/lib/actions/helpme-actions";
+import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
 import { TicketList } from "./_components/ticket-list";
 
 export default async function HelpMePage() {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
+
+	const viewerIsAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+	if (!viewerIsAdmin && !(await getHelpMeEnabled())) notFound();
 
 	const { tickets, isAdmin } = await listTicketsForCurrentUser();
 

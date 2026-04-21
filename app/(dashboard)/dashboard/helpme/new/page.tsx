@@ -1,12 +1,18 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import type { Role } from "@/app/generated/prisma/client";
+import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
+import { hasMinRole } from "@/lib/permissions";
 import { TicketForm } from "../_components/ticket-form";
 
 export default async function NewTicketPage() {
 	const session = await getServerSession();
 	if (!session) redirect("/login");
+
+	const viewerIsAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+	if (!viewerIsAdmin && !(await getHelpMeEnabled())) notFound();
 
 	return (
 		<div className="max-w-7xl mx-auto space-y-6 mt-2">

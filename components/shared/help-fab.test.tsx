@@ -103,4 +103,12 @@ describe("HelpFab", () => {
 		const link = screen.getByRole("link", { name: /open help ticket/i });
 		expect(link).toHaveAttribute("href", "/dashboard/helpme/new");
 	});
+
+	it("renders nothing when the Help Me module is disabled for the viewer", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
+		setSession({ user: true, isPending: false });
+
+		const { container } = render(<HelpFab enabled={false} />);
+		expect(container).toBeEmptyDOMElement();
+	});
 });
