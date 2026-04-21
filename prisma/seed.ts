@@ -8,42 +8,33 @@ const SHOWCASE_CARD_IDS = [
 	"showcase-popover-card-2",
 	"showcase-popover-card-3",
 ] as const;
+const DEPARTMENT_SEED = [
+	{ name: "COE", code: "COE" },
+	{ name: "Credit Management", code: "CM" },
+	{ name: "Finance", code: "FIN" },
+	{ name: "Fleet", code: "FLT" },
+	{ name: "Human Resources", code: "HR" },
+	{ name: "IT", code: "IT" },
+	{ name: "IT Support", code: "ITS" },
+	{ name: "Lead Generation", code: "LG" },
+	{ name: "Marketing", code: "MKT" },
+	{ name: "Operations", code: "OPS" },
+	{ name: "Training", code: "TRN" },
+] as const;
 
 async function seed() {
 	console.log("Seeding departments...");
 
-	const departments = await Promise.all([
-		prisma.department.upsert({
-			where: { code: "ENG" },
-			update: {},
-			create: { name: "Engineering", code: "ENG" },
-		}),
-		prisma.department.upsert({
-			where: { code: "HR" },
-			update: {},
-			create: { name: "Human Resources", code: "HR" },
-		}),
-		prisma.department.upsert({
-			where: { code: "OPS" },
-			update: {},
-			create: { name: "Operations", code: "OPS" },
-		}),
-		prisma.department.upsert({
-			where: { code: "FIN" },
-			update: {},
-			create: { name: "Finance", code: "FIN" },
-		}),
-		prisma.department.upsert({
-			where: { code: "SAF" },
-			update: {},
-			create: { name: "Safety", code: "SAF" },
-		}),
-		prisma.department.upsert({
-			where: { code: "MKT" },
-			update: {},
-			create: { name: "Marketing", code: "MKT" },
-		}),
-	]);
+	const departments = await Promise.all(
+		DEPARTMENT_SEED.map((department) =>
+			prisma.department.upsert({
+				where: { code: department.code },
+				update: { name: department.name },
+				create: department,
+			}),
+		),
+	);
+	const departmentByCode = new Map(departments.map((department) => [department.code, department]));
 
 	console.log(`Created ${departments.length} departments`);
 	console.log("Seeding users...");
@@ -63,7 +54,7 @@ async function seed() {
 			lastName: "Diomampo",
 			role: "SUPERADMIN",
 			branch: "ISO",
-			departmentId: departments[5].id,
+			departmentId: departmentByCode.get("MKT")?.id ?? null,
 		},
 		{
 			email: "alfred.irlanda@accessgroup.net.au",
@@ -71,7 +62,7 @@ async function seed() {
 			lastName: "Irlanda",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departments[1].id,
+			departmentId: departmentByCode.get("HR")?.id ?? null,
 			position: "HR Compliance Coordinator",
 		},
 		{
@@ -80,7 +71,7 @@ async function seed() {
 			lastName: "Mora",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departments[1].id,
+			departmentId: departmentByCode.get("HR")?.id ?? null,
 			position: "Office Manager",
 		},
 		{
@@ -89,7 +80,7 @@ async function seed() {
 			lastName: "Abdelatty",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departments[1].id,
+			departmentId: departmentByCode.get("HR")?.id ?? null,
 		},
 		{
 			email: "may.viduya@accessgroup.net.au",
@@ -97,7 +88,7 @@ async function seed() {
 			lastName: "Viduya",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departments[1].id,
+			departmentId: departmentByCode.get("HR")?.id ?? null,
 			position: "HR Systems Administrator",
 		},
 		{
@@ -106,7 +97,7 @@ async function seed() {
 			lastName: "Hortal",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departments[1].id,
+			departmentId: departmentByCode.get("HR")?.id ?? null,
 			position: "Recruitment and Onboarding Admin",
 		},
 		{
@@ -115,7 +106,7 @@ async function seed() {
 			lastName: "Raymundo",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departments[1].id,
+			departmentId: departmentByCode.get("HR")?.id ?? null,
 			position: "Offshore Sourcing Specialist",
 		},
 		{
@@ -124,7 +115,7 @@ async function seed() {
 			lastName: "Alonzo",
 			role: "STAFF",
 			branch: "ISO",
-			departmentId: departments[5].id,
+			departmentId: departmentByCode.get("MKT")?.id ?? null,
 		},
 		{
 			email: "grace.urmeneta@accessgroup.net.au",
@@ -132,7 +123,7 @@ async function seed() {
 			lastName: "Urmeneta",
 			role: "STAFF",
 			branch: "ISO",
-			departmentId: departments[5].id,
+			departmentId: departmentByCode.get("MKT")?.id ?? null,
 		},
 		{
 			email: "kate.bickley@accessgroup.net.au",
@@ -140,7 +131,7 @@ async function seed() {
 			lastName: "Bickley",
 			role: "ADMIN",
 			branch: "PERTH",
-			departmentId: departments[5].id,
+			departmentId: departmentByCode.get("MKT")?.id ?? null,
 			position: "CMO",
 		},
 	];
