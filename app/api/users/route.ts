@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
 		prisma.user.findMany({
 			where,
 			include: { department: true },
-			orderBy: [{ firstName: "asc" }, { lastName: "asc" }, { id: "asc" }],
+			orderBy: [{ createdAt: "desc" }, { id: "desc" }],
 			skip: (page - 1) * pageSize,
 			take: pageSize,
 		}),
