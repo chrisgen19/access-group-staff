@@ -39,9 +39,10 @@ interface ActivityLogTableProps {
 }
 
 function formatDateTime(date: Date): string {
-	return new Intl.DateTimeFormat("en-AU", {
+	return new Intl.DateTimeFormat("en-PH", {
 		dateStyle: "medium",
 		timeStyle: "short",
+		timeZone: "Asia/Manila",
 	}).format(date);
 }
 
