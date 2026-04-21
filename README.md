@@ -192,19 +192,21 @@ Commit the generated `prisma/migrations/<timestamp>_<name>/` directory alongside
 
 `bunx prisma migrate deploy` is the only command used in prod — it applies pending migrations and is tolerant of checksum drift on already-applied ones. Never run `migrate dev` against production.
 
-### Checksum drift (handled automatically)
+### Checksum drift
 
-When a PR edits an already-applied migration file (e.g. #116 fixing `0001_init` / `0002_add_missing_schema`), the file's sha256 no longer matches what Prisma stored in your local `_prisma_migrations` table. The next `migrate dev` would halt on the drift.
+When a PR edits an already-applied migration file (e.g. #116 fixing `0001_init` / `0002_add_missing_schema`), the file's sha256 no longer matches what Prisma stored in your local `_prisma_migrations` table, and `migrate dev` will halt with a drift error.
 
-`bun run dev` runs `scripts/reconcile-migration-checksums.ts` as a `predev` hook — it recomputes each migration's sha256 and silently `UPDATE`s any drifted rows. No data loss, no manual step. You can also run it directly:
+That halt is a **deliberate tripwire** — it catches legitimate history rewrites *and* accidents (force-pushes, bad rebases, merge-conflict mangling). Don't mask it. When the drift is expected and approved (like #116), run:
 
 ```bash
 bun run db:reconcile-checksums
 ```
 
-The script is idempotent (no-op when everything matches), soft-fails if the DB is unreachable, and skips cleanly if `_prisma_migrations` doesn't exist yet (fresh clones using `db push`).
+The script reads every migration file, recomputes the sha256, and `UPDATE`s only rows whose stored checksum doesn't match the file. It's idempotent, soft-fails on DB unreachable, and skips cleanly if `_prisma_migrations` doesn't exist yet (fresh clones using `db push`). No data loss.
 
-**Production and CI need no action** — prod uses `migrate deploy` (tolerant of drift on already-applied rows), CI uses `db push` for E2E (bypasses `_prisma_migrations` entirely).
+If the drift is *unexpected*, investigate first — check `git log -- prisma/migrations/` and ask whoever last touched those files.
+
+**Production and CI need no action** — prod uses `migrate deploy` (tolerant of drift on already-applied rows), CI uses `db push` for E2E (bypasses `_prisma_migrations` entirely), and the `Migrations replay` CI job guards against unintended history rewrites on every PR.
 
 ## Scripts
 
