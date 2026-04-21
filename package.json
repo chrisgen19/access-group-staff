@@ -12,6 +12,7 @@
 		"format": "bunx @biomejs/biome format --write .",
 		"db:push": "bunx prisma db push && bunx prisma db execute --file ./scripts/pre-deploy.sql",
 		"db:seed": "bunx prisma db seed",
+		"db:seed:showcase": "bun prisma/seed.dev-showcase.ts",
 		"db:e2e:seed": "bun prisma/seed.e2e.ts",
 		"db:studio": "bunx prisma studio",
 		"db:reconcile-checksums": "bun scripts/reconcile-migration-checksums.ts",
