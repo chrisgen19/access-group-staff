@@ -60,14 +60,16 @@ function ProgressBar({ currentStep }: { currentStep: 1 | 2 }) {
 						<div className="flex items-center gap-2">
 							<div
 								className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors duration-300 ${
-									isCompleted || isActive ? "bg-[#e31837] text-white" : "bg-[#e5e7eb] text-[#999]"
+									isCompleted || isActive
+										? "bg-primary text-primary-foreground"
+										: "bg-muted text-muted-foreground"
 								}`}
 							>
 								{isCompleted ? <Check size={16} strokeWidth={3} /> : s.number}
 							</div>
 							<span
 								className={`text-sm font-medium whitespace-nowrap ${
-									isActive || isCompleted ? "text-[#222]" : "text-[#999]"
+									isActive || isCompleted ? "text-foreground" : "text-muted-foreground"
 								}`}
 							>
 								{s.label}
@@ -75,9 +77,9 @@ function ProgressBar({ currentStep }: { currentStep: 1 | 2 }) {
 						</div>
 						{i < STEPS.length - 1 && (
 							<div className="flex-1 mx-4">
-								<div className="h-0.5 bg-[#e5e7eb] relative">
+								<div className="h-0.5 bg-muted relative">
 									<div
-										className={`absolute inset-y-0 left-0 bg-[#e31837] transition-all duration-500 ${
+										className={`absolute inset-y-0 left-0 bg-primary transition-all duration-500 ${
 											isCompleted ? "w-full" : "w-0"
 										}`}
 									/>
@@ -416,7 +418,7 @@ export function RecognitionForm({
 				{/* ============================================ */}
 				{step === 1 && (
 					<>
-						<div className="w-full max-w-5xl bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6">
+						<div className="w-full max-w-5xl bg-[#e6e7e8] p-4 md:p-8 relative shadow-2xl flex flex-col md:flex-row gap-4 md:gap-6 [color-scheme:light]">
 							{/* Crop Marks */}
 							<div
 								className="absolute top-2 left-2 w-4 h-4 border-t border-l border-gray-400"
@@ -494,7 +496,7 @@ export function RecognitionForm({
 											type="date"
 											max={todayLocal}
 											{...register("date")}
-											className="w-full outline-none text-lg bg-transparent text-[#222]"
+											className="w-full outline-none text-lg bg-transparent text-neutral-900"
 										/>
 										{errors.date && <p className="text-xs text-red-600">{errors.date.message}</p>}
 									</div>
@@ -564,7 +566,7 @@ export function RecognitionForm({
 				{/* ============================================ */}
 				{step === 2 && (
 					<>
-						<div className="w-full max-w-5xl bg-[#e6e7e8] relative shadow-2xl flex flex-col overflow-hidden">
+						<div className="w-full max-w-5xl bg-[#e6e7e8] relative shadow-2xl flex flex-col overflow-hidden [color-scheme:light]">
 							{/* Red Header */}
 							<div className="bg-[#e31837] h-28 flex items-center justify-between px-6 md:px-12 z-10">
 								<AccessGroupLogo color="#ffffff" />
@@ -610,7 +612,7 @@ export function RecognitionForm({
 											type="date"
 											max={todayLocal}
 											{...register("date")}
-											className="w-full outline-none text-lg bg-transparent text-[#222]"
+											className="w-full outline-none text-lg bg-transparent text-neutral-900"
 										/>
 										{errors.date && (
 											<p className="text-xs text-red-600 mt-1">{errors.date.message}</p>
