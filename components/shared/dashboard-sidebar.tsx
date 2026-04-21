@@ -219,9 +219,11 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 				Sign Out
 			</button>
 
+			{/* Temporarily hidden
 			<p className="px-4 pt-2 text-[11px] text-primary">
 				Created by Chris Diomampo of Marketing/IT
 			</p>
+			*/}
 		</>
 	);
 }
