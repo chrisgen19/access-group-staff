@@ -8,10 +8,11 @@ import { useSession } from "@/lib/auth-client";
 
 const TARGET_HREF = "/dashboard/helpme/new";
 
-export function HelpFab() {
+export function HelpFab({ enabled = true }: { enabled?: boolean } = {}) {
 	const pathname = usePathname();
 	const { data: session, isPending } = useSession();
 
+	if (!enabled) return null;
 	if (!pathname.startsWith("/dashboard")) return null;
 	if (pathname === "/dashboard/helpme" || pathname.startsWith("/dashboard/helpme/")) return null;
 

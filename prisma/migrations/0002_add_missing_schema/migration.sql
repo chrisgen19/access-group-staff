@@ -1,0 +1,23 @@
+-- No-op migration.
+--
+-- Background: when the Prisma migrations workflow was adopted in #111,
+-- 0001_init was regenerated from the full current schema and ended up
+-- containing every object this migration originally added (activity_logs,
+-- help_me_tickets, help_me_ticket_replies, the ActivityAction /
+-- TicketCategory / TicketStatus enums, their indexes and foreign keys).
+--
+-- That left 0002 with no net changes but still recorded as applied in
+-- every environment's _prisma_migrations table. Re-playing the original
+-- body against a fresh shadow DB (as `prisma migrate dev` does) would
+-- fail with duplicate-object errors because 0001 already created the
+-- same objects, so the body is cleared here.
+--
+-- Deleting this directory would drop the applied row and force a
+-- `migrate resolve --rolled-back` on every environment. Keeping the
+-- directory with an empty SQL file is the least disruptive path: the
+-- filesystem and `_prisma_migrations` stay aligned by name, and the
+-- file's new checksum is picked up the first time `migrate deploy`
+-- runs after this merge (checksum drift on already-applied migrations
+-- is recoverable with `prisma migrate resolve --applied 0002_add_missing_schema`
+-- if any tooling complains).
+SELECT 1 WHERE false;

@@ -15,6 +15,7 @@ const ACTIONS: ActivityAction[] = [
 	"OAUTH_ACCOUNT_LINKED",
 	"PASSWORD_CHANGED",
 	"PASSWORD_RESET",
+	"USER_VISITED",
 ];
 
 interface SearchParams {

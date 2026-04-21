@@ -104,7 +104,12 @@ const NAV_ITEMS: NavItem[] = [
 	},
 ];
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+interface SidebarNavProps {
+	onNavigate?: () => void;
+	helpMeEnabled: boolean;
+}
+
+function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { data: session } = useSession();
@@ -116,7 +121,11 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 		SUPERADMIN: 2,
 	};
 
-	const filteredItems = NAV_ITEMS.filter((item) => roleLevel[userRole] >= roleLevel[item.minRole]);
+	const filteredItems = NAV_ITEMS.filter((item) => {
+		if (roleLevel[userRole] < roleLevel[item.minRole]) return false;
+		if (item.href === "/dashboard/helpme" && !helpMeEnabled) return false;
+		return true;
+	});
 
 	async function handleSignOut() {
 		try {
@@ -217,15 +226,15 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
 	);
 }
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ helpMeEnabled }: { helpMeEnabled: boolean }) {
 	return (
 		<aside className="hidden w-72 sticky top-0 h-screen flex-col p-4 pr-2 md:flex">
-			<SidebarNav />
+			<SidebarNav helpMeEnabled={helpMeEnabled} />
 		</aside>
 	);
 }
 
-export function MobileSidebarTrigger() {
+export function MobileSidebarTrigger({ helpMeEnabled }: { helpMeEnabled: boolean }) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -239,7 +248,7 @@ export function MobileSidebarTrigger() {
 			</button>
 			<Sheet open={open} onOpenChange={setOpen}>
 				<SheetContent side="left" className="w-72 p-4" showCloseButton={false}>
-					<SidebarNav onNavigate={() => setOpen(false)} />
+					<SidebarNav onNavigate={() => setOpen(false)} helpMeEnabled={helpMeEnabled} />
 				</SheetContent>
 			</Sheet>
 		</>

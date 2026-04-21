@@ -36,6 +36,7 @@ export type OAuthSettings = Record<OAuthKey, boolean>;
 const CACHE_TTL_MS = 30_000;
 
 const TOP_RECOGNIZED_KEY = "top_recognized_limit";
+const HELPME_MODULE_KEY = "helpme_module_enabled";
 
 const oauthCache = getOrCreateGlobalEntry<OAuthSettings>("accessGroupStaff.settings.oauth");
 const topLimitCache = getOrCreateGlobalEntry<number>(
@@ -44,6 +45,7 @@ const topLimitCache = getOrCreateGlobalEntry<number>(
 const leaderboardCache = getOrCreateGlobalEntry<LeaderboardVisibilitySettings>(
 	"accessGroupStaff.settings.leaderboardVisibility",
 );
+const helpMeCache = getOrCreateGlobalEntry<boolean>("accessGroupStaff.settings.helpMeEnabled");
 
 export async function getOAuthSettings(): Promise<OAuthSettings> {
 	return readThroughCache(oauthCache, CACHE_TTL_MS, async () => {
@@ -178,6 +180,42 @@ export async function updateActivityLogRetentionDays(
 		update: { value: String(days) },
 		create: { key: ACTIVITY_LOG_RETENTION_KEY, value: String(days) },
 	});
+
+	return { success: true };
+}
+
+/* ── Help Me Module Toggle ───────────────────────────── */
+
+function invalidateHelpMeCache() {
+	invalidateEntry(helpMeCache);
+}
+
+export async function getHelpMeEnabled(): Promise<boolean> {
+	return readThroughCache(helpMeCache, CACHE_TTL_MS, async () => {
+		const row = await prisma.appSetting.findUnique({
+			where: { key: HELPME_MODULE_KEY },
+		});
+		// Default to enabled when the row is missing or holds an unexpected value.
+		return row?.value !== "false";
+	});
+}
+
+export async function updateHelpMeEnabled(
+	enabled: boolean,
+): Promise<{ success: boolean; error?: string }> {
+	try {
+		await requireRole("ADMIN");
+	} catch {
+		return { success: false, error: "Unauthorized" };
+	}
+
+	await prisma.appSetting.upsert({
+		where: { key: HELPME_MODULE_KEY },
+		update: { value: String(enabled) },
+		create: { key: HELPME_MODULE_KEY, value: String(enabled) },
+	});
+
+	invalidateHelpMeCache();
 
 	return { success: true };
 }
