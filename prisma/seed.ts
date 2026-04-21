@@ -22,6 +22,18 @@ const DEPARTMENT_SEED = [
 	{ name: "Training", code: "TRN" },
 ] as const;
 
+function getDepartmentId(
+	departmentByCode: Map<string, { id: string; name: string; code: string }>,
+	code: string,
+) {
+	const department = departmentByCode.get(code);
+	if (!department) {
+		throw new Error(`Seed department not found for code: ${code}`);
+	}
+
+	return department.id;
+}
+
 async function seed() {
 	console.log("Seeding departments...");
 
@@ -54,7 +66,7 @@ async function seed() {
 			lastName: "Diomampo",
 			role: "SUPERADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("MKT")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "MKT"),
 		},
 		{
 			email: "alfred.irlanda@accessgroup.net.au",
@@ -62,7 +74,7 @@ async function seed() {
 			lastName: "Irlanda",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("HR")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "HR"),
 			position: "HR Compliance Coordinator",
 		},
 		{
@@ -71,7 +83,7 @@ async function seed() {
 			lastName: "Mora",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("HR")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "HR"),
 			position: "Office Manager",
 		},
 		{
@@ -80,7 +92,7 @@ async function seed() {
 			lastName: "Abdelatty",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("HR")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "HR"),
 		},
 		{
 			email: "may.viduya@accessgroup.net.au",
@@ -88,7 +100,7 @@ async function seed() {
 			lastName: "Viduya",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("HR")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "HR"),
 			position: "HR Systems Administrator",
 		},
 		{
@@ -97,7 +109,7 @@ async function seed() {
 			lastName: "Hortal",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("HR")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "HR"),
 			position: "Recruitment and Onboarding Admin",
 		},
 		{
@@ -106,7 +118,7 @@ async function seed() {
 			lastName: "Raymundo",
 			role: "ADMIN",
 			branch: "ISO",
-			departmentId: departmentByCode.get("HR")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "HR"),
 			position: "Offshore Sourcing Specialist",
 		},
 		{
@@ -115,7 +127,7 @@ async function seed() {
 			lastName: "Alonzo",
 			role: "STAFF",
 			branch: "ISO",
-			departmentId: departmentByCode.get("MKT")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "MKT"),
 		},
 		{
 			email: "grace.urmeneta@accessgroup.net.au",
@@ -123,7 +135,7 @@ async function seed() {
 			lastName: "Urmeneta",
 			role: "STAFF",
 			branch: "ISO",
-			departmentId: departmentByCode.get("MKT")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "MKT"),
 		},
 		{
 			email: "kate.bickley@accessgroup.net.au",
@@ -131,7 +143,7 @@ async function seed() {
 			lastName: "Bickley",
 			role: "ADMIN",
 			branch: "PERTH",
-			departmentId: departmentByCode.get("MKT")?.id ?? null,
+			departmentId: getDepartmentId(departmentByCode, "MKT"),
 			position: "CMO",
 		},
 	];

@@ -7,31 +7,56 @@
 DO $$
 DECLARE
   blocked_departments TEXT;
+  legacy_department_id TEXT;
+  canonical_department_id TEXT;
 BEGIN
-  -- Reuse the old Engineering and Safety rows when possible so any linked users
-  -- keep the same department_id through the rename.
-  IF EXISTS (
-    SELECT 1 FROM "departments" WHERE "code" = 'ENG'
-  ) AND NOT EXISTS (
-    SELECT 1 FROM "departments" WHERE "code" = 'COE'
-  ) THEN
+  -- Merge or reuse the old Engineering and Safety rows so linked users land on
+  -- the canonical department even if both legacy and canonical rows already
+  -- coexist from a phased/manual rollout.
+  SELECT "id" INTO legacy_department_id
+  FROM "departments"
+  WHERE "code" = 'ENG';
+
+  SELECT "id" INTO canonical_department_id
+  FROM "departments"
+  WHERE "code" = 'COE';
+
+  IF legacy_department_id IS NOT NULL AND canonical_department_id IS NOT NULL THEN
+    UPDATE "users"
+    SET "department_id" = canonical_department_id
+    WHERE "department_id" = legacy_department_id;
+
+    DELETE FROM "departments"
+    WHERE "id" = legacy_department_id;
+  ELSIF legacy_department_id IS NOT NULL THEN
     UPDATE "departments"
     SET "name" = 'COE',
         "code" = 'COE',
         "updated_at" = NOW()
-    WHERE "code" = 'ENG';
+    WHERE "id" = legacy_department_id;
   END IF;
 
-  IF EXISTS (
-    SELECT 1 FROM "departments" WHERE "code" = 'SAF'
-  ) AND NOT EXISTS (
-    SELECT 1 FROM "departments" WHERE "code" = 'TRN'
-  ) THEN
+  SELECT "id" INTO legacy_department_id
+  FROM "departments"
+  WHERE "code" = 'SAF';
+
+  SELECT "id" INTO canonical_department_id
+  FROM "departments"
+  WHERE "code" = 'TRN';
+
+  IF legacy_department_id IS NOT NULL AND canonical_department_id IS NOT NULL THEN
+    UPDATE "users"
+    SET "department_id" = canonical_department_id
+    WHERE "department_id" = legacy_department_id;
+
+    DELETE FROM "departments"
+    WHERE "id" = legacy_department_id;
+  ELSIF legacy_department_id IS NOT NULL THEN
     UPDATE "departments"
     SET "name" = 'Training',
         "code" = 'TRN',
         "updated_at" = NOW()
-    WHERE "code" = 'SAF';
+    WHERE "id" = legacy_department_id;
   END IF;
 
   INSERT INTO "departments" ("id", "name", "code", "updated_at")

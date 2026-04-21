@@ -30,7 +30,17 @@ async function reconcileDepartments() {
 			const target = await tx.department.findUnique({
 				where: { code: mapping.to.code },
 			});
-			if (target) continue;
+			if (target) {
+				await tx.user.updateMany({
+					where: { departmentId: existing.id },
+					data: { departmentId: target.id },
+				});
+
+				await tx.department.delete({
+					where: { id: existing.id },
+				});
+				continue;
+			}
 
 			await tx.department.update({
 				where: { id: existing.id },
