@@ -37,6 +37,11 @@ export function ActivityLogFilters({ users, actions, initial }: ActivityLogFilte
 	const [target, setTarget] = useState(initial.target);
 	const skipInitialDebounce = useRef(true);
 
+	useEffect(() => {
+		setTarget(initial.target);
+		skipInitialDebounce.current = true;
+	}, [initial.target]);
+
 	const updateParam = useCallback(
 		(key: string, value: string) => {
 			const sp = new URLSearchParams(searchParams.toString());
@@ -59,11 +64,12 @@ export function ActivityLogFilters({ users, actions, initial }: ActivityLogFilte
 			skipInitialDebounce.current = false;
 			return;
 		}
+		if (target === initial.target) return;
 		const timer = setTimeout(() => {
 			updateParam("target", target);
 		}, 300);
 		return () => clearTimeout(timer);
-	}, [target, updateParam]);
+	}, [initial.target, target, updateParam]);
 
 	const hasActiveFilters =
 		!!initial.actor || !!initial.action || !!initial.from || !!initial.to || !!initial.target;
