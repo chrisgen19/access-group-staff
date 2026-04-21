@@ -60,21 +60,47 @@ export function DepartmentsClient() {
 					aria-busy="true"
 					aria-label="Loading departments"
 				>
-					<div className="h-14 bg-muted/30 border-b border-gray-200/60 dark:border-white/10" />
-					{["d0", "d1", "d2", "d3"].map((key) => (
-						<div
-							key={key}
-							className="flex items-center gap-8 px-8 py-5 border-b border-gray-200/60 dark:border-white/10 last:border-0"
-						>
-							<SkeletonLine className="h-4 w-40" />
-							<SkeletonLine className="h-4 w-20" />
-							<SkeletonLine className="h-4 w-8" />
-							<div className="flex justify-end gap-1 ml-auto">
-								<SkeletonLine className="h-8 w-8 rounded-full" />
-								<SkeletonLine className="h-8 w-8 rounded-full" />
-							</div>
-						</div>
-					))}
+					<div className="overflow-x-auto">
+						<table className="min-w-full divide-y divide-gray-200 dark:divide-white/10">
+							<thead>
+								<tr>
+									<th className="px-8 py-4 text-left w-full">
+										<SkeletonLine className="h-3 w-12" />
+									</th>
+									<th className="px-8 py-4 text-left">
+										<SkeletonLine className="h-3 w-10" />
+									</th>
+									<th className="px-8 py-4 text-left">
+										<SkeletonLine className="h-3 w-12" />
+									</th>
+									<th className="px-8 py-4 w-[100px]">
+										<span className="sr-only">Actions</span>
+									</th>
+								</tr>
+							</thead>
+							<tbody className="divide-y divide-gray-200/60 dark:divide-white/10">
+								{["d0", "d1", "d2", "d3"].map((key) => (
+									<tr key={key}>
+										<td className="px-8 py-5">
+											<SkeletonLine className="h-4 w-40" />
+										</td>
+										<td className="px-8 py-5">
+											<SkeletonLine className="h-4 w-20" />
+										</td>
+										<td className="px-8 py-5">
+											<SkeletonLine className="h-4 w-8" />
+										</td>
+										<td className="px-8 py-5">
+											<div className="flex justify-end gap-1">
+												<SkeletonLine className="h-8 w-8 rounded-full" />
+												<SkeletonLine className="h-8 w-8 rounded-full" />
+											</div>
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
 				</SkeletonCard>
 			) : (
 				<DepartmentTable departments={departments} onMutate={loadDepartments} />

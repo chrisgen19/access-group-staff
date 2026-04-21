@@ -87,34 +87,61 @@ function TableSkeleton() {
 			aria-busy="true"
 			aria-label="Loading staff"
 		>
-			<div className="h-10 bg-muted/30 border-b border-gray-200/60 dark:border-white/10" />
-			{["r0", "r1", "r2", "r3", "r4"].map((key) => (
-				<div
-					key={key}
-					className="flex items-center gap-4 px-4 py-3 border-b border-gray-200/60 dark:border-white/10 last:border-0"
-				>
-					<div className="flex items-center gap-3 w-64">
-						<SkeletonLine className="h-10 w-10 rounded-full" />
-						<div className="space-y-1 min-w-0">
-							<SkeletonLine className="h-4 w-32" />
-							<SkeletonLine className="h-3 w-40" />
-						</div>
-					</div>
-					<div className="space-y-1 w-48">
-						<SkeletonLine className="h-4 w-32" />
-						<SkeletonLine className="h-3 w-24" />
-					</div>
-					<SkeletonLine className="h-4 w-24" />
-					<div className="flex flex-col gap-1.5 w-24">
-						<SkeletonLine className="h-5 w-16 rounded-md" />
-					</div>
-					<div className="flex justify-end gap-1 w-32 ml-auto">
-						<SkeletonLine className="h-8 w-8 rounded-full" />
-						<SkeletonLine className="h-8 w-8 rounded-full" />
-						<SkeletonLine className="h-8 w-8 rounded-full" />
-					</div>
-				</div>
-			))}
+			<Table>
+				<TableHeader>
+					<TableRow className="bg-muted/30 hover:bg-muted/30">
+						<TableHead>
+							<SkeletonLine className="h-3 w-20" />
+						</TableHead>
+						<TableHead className="w-full">
+							<SkeletonLine className="h-3 w-28" />
+						</TableHead>
+						<TableHead>
+							<SkeletonLine className="h-3 w-14" />
+						</TableHead>
+						<TableHead>
+							<SkeletonLine className="h-3 w-14" />
+						</TableHead>
+						<TableHead className="text-right">
+							<SkeletonLine className="h-3 w-14 ml-auto" />
+						</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{["r0", "r1", "r2", "r3", "r4"].map((key) => (
+						<TableRow key={key}>
+							<TableCell>
+								<div className="flex items-center gap-3">
+									<SkeletonLine className="h-10 w-10 rounded-full shrink-0" />
+									<div className="space-y-1 min-w-0">
+										<SkeletonLine className="h-4 w-32" />
+										<SkeletonLine className="h-3 w-40" />
+									</div>
+								</div>
+							</TableCell>
+							<TableCell>
+								<div className="space-y-1">
+									<SkeletonLine className="h-4 w-32" />
+									<SkeletonLine className="h-3 w-24" />
+								</div>
+							</TableCell>
+							<TableCell>
+								<SkeletonLine className="h-4 w-24" />
+							</TableCell>
+							<TableCell>
+								<SkeletonLine className="h-5 w-16 rounded-md" />
+							</TableCell>
+							<TableCell className="text-right">
+								<div className="flex justify-end gap-1">
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+								</div>
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }
