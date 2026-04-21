@@ -1,4 +1,4 @@
-import type { ActivityAction, Prisma } from "@/app/generated/prisma/client";
+import { type ActivityAction, Prisma } from "@/app/generated/prisma/client";
 import { env } from "@/env";
 import {
 	ACTIVITY_LOG_RETENTION_DEFAULT,
@@ -27,14 +27,30 @@ export async function logActivity(input: LogActivityInput) {
 				metadata: input.metadata,
 				ipAddress: input.ipAddress ?? null,
 				userAgent: input.userAgent ?? null,
+				visitDayUtc: input.action === "USER_VISITED" ? utcDayToday() : null,
 			},
 		});
 	} catch (err) {
+		// USER_VISITED is guarded by a partial unique index on
+		// (actor_id, visit_day_utc) so idempotency is enforced server-side
+		// even when the per-browser cookie throttle misses (multi-device,
+		// cookie cleared, race on first request).
+		if (
+			input.action === "USER_VISITED" &&
+			err instanceof Prisma.PrismaClientKnownRequestError &&
+			err.code === "P2002"
+		) {
+			return;
+		}
 		console.error("activity-log write failed", {
 			action: input.action,
 			error: err instanceof Error ? err.message : String(err),
 		});
 	}
+}
+
+function utcDayToday(): Date {
+	return new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
 }
 
 function firstIp(value: string | null): string | null {
