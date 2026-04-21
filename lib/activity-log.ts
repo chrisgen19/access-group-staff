@@ -1,4 +1,5 @@
 import type { ActivityAction, Prisma } from "@/app/generated/prisma/client";
+import { Prisma as PrismaRuntime } from "@/app/generated/prisma/client";
 import { env } from "@/env";
 import {
 	ACTIVITY_LOG_RETENTION_DEFAULT,
@@ -30,6 +31,16 @@ export async function logActivity(input: LogActivityInput) {
 			},
 		});
 	} catch (err) {
+		// USER_VISITED is guarded by a partial unique index on (actor_id, created_at::date)
+		// so idempotency is enforced server-side even when the per-browser cookie
+		// throttle misses (multi-device, cookie cleared, race on first request).
+		if (
+			input.action === "USER_VISITED" &&
+			err instanceof PrismaRuntime.PrismaClientKnownRequestError &&
+			err.code === "P2002"
+		) {
+			return;
+		}
 		console.error("activity-log write failed", {
 			action: input.action,
 			error: err instanceof Error ? err.message : String(err),
