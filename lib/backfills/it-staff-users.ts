@@ -129,29 +129,32 @@ export async function runItStaffUserBackfill({ apply, logger = console }: Backfi
 		logger.log(`- ${line}`);
 	}
 
-	if (apply && missing.length > 0) {
-		throw new Error(
-			"Aborting apply because one or more users from the backfill list were not found.",
-		);
-	}
-
 	if (!apply) {
 		logger.log("Re-run with --apply to persist these updates.");
 		return { updated: 0, matched: matchedUsers.length, missing };
 	}
 
-	for (const user of matchedUsers) {
-		await prisma.user.update({
-			where: { id: user.id },
-			data: {
-				position: user.position,
-				role: "STAFF",
-				departmentId: itDepartment.id,
-			},
-		});
+	if (matchedUsers.length === 0) {
+		throw new Error("Aborting apply because none of the backfill users were found.");
 	}
 
+	await prisma.$transaction(
+		matchedUsers.map((user) =>
+			prisma.user.update({
+				where: { id: user.id },
+				data: {
+					position: user.position,
+					role: "STAFF",
+					departmentId: itDepartment.id,
+				},
+			}),
+		),
+	);
+
 	logger.log("Backfill applied successfully.");
+	if (missing.length > 0) {
+		logger.log("Skipped missing users. They can be backfilled later after registration.");
+	}
 	return { updated: matchedUsers.length, matched: matchedUsers.length, missing };
 }
 
