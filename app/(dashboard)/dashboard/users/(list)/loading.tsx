@@ -49,6 +49,9 @@ export default function UsersListLoading() {
 							<TableHead>
 								<SkeletonLine className="h-3 w-12" />
 							</TableHead>
+							<TableHead>
+								<SkeletonLine className="h-3 w-12" />
+							</TableHead>
 							<TableHead className="text-right">
 								<SkeletonLine className="h-3 w-14 ml-auto" />
 							</TableHead>
@@ -74,6 +77,9 @@ export default function UsersListLoading() {
 								</TableCell>
 								<TableCell>
 									<SkeletonLine className="h-4 w-16" />
+								</TableCell>
+								<TableCell>
+									<SkeletonLine className="h-4 w-20" />
 								</TableCell>
 								<TableCell>
 									<SkeletonLine className="h-5 w-16 rounded-full" />

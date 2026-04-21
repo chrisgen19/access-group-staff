@@ -54,6 +54,7 @@ interface User {
 	deletedAt: string | null;
 	position: string | null;
 	branch: string | null;
+	createdAt: string;
 	department: { id: string; name: string; code: string } | null;
 }
 
@@ -79,6 +80,18 @@ function roleBadgeVariant(role: string) {
 	}
 }
 
+const joinedDateFormatter = new Intl.DateTimeFormat("en-AU", {
+	day: "2-digit",
+	month: "short",
+	year: "numeric",
+});
+
+function formatJoinedDate(value: string) {
+	const parsed = new Date(value);
+	if (Number.isNaN(parsed.getTime())) return "—";
+	return joinedDateFormatter.format(parsed);
+}
+
 function TableSkeleton() {
 	return (
 		<div
@@ -95,6 +108,9 @@ function TableSkeleton() {
 						</TableHead>
 						<TableHead className="w-full">
 							<SkeletonLine className="h-3 w-28" />
+						</TableHead>
+						<TableHead>
+							<SkeletonLine className="h-3 w-14" />
 						</TableHead>
 						<TableHead>
 							<SkeletonLine className="h-3 w-14" />
@@ -124,6 +140,9 @@ function TableSkeleton() {
 									<SkeletonLine className="h-4 w-32" />
 									<SkeletonLine className="h-3 w-24" />
 								</div>
+							</TableCell>
+							<TableCell>
+								<SkeletonLine className="h-4 w-24" />
 							</TableCell>
 							<TableCell>
 								<SkeletonLine className="h-4 w-24" />
@@ -371,6 +390,7 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 									<TableHead>Employee</TableHead>
 									<TableHead>Position / Dept</TableHead>
 									<TableHead>Branch</TableHead>
+									<TableHead>Joined</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
@@ -408,6 +428,11 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 											</TableCell>
 											<TableCell>
 												<span className="text-sm text-foreground">{user.branch ?? "—"}</span>
+											</TableCell>
+											<TableCell>
+												<span className="text-sm text-foreground">
+													{formatJoinedDate(user.createdAt)}
+												</span>
 											</TableCell>
 											<TableCell>
 												<div className="flex flex-col gap-1.5">
