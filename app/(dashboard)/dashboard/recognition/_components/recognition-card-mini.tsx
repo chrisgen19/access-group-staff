@@ -7,12 +7,38 @@ import {
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
 import { FitText } from "@/components/shared/fit-text";
+import { PhysicalCardPerson } from "@/components/shared/physical-card-person";
+import type { AvatarSize } from "@/components/shared/user-avatar";
 import { COMPANY_VALUES, formatRecognitionDate, type RecognitionCard } from "@/lib/recognition";
 import { cn } from "@/lib/utils";
 import type { CardSize } from "@/stores/use-preferences-store";
 
-const SIZE_CONFIG = {
+const SIZE_CONFIG: Record<
+	CardSize,
+	{
+		avatarSize: AvatarSize;
+		outer: string;
+		field: string;
+		labelText: string;
+		valueText: string;
+		messageMin: string;
+		messageText: string;
+		fromDateH: string;
+		logoH: string;
+		logoSize: string;
+		businessLogoSize: string;
+		valuesTitle: string;
+		lgCheckbox: string;
+		lgCheckIcon: number;
+		lgLabel: string;
+		smCheckbox: string;
+		smCheckIcon: number;
+		smLabel: string;
+		valuesPanel: string;
+	}
+> = {
 	compact: {
+		avatarSize: "xs",
 		outer: "p-2 md:p-3 gap-2 md:gap-3",
 		field: "p-1.5 md:p-2",
 		labelText: "text-[7px] md:text-[8px]",
@@ -33,6 +59,7 @@ const SIZE_CONFIG = {
 		valuesPanel: "p-3 md:p-4",
 	},
 	normal: {
+		avatarSize: "sm",
 		outer: "p-3 md:p-5 gap-3 md:gap-4",
 		field: "p-2 md:p-3",
 		labelText: "text-[8px] md:text-[9px]",
@@ -53,6 +80,7 @@ const SIZE_CONFIG = {
 		valuesPanel: "p-4 md:p-5",
 	},
 	expanded: {
+		avatarSize: "md",
 		outer: "p-4 md:p-6 gap-4 md:gap-5",
 		field: "p-2.5 md:p-3",
 		labelText: "text-[9px] md:text-[10px]",
@@ -149,11 +177,16 @@ export function RecognitionCardMini({
 			{/* Left Column */}
 			<div className="flex-1 flex flex-col gap-2">
 				{/* TO */}
-				<div className={cn("bg-white rounded-sm flex flex-col shadow-sm", s.field)}>
-					<span className={cn("font-black text-black mb-0.5", s.labelText)}>TO</span>
-					<FitText className={cn("text-[#222]", s.valueText)}>
-						{`${card.recipient.firstName} ${card.recipient.lastName}`}
-					</FitText>
+				<div className={cn("bg-white rounded-sm flex items-center gap-2 shadow-sm", s.field)}>
+					<span className={cn("font-black text-black shrink-0", s.labelText)}>TO</span>
+					<PhysicalCardPerson
+						firstName={card.recipient.firstName}
+						lastName={card.recipient.lastName}
+						avatar={card.recipient.avatar}
+						avatarSize={s.avatarSize}
+						className="flex-1"
+						textClassName={s.valueText}
+					/>
 				</div>
 
 				{/* WHAT YOU DID */}
