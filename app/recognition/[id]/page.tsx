@@ -11,6 +11,7 @@ import {
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
 import { FitText } from "@/components/shared/fit-text";
+import { PhysicalCardPerson } from "@/components/shared/physical-card-person";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { getCardReactionSummary } from "@/lib/interactions";
@@ -29,6 +30,7 @@ const getCard = cache(async function getCard(id: string) {
 					id: true,
 					firstName: true,
 					lastName: true,
+					avatar: true,
 					position: true,
 					department: { select: { name: true } },
 				},
@@ -38,6 +40,7 @@ const getCard = cache(async function getCard(id: string) {
 					id: true,
 					firstName: true,
 					lastName: true,
+					avatar: true,
 					position: true,
 					department: { select: { name: true } },
 				},
@@ -227,9 +230,16 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 
 			{/* Left Column */}
 			<div className="flex-1 flex flex-col gap-4">
-				<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col min-h-20 shadow-sm">
-					<span className="text-xs font-black text-black mb-1">TO</span>
-					<FitText className="text-lg text-[#222]">{recipientName}</FitText>
+				<div className="bg-white p-3 md:p-4 rounded-sm flex items-center gap-3 min-h-20 shadow-sm">
+					<span className="text-xs font-black text-black shrink-0">TO</span>
+					<PhysicalCardPerson
+						firstName={card.recipient.firstName}
+						lastName={card.recipient.lastName}
+						avatar={card.recipient.avatar}
+						avatarSize="lg"
+						className="flex-1"
+						textClassName="text-lg"
+					/>
 				</div>
 
 				<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-grow min-h-[300px] shadow-sm relative">
