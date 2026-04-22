@@ -199,7 +199,7 @@ function RecipientCombobox({
 								setIsDropdownOpen(true);
 							}}
 							onFocus={() => setIsDropdownOpen(true)}
-							className="w-full pl-5 outline-none text-lg bg-transparent placeholder:text-gray-400"
+							className="w-full pl-5 outline-none text-lg bg-transparent text-[#222] caret-[#222] placeholder:text-gray-400"
 							spellCheck="false"
 						/>
 						<ChevronDown size={14} className="absolute right-0 text-gray-400 pointer-events-none" />
