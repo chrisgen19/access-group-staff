@@ -5,6 +5,7 @@ import { Calendar, Heart, Inbox, Lock, Medal, Send, Trophy } from "lucide-react"
 import { useEffect, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const PODIUM_STYLES = [
@@ -140,21 +141,66 @@ function StatItem({
 	icon: Icon,
 	label,
 	value,
+	accent,
+	note,
 }: {
 	icon: React.ComponentType<{ size?: number; className?: string }>;
 	label: string;
 	value: number;
+	accent: {
+		panel: string;
+		glow: string;
+		iconWrap: string;
+		icon: string;
+		value: string;
+	};
+	note: string;
 }) {
 	return (
-		<div className="flex items-center gap-3">
-			<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-				<Icon size={18} className="text-primary" />
-			</div>
-			<div>
-				<p className="text-2xl font-semibold text-foreground">{value.toLocaleString()}</p>
-				<p className="text-xs text-muted-foreground">{label}</p>
-			</div>
-		</div>
+		<Tooltip>
+			<TooltipTrigger
+				render={
+					<div
+						className={cn(
+							"relative overflow-hidden rounded-[1.45rem] border px-4 py-4 shadow-[0_10px_30px_-22px_rgba(0,0,0,0.5)] transition-transform duration-200 hover:-translate-y-0.5",
+							"before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-white/70 dark:before:bg-white/10",
+							accent.panel,
+						)}
+					>
+						<div
+							className={cn(
+								"pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full blur-2xl",
+								accent.glow,
+							)}
+						/>
+						<div className="relative flex items-start justify-between gap-3">
+							<div className="min-w-0">
+								<p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground/80">
+									{label}
+								</p>
+								<p
+									className={cn(
+										"mt-2 text-[2rem] leading-none font-semibold tracking-tight",
+										accent.value,
+									)}
+								>
+									{value.toLocaleString()}
+								</p>
+							</div>
+							<div
+								className={cn(
+									"flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/50 dark:border-white/10",
+									accent.iconWrap,
+								)}
+							>
+								<Icon size={18} className={accent.icon} />
+							</div>
+						</div>
+					</div>
+				}
+			/>
+			<TooltipContent side="top">{note}</TooltipContent>
+		</Tooltip>
 	);
 }
 
@@ -167,13 +213,19 @@ function StatsWidgetSkeleton() {
 			aria-label="Loading recognition stats"
 		>
 			<SkeletonLine className="h-6 w-40 shrink-0" />
-			<div className="grid grid-cols-3 gap-4 shrink-0">
+			<div className="grid grid-cols-1 gap-3 shrink-0 sm:grid-cols-3">
 				{["s0", "s1", "s2"].map((key) => (
-					<div key={key} className="flex items-center gap-3">
-						<SkeletonLine className="h-10 w-10 rounded-full" />
-						<div className="space-y-1">
-							<SkeletonLine className="h-6 w-8" />
-							<SkeletonLine className="h-3 w-16" />
+					<div
+						key={key}
+						className="rounded-[1.45rem] border border-gray-200/60 dark:border-white/10 px-4 py-4"
+					>
+						<div className="flex items-start justify-between gap-3">
+							<div className="space-y-2">
+								<SkeletonLine className="h-3 w-24" />
+								<SkeletonLine className="h-8 w-18" />
+								<SkeletonLine className="h-6 w-24 rounded-full" />
+							</div>
+							<SkeletonLine className="h-11 w-11 rounded-2xl" />
 						</div>
 					</div>
 				))}
@@ -299,10 +351,46 @@ export function StatsWidget() {
 				Recognition Stats
 			</h3>
 
-			<div className="grid grid-cols-3 gap-4 shrink-0">
-				<StatItem icon={Send} label="Sent This Month" value={stats?.sent ?? 0} />
-				<StatItem icon={Inbox} label="Received This Month" value={stats?.received ?? 0} />
-				<StatItem icon={Calendar} label="Company This Month" value={stats?.monthlyTotal ?? 0} />
+			<div className="grid grid-cols-1 gap-3 shrink-0 sm:grid-cols-3">
+				<StatItem
+					icon={Send}
+					label="Sent This Month"
+					value={stats?.sent ?? 0}
+					note="Cards you sent to teammates"
+					accent={{
+						panel: "border-primary/15 bg-background dark:border-primary/15 dark:bg-background",
+						glow: "bg-primary/10 dark:bg-primary/8",
+						iconWrap: "bg-primary/10 dark:bg-primary/14",
+						icon: "text-primary",
+						value: "text-foreground",
+					}}
+				/>
+				<StatItem
+					icon={Inbox}
+					label="Received This Month"
+					value={stats?.received ?? 0}
+					note="Recognition you’ve received"
+					accent={{
+						panel: "border-primary/15 bg-background dark:border-primary/15 dark:bg-background",
+						glow: "bg-primary/10 dark:bg-primary/8",
+						iconWrap: "bg-primary/10 dark:bg-primary/14",
+						icon: "text-primary",
+						value: "text-foreground",
+					}}
+				/>
+				<StatItem
+					icon={Calendar}
+					label="Company This Month"
+					value={stats?.monthlyTotal ?? 0}
+					note="Total cards shared company-wide"
+					accent={{
+						panel: "border-primary/15 bg-background dark:border-primary/15 dark:bg-background",
+						glow: "bg-primary/10 dark:bg-primary/8",
+						iconWrap: "bg-primary/10 dark:bg-primary/14",
+						icon: "text-primary",
+						value: "text-foreground",
+					}}
+				/>
 			</div>
 
 			{showList ? (
