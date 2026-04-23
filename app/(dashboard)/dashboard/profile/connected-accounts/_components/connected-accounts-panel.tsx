@@ -75,8 +75,8 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Connected Accounts
 				</h3>
@@ -85,9 +85,9 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 				</p>
 			</div>
 
-			<div className="px-8 py-6 space-y-3">
+			<div className="space-y-3 px-5 py-6 sm:px-8">
 				{hasPassword && (
-					<div className="flex items-center justify-between rounded-2xl border border-gray-200/60 dark:border-white/10 px-5 py-4">
+					<div className="flex flex-col gap-4 rounded-2xl border border-gray-200/60 px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5">
 						<div className="flex items-center gap-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10">
 								<svg
@@ -111,7 +111,7 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 								</p>
 							</div>
 						</div>
-						<span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+						<span className="inline-flex items-center self-start rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 sm:self-auto">
 							Active
 						</span>
 					</div>
@@ -120,7 +120,7 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 				{providers.map((provider) => (
 					<div
 						key={provider.id}
-						className="flex items-center justify-between rounded-2xl border border-gray-200/60 dark:border-white/10 px-5 py-4"
+						className="flex flex-col gap-4 rounded-2xl border border-gray-200/60 px-4 py-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:px-5"
 					>
 						<div className="flex items-center gap-3">
 							<div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-white/10">
@@ -141,7 +141,7 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 								type="button"
 								onClick={() => handleUnlink(provider.id, provider.name)}
 								disabled={loadingProvider !== null}
-								className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-white/10 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-all duration-200 disabled:opacity-50"
+								className="inline-flex items-center gap-1.5 self-start rounded-full border border-gray-200 px-4 py-2 text-xs font-medium text-muted-foreground transition-all duration-200 hover:border-destructive/30 hover:text-destructive disabled:opacity-50 dark:border-white/10 sm:self-auto"
 							>
 								{loadingProvider === provider.id ? (
 									<Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -155,7 +155,7 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 								type="button"
 								onClick={() => handleLink(provider.id, provider.name)}
 								disabled={loadingProvider !== null}
-								className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-all duration-200 disabled:opacity-50"
+								className="inline-flex items-center gap-1.5 self-start rounded-full bg-primary px-4 py-2 text-xs font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 disabled:opacity-50 sm:self-auto"
 							>
 								{loadingProvider === provider.id ? (
 									<Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -165,7 +165,9 @@ export function ConnectedAccountsPanel({ providers, hasPassword }: ConnectedAcco
 								Connect
 							</button>
 						) : (
-							<span className="text-xs text-muted-foreground">Not available</span>
+							<span className="self-start text-xs text-muted-foreground sm:self-auto">
+								Not available
+							</span>
 						)}
 					</div>
 				))}

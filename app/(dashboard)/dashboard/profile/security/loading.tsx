@@ -9,12 +9,12 @@ export default function SecurityLoading() {
 			aria-label="Loading security settings"
 		>
 			<SkeletonCard className="overflow-hidden">
-				<div className="px-8 pt-8 pb-2 space-y-2">
+				<div className="space-y-2 px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 					<SkeletonLine className="h-7 w-48" />
 					<SkeletonLine className="h-4 w-72" />
 				</div>
 
-				<div className="px-8 py-6 space-y-5">
+				<div className="space-y-5 px-5 py-6 sm:px-8">
 					{["current", "new", "confirm"].map((key) => (
 						<div key={key} className="space-y-2">
 							<SkeletonLine className="h-4 w-40" />
@@ -23,8 +23,8 @@ export default function SecurityLoading() {
 					))}
 				</div>
 
-				<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-200/60 dark:border-white/10 flex justify-end">
-					<SkeletonLine className="h-10 w-40 rounded-full" />
+				<div className="flex justify-end border-t border-gray-200/60 bg-gray-50/50 px-5 py-6 dark:border-white/10 dark:bg-white/[0.02] sm:px-8">
+					<SkeletonLine className="h-10 w-full rounded-full sm:w-40" />
 				</div>
 			</SkeletonCard>
 		</div>
