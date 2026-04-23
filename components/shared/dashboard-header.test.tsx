@@ -37,6 +37,9 @@ describe("DashboardHeader", () => {
 		["/dashboard/recognition/create", "Recognition"],
 		["/dashboard/leaderboard", "Leaderboard"],
 		["/dashboard/users/new", "Staff"],
+		["/dashboard/departments", "Departments"],
+		["/dashboard/profile/security", "Profile"],
+		["/dashboard/helpme/new", "Help Me"],
 		["/dashboard/admin-settings/activity-logs", "Admin Settings"],
 		["/dashboard/super-admin", "Super Admin"],
 	])("shows the correct mobile section label for %s", (pathname, label) => {

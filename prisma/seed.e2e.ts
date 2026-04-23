@@ -51,6 +51,12 @@ async function seed() {
 		where: { OR: [{ senderId }, { recipientId }, { senderId: adminId }, { recipientId: adminId }] },
 	});
 
+	await prisma.appSetting.upsert({
+		where: { key: "helpme_module_enabled" },
+		update: { value: "true" },
+		create: { key: "helpme_module_enabled", value: "true" },
+	});
+
 	console.log(`E2E seed complete. admin=${adminId} sender=${senderId} recipient=${recipientId}`);
 }
 

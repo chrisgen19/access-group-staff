@@ -24,10 +24,10 @@ test.describe("/dashboard Help FAB", () => {
 
 	test.beforeEach(async ({ page }) => {
 		await loginAs(page, E2E_ADMIN);
-		await setHelpMeEnabled(page, true);
 	});
 
 	test.afterEach(async ({ page }) => {
+		// The seed owns the default (enabled); only restore if a test flipped it off.
 		await setHelpMeEnabled(page, true);
 	});
 
