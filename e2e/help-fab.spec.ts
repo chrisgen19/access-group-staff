@@ -1,6 +1,8 @@
 import { expect, loginAs, test } from "./fixtures";
 import { E2E_ADMIN } from "./test-users";
 
+test.describe.configure({ mode: "serial" });
+
 test.describe("/dashboard Help FAB", () => {
 	test.use({ viewport: { width: 390, height: 844 } });
 
@@ -20,40 +22,42 @@ test.describe("/dashboard Help FAB", () => {
 		await expect(toggle).toHaveAttribute("aria-checked", enabled ? "true" : "false");
 	}
 
+	test.beforeEach(async ({ page }) => {
+		await loginAs(page, E2E_ADMIN);
+		await setHelpMeEnabled(page, true);
+	});
+
+	test.afterEach(async ({ page }) => {
+		await setHelpMeEnabled(page, true);
+	});
+
 	test("mobile layout keeps the help FAB visible without covering the bottom action, and hides it when disabled", async ({
 		page,
 	}) => {
-		await loginAs(page, E2E_ADMIN);
-		await setHelpMeEnabled(page, true);
+		await page.goto("/dashboard");
 
-		try {
-			await page.goto("/dashboard");
+		const fab = page.getByRole("link", { name: /open help ticket/i });
+		await expect(fab).toBeVisible();
 
-			const fab = page.getByRole("link", { name: /open help ticket/i });
-			await expect(fab).toBeVisible();
+		const fabBox = await fab.boundingBox();
+		const viewport = page.viewportSize();
+		const mainPaddingBottom = await page.getByRole("main").evaluate((element) => {
+			return Number.parseFloat(window.getComputedStyle(element).paddingBottom);
+		});
 
-			const fabBox = await fab.boundingBox();
-			const viewport = page.viewportSize();
-			const mainPaddingBottom = await page.getByRole("main").evaluate((element) => {
-				return Number.parseFloat(window.getComputedStyle(element).paddingBottom);
-			});
+		expect(fabBox).not.toBeNull();
+		expect(viewport).not.toBeNull();
 
-			expect(fabBox).not.toBeNull();
-			expect(viewport).not.toBeNull();
-
-			if (!fabBox || !viewport) {
-				throw new Error("Expected FAB and viewport metrics to be available");
-			}
-
-			expect(fabBox.x + fabBox.width).toBeGreaterThanOrEqual(viewport.width - 24);
-			expect(fabBox.y + fabBox.height).toBeGreaterThanOrEqual(viewport.height - 32);
-			expect(mainPaddingBottom).toBeGreaterThanOrEqual(fabBox.height + 40);
-
-			await setHelpMeEnabled(page, false);
-			await page.goto("/dashboard");
-			await expect(page.getByRole("link", { name: /open help ticket/i })).toHaveCount(0);
-		} finally {
-			await setHelpMeEnabled(page, true);
+		if (!fabBox || !viewport) {
+			throw new Error("Expected FAB and viewport metrics to be available");
 		}
+
+		expect(fabBox.x + fabBox.width).toBeGreaterThanOrEqual(viewport.width - 24);
+		expect(fabBox.y + fabBox.height).toBeGreaterThanOrEqual(viewport.height - 32);
+		expect(mainPaddingBottom).toBeGreaterThanOrEqual(fabBox.height + 40);
+
+		await setHelpMeEnabled(page, false);
+		await page.goto("/dashboard");
+		await expect(page.getByRole("link", { name: /open help ticket/i })).toHaveCount(0);
 	});
 });

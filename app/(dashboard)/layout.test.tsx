@@ -38,21 +38,21 @@ describe("DashboardLayout", () => {
 		vi.clearAllMocks();
 	});
 
-	it("keeps FAB-safe bottom padding until the desktop breakpoint when Help Me is enabled", async () => {
+	it("reserves FAB-safe bottom padding via inline style when Help Me is enabled", async () => {
 		mockedGetHelpMeEnabled.mockResolvedValue(true);
 
 		const { container } = render(await DashboardLayout({ children: <div>Dashboard content</div> }));
 		const main = screen.getByRole("main");
-		const styleAttr = main.getAttribute("style");
 
-		expect(main).toHaveClass("pb-8", "md:pb-8");
-		expect(main).not.toHaveClass("sm:pb-8");
-		expect(styleAttr).toContain("padding-bottom:");
+		expect(main).toHaveClass("pb-8");
+		const styleAttr = main.getAttribute("style") ?? "";
+		expect(styleAttr).toMatch(/padding-bottom:\s*calc\(/);
 		expect(styleAttr).toContain("6.5rem");
+		expect(styleAttr).toContain("safe-area-inset-bottom");
 		expect(container.firstChild).toHaveClass("bg-background");
 	});
 
-	it("does not reserve FAB space when Help Me is disabled", async () => {
+	it("falls back to the Tailwind pb-8 utility when Help Me is disabled", async () => {
 		mockedGetHelpMeEnabled.mockResolvedValue(false);
 
 		render(await DashboardLayout({ children: <div>Dashboard content</div> }));

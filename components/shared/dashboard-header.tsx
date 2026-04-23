@@ -42,7 +42,7 @@ export function DashboardHeader({
 
 	return (
 		<header className="sticky top-0 z-20 px-safe pt-safe md:hidden">
-			<div className="flex h-[4.5rem] items-center justify-between border-b border-black/5 bg-background/88 px-4 backdrop-blur-xl dark:border-white/8">
+			<div className="flex h-[4.5rem] items-center justify-between border-b border-black/5 bg-background/88 backdrop-blur-xl dark:border-white/10">
 				<div className="flex min-w-0 items-center gap-3">
 					<MobileSidebarTrigger helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 					<div className="min-w-0">

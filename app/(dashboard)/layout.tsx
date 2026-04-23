@@ -4,7 +4,6 @@ import { DashboardSidebar } from "@/components/shared/dashboard-sidebar";
 import { HelpFab } from "@/components/shared/help-fab";
 import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
-import { cn } from "@/lib/utils";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const session = await getServerSession();
@@ -19,14 +18,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
 			<div className="relative flex min-h-screen min-w-0 flex-1 flex-col bg-background/92 md:bg-card md:shadow-sm md:backdrop-blur-sm md:my-2 md:mr-2 md:rounded-l-[2rem] md:border md:border-gray-100 dark:md:border-white/5">
 				<DashboardHeader helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 				<main
-					className={cn("flex-1 px-4 pb-8 sm:px-8 md:pb-8")}
+					className="flex-1 px-4 pb-8 sm:px-8"
 					style={
 						helpMeEnabled
 							? { paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom, 0px))" }
 							: undefined
 					}
 				>
-					<div className="mx-auto min-w-0">{children}</div>
+					{children}
 				</main>
 			</div>
 			<HelpFab enabled={helpMeEnabled} />

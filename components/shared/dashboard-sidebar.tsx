@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { NotificationBadge } from "@/components/shared/notification-badge";
 import { UserAvatar } from "@/components/shared/user-avatar";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -304,7 +304,7 @@ export function MobileSidebarTrigger({
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="inline-flex items-center justify-center rounded-full border border-black/5 bg-card/80 p-2.5 text-muted-foreground shadow-sm transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/8 md:hidden"
+				className="inline-flex items-center justify-center rounded-full border border-black/5 bg-card/80 p-2.5 text-muted-foreground shadow-sm transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 md:hidden"
 			>
 				<Menu size={22} />
 			</button>
@@ -314,10 +314,10 @@ export function MobileSidebarTrigger({
 					className="w-[min(88vw,22rem)] border-r border-black/5 bg-[linear-gradient(to_bottom,oklch(0.99_0.01_18),oklch(1_0_0))] p-4 px-safe pt-safe pb-safe dark:border-white/10 dark:bg-[linear-gradient(to_bottom,oklch(0.2_0.01_18),oklch(0.18_0_0))]"
 					showCloseButton={false}
 				>
-					<div className="sr-only">
-						<h2>Dashboard navigation</h2>
-						<p>Browse dashboard sections and account actions.</p>
-					</div>
+					<SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
+					<SheetDescription className="sr-only">
+						Browse dashboard sections and account actions.
+					</SheetDescription>
 					<SidebarNav
 						onNavigate={() => setOpen(false)}
 						helpMeEnabled={helpMeEnabled}

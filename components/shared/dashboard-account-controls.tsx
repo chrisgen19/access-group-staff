@@ -14,8 +14,9 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 
-export function DashboardAccountControls({ className = "" }: { className?: string }) {
+export function DashboardAccountControls({ className }: { className?: string }) {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const user = session?.user;
@@ -31,7 +32,7 @@ export function DashboardAccountControls({ className = "" }: { className?: strin
 	}
 
 	return (
-		<div className={`flex items-center gap-2 sm:gap-3 ${className}`.trim()}>
+		<div className={cn("flex items-center gap-2 sm:gap-3", className)}>
 			<div className="rounded-full border border-black/5 bg-card/80 p-1 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
 				<ThemeToggle />
 			</div>
@@ -42,7 +43,7 @@ export function DashboardAccountControls({ className = "" }: { className?: strin
 			)}
 			{user && (
 				<DropdownMenu>
-					<DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-full border border-black/5 bg-card/80 py-1 pr-1.5 pl-1 shadow-sm backdrop-blur-sm transition-all outline-none hover:border-gray-200 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/15 dark:hover:bg-white/8">
+					<DropdownMenuTrigger className="flex cursor-pointer items-center gap-2 rounded-full border border-black/5 bg-card/80 py-1 pr-1.5 pl-1 shadow-sm backdrop-blur-sm transition-all outline-none hover:border-gray-200 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:hover:border-white/15 dark:hover:bg-white/10">
 						<UserAvatar
 							firstName={user.firstName ?? ""}
 							lastName={user.lastName ?? ""}

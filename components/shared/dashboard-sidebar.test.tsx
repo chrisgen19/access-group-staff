@@ -26,6 +26,8 @@ vi.mock("@/components/ui/sheet", () => ({
 		<>{open ? children : null}</>
 	),
 	SheetContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+	SheetTitle: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
+	SheetDescription: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
 }));
 
 import { usePathname, useRouter } from "next/navigation";
