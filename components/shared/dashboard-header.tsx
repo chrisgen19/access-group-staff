@@ -16,7 +16,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { signOut, useSession } from "@/lib/auth-client";
 
-export function DashboardHeader({ helpMeEnabled }: { helpMeEnabled: boolean }) {
+export function DashboardHeader({
+	helpMeEnabled,
+	initialUserRole,
+}: {
+	helpMeEnabled: boolean;
+	initialUserRole: "STAFF" | "ADMIN" | "SUPERADMIN";
+}) {
 	const router = useRouter();
 	const { data: session } = useSession();
 	const user = session?.user;
@@ -34,7 +40,10 @@ export function DashboardHeader({ helpMeEnabled }: { helpMeEnabled: boolean }) {
 	return (
 		<header className="sticky top-0 z-10 flex h-20 items-center justify-between bg-card px-4 sm:px-8">
 			<div className="flex items-center md:hidden">
-				<MobileSidebarTrigger helpMeEnabled={helpMeEnabled} />
+				<MobileSidebarTrigger
+					helpMeEnabled={helpMeEnabled}
+					initialUserRole={initialUserRole}
+				/>
 			</div>
 
 			<div className="flex-1 md:flex-none" />
