@@ -41,13 +41,14 @@ describe("DashboardLayout", () => {
 	it("keeps FAB-safe bottom padding until the desktop breakpoint when Help Me is enabled", async () => {
 		mockedGetHelpMeEnabled.mockResolvedValue(true);
 
-		render(await DashboardLayout({ children: <div>Dashboard content</div> }));
+		const { container } = render(await DashboardLayout({ children: <div>Dashboard content</div> }));
 
 		expect(screen.getByRole("main")).toHaveClass(
 			"pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]",
 			"md:pb-8",
 		);
 		expect(screen.getByRole("main")).not.toHaveClass("sm:pb-8");
+		expect(container.firstChild).toHaveClass("bg-background");
 	});
 
 	it("does not reserve FAB space when Help Me is disabled", async () => {

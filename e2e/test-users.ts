@@ -13,8 +13,8 @@ export const E2E_RECIPIENT = {
 };
 
 export const E2E_ADMIN = {
-	email: "alfred.irlanda@accessgroup.net.au",
-	password: "Password123!",
-	firstName: "Alfred Niel",
-	lastName: "Irlanda",
+	email: "e2e.admin@example.test",
+	password: "E2ePassword123!",
+	firstName: "E2E",
+	lastName: "Admin",
 };
