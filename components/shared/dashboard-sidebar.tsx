@@ -107,13 +107,15 @@ const NAV_ITEMS: NavItem[] = [
 interface SidebarNavProps {
 	onNavigate?: () => void;
 	helpMeEnabled: boolean;
+	initialUserRole: MinRole;
 }
 
-function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
+function SidebarNav({ onNavigate, helpMeEnabled, initialUserRole }: SidebarNavProps) {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { data: session } = useSession();
-	const userRole = ((session?.user?.role as string) ?? "STAFF") as MinRole;
+	const { data: session, isPending } = useSession();
+	const sessionRole = session?.user?.role as string | undefined;
+	const userRole = (sessionRole ?? (isPending ? initialUserRole : "STAFF")) as MinRole;
 
 	const roleLevel: Record<MinRole, number> = {
 		STAFF: 0,
@@ -230,15 +232,27 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 	);
 }
 
-export function DashboardSidebar({ helpMeEnabled }: { helpMeEnabled: boolean }) {
+export function DashboardSidebar({
+	helpMeEnabled,
+	initialUserRole,
+}: {
+	helpMeEnabled: boolean;
+	initialUserRole: MinRole;
+}) {
 	return (
 		<aside className="sticky top-0 hidden h-screen w-[13.5rem] flex-col p-4 pr-2 md:flex">
-			<SidebarNav helpMeEnabled={helpMeEnabled} />
+			<SidebarNav helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 		</aside>
 	);
 }
 
-export function MobileSidebarTrigger({ helpMeEnabled }: { helpMeEnabled: boolean }) {
+export function MobileSidebarTrigger({
+	helpMeEnabled,
+	initialUserRole,
+}: {
+	helpMeEnabled: boolean;
+	initialUserRole: MinRole;
+}) {
 	const [open, setOpen] = useState(false);
 
 	return (
@@ -252,7 +266,11 @@ export function MobileSidebarTrigger({ helpMeEnabled }: { helpMeEnabled: boolean
 			</button>
 			<Sheet open={open} onOpenChange={setOpen}>
 				<SheetContent side="left" className="w-72 p-4" showCloseButton={false}>
-					<SidebarNav onNavigate={() => setOpen(false)} helpMeEnabled={helpMeEnabled} />
+					<SidebarNav
+						onNavigate={() => setOpen(false)}
+						helpMeEnabled={helpMeEnabled}
+						initialUserRole={initialUserRole}
+					/>
 				</SheetContent>
 			</Sheet>
 		</>

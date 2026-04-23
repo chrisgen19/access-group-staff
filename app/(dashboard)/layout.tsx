@@ -10,12 +10,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 	if (!session) redirect("/login");
 
 	const helpMeEnabled = await getHelpMeEnabled();
+	const initialUserRole = session.user.role as "STAFF" | "ADMIN" | "SUPERADMIN";
 
 	return (
 		<div className="flex min-h-screen bg-background">
-			<DashboardSidebar helpMeEnabled={helpMeEnabled} />
+			<DashboardSidebar helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 			<div className="flex flex-1 flex-col bg-card sm:my-2 sm:mr-2 sm:rounded-l-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
-				<DashboardHeader helpMeEnabled={helpMeEnabled} />
+				<DashboardHeader helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 				<main className="flex-1 px-4 pb-8 sm:px-8">{children}</main>
 			</div>
 			<HelpFab enabled={helpMeEnabled} />
