@@ -113,8 +113,9 @@ interface SidebarNavProps {
 function SidebarNav({ onNavigate, helpMeEnabled, initialUserRole }: SidebarNavProps) {
 	const pathname = usePathname();
 	const router = useRouter();
-	const { data: session } = useSession();
-	const userRole = ((session?.user?.role as string) ?? initialUserRole) as MinRole;
+	const { data: session, isPending } = useSession();
+	const sessionRole = session?.user?.role as string | undefined;
+	const userRole = (sessionRole ?? (isPending ? initialUserRole : "STAFF")) as MinRole;
 
 	const roleLevel: Record<MinRole, number> = {
 		STAFF: 0,
@@ -239,7 +240,7 @@ export function DashboardSidebar({
 	initialUserRole: MinRole;
 }) {
 	return (
-		<aside className="hidden w-72 sticky top-0 h-screen flex-col p-4 pr-2 md:flex">
+		<aside className="sticky top-0 hidden h-screen w-[13.5rem] flex-col p-4 pr-2 md:flex">
 			<SidebarNav helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 		</aside>
 	);

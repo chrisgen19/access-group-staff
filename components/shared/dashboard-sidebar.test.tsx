@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/navigation", () => ({
@@ -21,18 +21,31 @@ vi.mock("@/components/shared/notification-badge", () => ({
 	NotificationBadge: () => <span data-testid="notification-badge">3</span>,
 }));
 
+vi.mock("@/components/ui/sheet", () => ({
+	Sheet: ({ open, children }: { open: boolean; children: React.ReactNode }) => (
+		<>{open ? children : null}</>
+	),
+	SheetContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
-import { DashboardSidebar } from "./dashboard-sidebar";
+import { DashboardSidebar, MobileSidebarTrigger } from "./dashboard-sidebar";
 
 const mockedUsePathname = vi.mocked(usePathname);
 const mockedUseRouter = vi.mocked(useRouter);
 const mockedUseSession = vi.mocked(useSession);
 
-function setRole(role: "STAFF" | "ADMIN" | "SUPERADMIN") {
+function setSession({
+	role,
+	isPending = false,
+}: {
+	role?: "STAFF" | "ADMIN" | "SUPERADMIN";
+	isPending?: boolean;
+}) {
 	mockedUseSession.mockReturnValue({
-		data: { user: { id: "user-1", role } },
-		isPending: false,
+		data: role ? { user: { id: "user-1", role } } : null,
+		isPending,
 		error: null,
 		refetch: vi.fn(),
 	} as unknown as ReturnType<typeof useSession>);
@@ -50,9 +63,9 @@ describe("DashboardSidebar", () => {
 			push: vi.fn(),
 			refresh: vi.fn(),
 		} as unknown as ReturnType<typeof useRouter>);
-		setRole("STAFF");
+		setSession({ role: "STAFF" });
 
-		const { container } = render(<DashboardSidebar helpMeEnabled />);
+		const { container } = render(<DashboardSidebar helpMeEnabled initialUserRole="STAFF" />);
 
 		const aside = container.querySelector("aside");
 		expect(aside).toHaveClass("w-[13.5rem]");
@@ -68,9 +81,9 @@ describe("DashboardSidebar", () => {
 			push: vi.fn(),
 			refresh: vi.fn(),
 		} as unknown as ReturnType<typeof useRouter>);
-		setRole("ADMIN");
+		setSession({ role: "ADMIN" });
 
-		render(<DashboardSidebar helpMeEnabled />);
+		render(<DashboardSidebar helpMeEnabled initialUserRole="ADMIN" />);
 
 		const adminSettingsLink = screen.getByRole("link", { name: "Admin Settings" });
 		expect(adminSettingsLink).toHaveAttribute("title", "Admin Settings");
@@ -81,5 +94,47 @@ describe("DashboardSidebar", () => {
 
 		const childLink = screen.getByRole("link", { name: "Activity Logs" });
 		expect(childLink).toHaveAttribute("title", "Activity Logs");
+	});
+
+	it("uses the server role while the client session is still pending", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
+		mockedUseRouter.mockReturnValue({
+			push: vi.fn(),
+			refresh: vi.fn(),
+		} as unknown as ReturnType<typeof useRouter>);
+		setSession({ isPending: true });
+
+		render(<DashboardSidebar helpMeEnabled initialUserRole="ADMIN" />);
+
+		expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
+		expect(screen.queryByRole("link", { name: "Super Admin" })).not.toBeInTheDocument();
+	});
+
+	it("downgrades to staff links after hydration when the client session has no user", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
+		mockedUseRouter.mockReturnValue({
+			push: vi.fn(),
+			refresh: vi.fn(),
+		} as unknown as ReturnType<typeof useRouter>);
+		setSession({ isPending: false });
+
+		render(<DashboardSidebar helpMeEnabled initialUserRole="ADMIN" />);
+
+		expect(screen.queryByRole("link", { name: "Staff" })).not.toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument();
+	});
+
+	it("uses the same pending fallback role in the mobile sidebar", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
+		mockedUseRouter.mockReturnValue({
+			push: vi.fn(),
+			refresh: vi.fn(),
+		} as unknown as ReturnType<typeof useRouter>);
+		setSession({ isPending: true });
+
+		render(<MobileSidebarTrigger helpMeEnabled initialUserRole="ADMIN" />);
+		fireEvent.click(screen.getByRole("button"));
+
+		expect(screen.getByRole("link", { name: "Staff" })).toBeInTheDocument();
 	});
 });
