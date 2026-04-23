@@ -3,11 +3,18 @@ import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primiti
 export default function NewUserLoading() {
 	return (
 		<div
-			className="max-w-7xl mx-auto space-y-8 mt-2 animate-pulse"
+			className="mx-auto max-w-7xl space-y-6 animate-pulse sm:space-y-8"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading new user form"
 		>
+			<div className="rounded-[2rem] border border-gray-200/60 bg-card px-5 py-5 shadow-[0_20px_50px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 sm:px-7 sm:py-6">
+				<div className="space-y-3">
+					<SkeletonLine className="h-3 w-20" />
+					<SkeletonLine className="h-10 w-64" />
+					<SkeletonLine className="h-4 w-96" />
+				</div>
+			</div>
 			<SkeletonCard className="overflow-hidden">
 				<div className="px-8 pt-8 pb-2 space-y-2">
 					<SkeletonLine className="h-8 w-56" />
