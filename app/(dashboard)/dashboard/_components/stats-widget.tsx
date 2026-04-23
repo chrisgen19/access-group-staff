@@ -230,8 +230,8 @@ function StatsWidgetSkeleton() {
 					</div>
 				))}
 			</div>
-			<div className="flex flex-col min-h-0 flex-1">
-				<div className="flex items-center gap-2 mb-3 shrink-0">
+			<div>
+				<div className="flex items-center gap-2 mb-3">
 					<SkeletonLine className="h-4 w-4 rounded" />
 					<SkeletonLine className="h-4 w-32" />
 				</div>
@@ -267,12 +267,12 @@ function LockedLeaderboard({
 	const showCountdown = msRemaining !== null && msRemaining > 0;
 
 	return (
-		<div className="flex flex-col min-h-0 flex-1">
-			<div className="flex items-center gap-2 mb-3 shrink-0">
+		<div>
+			<div className="flex items-center gap-2 mb-3">
 				<Lock size={16} className="text-muted-foreground" />
 				<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 			</div>
-			<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+			<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 mb-3">
 					<Lock size={18} className="text-primary" />
 				</div>
@@ -394,12 +394,12 @@ export function StatsWidget() {
 			</div>
 
 			{showList ? (
-				<div className="flex flex-col min-h-0 flex-1">
-					<div className="flex items-center gap-2 mb-3 shrink-0">
+				<div>
+					<div className="flex items-center gap-2 mb-3">
 						<Trophy size={16} className="text-primary" />
 						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 					</div>
-					<ol className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
+					<ol className="space-y-2">
 						{stats.topRecipients.map((person, index) => {
 							const isPodium = index < 3;
 							const style = isPodium ? PODIUM_STYLES[index] : null;
@@ -458,12 +458,12 @@ export function StatsWidget() {
 			) : showLocked ? (
 				<LockedLeaderboard visibility={resolvedVisibility} msRemaining={msRemaining} />
 			) : showEmpty ? (
-				<div className="flex flex-col min-h-0 flex-1">
-					<div className="flex items-center gap-2 mb-3 shrink-0">
+				<div>
+					<div className="flex items-center gap-2 mb-3">
 						<Trophy size={16} className="text-primary" />
 						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 					</div>
-					<div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+					<div className="flex items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 						<p className="text-sm text-muted-foreground">
 							No recognitions yet this month — be the first!
 						</p>
@@ -486,6 +486,8 @@ export function StickyStatsWidget() {
 			const viewportHeight = window.innerHeight;
 			const widgetHeight = widget.offsetHeight;
 			const offset = 32;
+			// Negative top is intentional for tall cards: it lets the card scroll
+			// until its bottom is visible, then stick while the feed continues.
 			const nextTop =
 				widgetHeight + offset * 2 > viewportHeight
 					? viewportHeight - widgetHeight - offset
