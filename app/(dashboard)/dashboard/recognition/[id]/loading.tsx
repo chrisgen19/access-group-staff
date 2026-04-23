@@ -3,22 +3,23 @@ import { SkeletonLine } from "@/components/shared/skeleton-primitives";
 export default function RecognitionDetailLoading() {
 	return (
 		<div
-			className="max-w-7xl mx-auto space-y-6 mt-2 animate-pulse"
+			className="mx-auto max-w-7xl space-y-6 animate-pulse"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition card"
 		>
-			{/* Header row */}
-			<div className="flex items-center gap-4">
-				<SkeletonLine className="h-10 w-10 rounded-full shrink-0" />
-				<div className="flex-1 min-w-0 space-y-2">
-					<SkeletonLine className="h-10 w-64" />
-					<SkeletonLine className="h-4 w-56" />
-				</div>
-				<div className="flex items-center gap-2 shrink-0">
-					<SkeletonLine className="h-10 w-10 rounded-full" />
-					<SkeletonLine className="h-10 w-10 rounded-full" />
-					<SkeletonLine className="h-10 w-10 rounded-full" />
+			<SkeletonLine className="h-10 w-36 rounded-full" />
+			<div className="rounded-[2rem] border border-gray-200/60 bg-card px-5 py-5 shadow-[0_20px_50px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 sm:px-7 sm:py-6">
+				<div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
+					<div className="min-w-0 space-y-3">
+						<SkeletonLine className="h-3 w-24" />
+						<SkeletonLine className="h-10 w-64" />
+						<SkeletonLine className="h-4 w-56" />
+					</div>
+					<div className="flex gap-2">
+						<SkeletonLine className="h-10 w-24 rounded-full" />
+						<SkeletonLine className="h-10 w-24 rounded-full" />
+					</div>
 				</div>
 			</div>
 
@@ -58,7 +59,7 @@ export default function RecognitionDetailLoading() {
 			</div>
 
 			{/* Interaction bar */}
-			<div className="relative z-10 max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="relative z-10 mx-auto max-w-4xl rounded-[2rem] border border-gray-200/60 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] dark:border-white/10">
 				<div className="flex items-center gap-4">
 					<SkeletonLine className="h-8 w-20 rounded-full" />
 					<SkeletonLine className="h-8 w-20 rounded-full" />

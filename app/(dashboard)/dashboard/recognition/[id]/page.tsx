@@ -8,6 +8,7 @@ import {
 	AccessGroupLogo,
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { FitText } from "@/components/shared/fit-text";
 import { PhysicalCardPerson } from "@/components/shared/physical-card-person";
 import { getServerSession } from "@/lib/auth-utils";
@@ -258,32 +259,28 @@ export default async function RecognitionDetailPage({
 	);
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-6 mt-2">
+		<div className="mx-auto max-w-7xl space-y-6">
 			{(isSender || isRecipient) && <MarkNotificationsRead cardId={id} />}
-			<div className="flex items-center gap-4">
-				<Link
-					href="/dashboard/recognition"
-					aria-label="Back to recognition inbox"
-					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
-				>
-					<ArrowLeft className="h-5 w-5" />
-				</Link>
-				<div className="flex-1">
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-						Recognition Card
-					</h1>
-					<p className="mt-1 text-base text-muted-foreground">
-						From {senderName} to {recipientName}
-					</p>
-				</div>
-				<CardDetailActions cardId={id} isSender={isSender} />
-			</div>
+			<Link
+				href="/dashboard/recognition"
+				aria-label="Back to recognition inbox"
+				className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-gray-200/50 hover:text-foreground dark:hover:bg-white/5"
+			>
+				<ArrowLeft className="h-4 w-4" />
+				Back to inbox
+			</Link>
+			<DashboardPageHeader
+				eyebrow="Recognition"
+				title="Recognition Card"
+				description={`From ${senderName} to ${recipientName}`}
+				actions={<CardDetailActions cardId={id} isSender={isSender} />}
+			/>
 
 			<div className="flex justify-center">
 				<FlipCard front={card1Front} back={card2Back} />
 			</div>
 
-			<div className="relative z-10 max-w-4xl mx-auto rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+			<div className="relative z-10 mx-auto max-w-4xl rounded-[2rem] border border-gray-200/60 bg-card px-6 py-4 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] dark:border-white/10">
 				<CardInteractionBar
 					cardId={id}
 					currentUserId={session.user.id}
