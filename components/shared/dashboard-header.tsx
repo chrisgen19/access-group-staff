@@ -1,20 +1,34 @@
 "use client";
 
-import { ChevronDown, LogOut, UserCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { usePathname } from "next/navigation";
+import { AccessGroupLogo } from "@/components/shared/access-logos";
+import { DashboardAccountControls } from "@/components/shared/dashboard-account-controls";
 import { MobileSidebarTrigger } from "@/components/shared/dashboard-sidebar";
-import { NotificationBell } from "@/components/shared/notification-bell";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { UserAvatar } from "@/components/shared/user-avatar";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { signOut, useSession } from "@/lib/auth-client";
+
+function getMobileSectionLabel(pathname: string) {
+	const segment = pathname.split("/")[2] ?? "";
+
+	switch (segment) {
+		case "recognition":
+			return "Recognition";
+		case "leaderboard":
+			return "Leaderboard";
+		case "users":
+			return "Staff";
+		case "departments":
+			return "Departments";
+		case "profile":
+			return "Profile";
+		case "helpme":
+			return "Help Me";
+		case "admin-settings":
+			return "Admin Settings";
+		case "super-admin":
+			return "Super Admin";
+		default:
+			return "Dashboard";
+	}
+}
 
 export function DashboardHeader({
 	helpMeEnabled,
@@ -23,63 +37,23 @@ export function DashboardHeader({
 	helpMeEnabled: boolean;
 	initialUserRole: "STAFF" | "ADMIN" | "SUPERADMIN";
 }) {
-	const router = useRouter();
-	const { data: session } = useSession();
-	const user = session?.user;
-
-	async function handleSignOut() {
-		try {
-			await signOut();
-			router.push("/login");
-			router.refresh();
-		} catch {
-			toast.error("Failed to sign out");
-		}
-	}
+	const pathname = usePathname();
+	const sectionLabel = getMobileSectionLabel(pathname);
 
 	return (
-		<header className="sticky top-0 z-10 flex h-20 items-center justify-between bg-card px-4 sm:px-8">
-			<div className="flex items-center md:hidden">
-				<MobileSidebarTrigger helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
-			</div>
+		<header className="sticky top-0 z-20 px-safe pt-safe md:hidden">
+			<div className="flex h-[4.5rem] items-center justify-between border-b border-black/5 bg-background/88 px-4 backdrop-blur-xl dark:border-white/8">
+				<div className="flex min-w-0 items-center gap-3">
+					<MobileSidebarTrigger helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
+					<div className="min-w-0">
+						<div className="flex items-center gap-2">
+							<AccessGroupLogo color="currentColor" className="h-5 w-auto text-primary" />
+						</div>
+						<p className="truncate text-sm font-semibold text-foreground">{sectionLabel}</p>
+					</div>
+				</div>
 
-			<div className="flex-1 md:flex-none" />
-
-			<div className="flex items-center gap-3">
-				<ThemeToggle />
-				{user && <NotificationBell />}
-				{user && (
-					<DropdownMenu>
-						<DropdownMenuTrigger className="flex items-center gap-2 rounded-full p-1.5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 transition-all cursor-pointer outline-none">
-							<UserAvatar
-								firstName={user.firstName ?? ""}
-								lastName={user.lastName ?? ""}
-								avatar={user.avatar}
-								image={user.image}
-								size="md"
-								className="bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15"
-							/>
-							<span className="hidden text-sm font-medium text-foreground sm:block">
-								{user.name}
-							</span>
-							<ChevronDown size={16} className="mr-1 hidden text-muted-foreground sm:block" />
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end" sideOffset={8}>
-							<DropdownMenuItem
-								className="cursor-pointer"
-								onClick={() => router.push("/dashboard/profile")}
-							>
-								<UserCircle size={16} />
-								My Profile
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem className="cursor-pointer" onClick={handleSignOut}>
-								<LogOut size={16} />
-								Sign Out
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				)}
+				<DashboardAccountControls />
 			</div>
 		</header>
 	);
