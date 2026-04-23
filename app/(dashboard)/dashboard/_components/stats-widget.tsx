@@ -463,7 +463,7 @@ export function StatsWidget() {
 						<Trophy size={16} className="text-primary" />
 						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 					</div>
-					<div className="flex items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+					<div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 						<p className="text-sm text-muted-foreground">
 							No recognitions yet this month — be the first!
 						</p>
@@ -483,7 +483,7 @@ export function StickyStatsWidget() {
 		if (!widget) return;
 
 		const updateStickyOffset = () => {
-			const viewportHeight = window.innerHeight;
+			const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
 			const widgetHeight = widget.offsetHeight;
 			const offset = 32;
 			// Negative top is intentional for tall cards: it lets the card scroll
@@ -502,11 +502,16 @@ export function StickyStatsWidget() {
 			typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateStickyOffset);
 
 		resizeObserver?.observe(widget);
+		const viewport = window.visualViewport;
 		window.addEventListener("resize", updateStickyOffset);
+		viewport?.addEventListener("resize", updateStickyOffset);
+		viewport?.addEventListener("scroll", updateStickyOffset);
 
 		return () => {
 			resizeObserver?.disconnect();
 			window.removeEventListener("resize", updateStickyOffset);
+			viewport?.removeEventListener("resize", updateStickyOffset);
+			viewport?.removeEventListener("scroll", updateStickyOffset);
 		};
 	}, []);
 
