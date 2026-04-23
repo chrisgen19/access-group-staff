@@ -39,8 +39,8 @@ export function HelpMeVisibilityPanel({ initialEnabled }: HelpMeVisibilityPanelP
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Help Me Module
 				</h3>
@@ -49,8 +49,8 @@ export function HelpMeVisibilityPanel({ initialEnabled }: HelpMeVisibilityPanelP
 				</p>
 			</div>
 
-			<div className="px-8 py-6">
-				<div className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-white/10 p-5 gap-4">
+			<div className="px-5 py-6 sm:px-8">
+				<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 					<div className="min-w-0">
 						<p className="text-sm font-medium text-foreground">Enable Help Me</p>
 						<p className="text-xs text-muted-foreground">
