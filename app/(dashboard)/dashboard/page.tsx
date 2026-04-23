@@ -5,7 +5,7 @@ import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { getServerSession } from "@/lib/auth-utils";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionFeedWidget } from "./_components/recognition-feed-widget";
-import { StatsWidget } from "./_components/stats-widget";
+import { StickyStatsWidget } from "./_components/stats-widget";
 
 export default async function DashboardPage() {
 	const session = await getServerSession();
@@ -37,7 +37,7 @@ export default async function DashboardPage() {
 					<RecognitionFeedWidget currentUserId={user.id} isAdmin={isAdmin} />
 				</div>
 				<div className="order-1 lg:order-2">
-					<StatsWidget />
+					<StickyStatsWidget />
 				</div>
 			</div>
 		</div>

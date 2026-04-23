@@ -62,7 +62,7 @@ export function RecognitionFeedWidget({ currentUserId, isAdmin }: RecognitionFee
 					))}
 				</div>
 			</div>
-			<div className="px-6 pb-6 overflow-y-auto max-h-[calc(100vh-12rem)]" role="tabpanel">
+			<div className="px-6 pb-6" role="tabpanel">
 				<RecognitionFeed
 					filter={activeTab}
 					showTitle={false}

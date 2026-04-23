@@ -50,34 +50,36 @@ export default function DashboardLoading() {
 				</SkeletonCard>
 
 				{/* Stats widget skeleton */}
-				<SkeletonCard className="order-1 h-full space-y-6 p-6 lg:order-2">
-					<SkeletonLine className="h-6 w-40" />
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-						{["s0", "s1", "s2"].map((key) => (
-							<div key={key} className="flex items-center gap-3">
-								<SkeletonLine className="h-10 w-10 rounded-full" />
-								<div className="space-y-1">
-									<SkeletonLine className="h-6 w-8" />
-									<SkeletonLine className="h-3 w-16" />
+				<div className="order-1 lg:order-2">
+					<SkeletonCard className="space-y-6 p-6 lg:sticky lg:top-8">
+						<SkeletonLine className="h-6 w-40" />
+						<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+							{["s0", "s1", "s2"].map((key) => (
+								<div key={key} className="flex items-center gap-3">
+									<SkeletonLine className="h-10 w-10 rounded-full" />
+									<div className="space-y-1">
+										<SkeletonLine className="h-6 w-8" />
+										<SkeletonLine className="h-3 w-16" />
+									</div>
 								</div>
-							</div>
-						))}
-					</div>
-					<div className="space-y-3">
-						<SkeletonLine className="h-4 w-36" />
-						{["u0", "u1", "u2"].map((key) => (
-							<div
-								key={key}
-								className="flex items-center gap-3 rounded-xl border border-gray-200/60 dark:border-white/10 px-3 py-2.5"
-							>
-								<SkeletonLine className="h-[18px] w-[18px] rounded-full" />
-								<SkeletonLine className="h-8 w-8 rounded-full" />
-								<SkeletonLine className="h-4 w-24 flex-1" />
-								<SkeletonLine className="h-5 w-8 rounded-full" />
-							</div>
-						))}
-					</div>
-				</SkeletonCard>
+							))}
+						</div>
+						<div className="space-y-3">
+							<SkeletonLine className="h-4 w-36" />
+							{["u0", "u1", "u2"].map((key) => (
+								<div
+									key={key}
+									className="flex items-center gap-3 rounded-xl border border-gray-200/60 dark:border-white/10 px-3 py-2.5"
+								>
+									<SkeletonLine className="h-[18px] w-[18px] rounded-full" />
+									<SkeletonLine className="h-8 w-8 rounded-full" />
+									<SkeletonLine className="h-4 w-24 flex-1" />
+									<SkeletonLine className="h-5 w-8 rounded-full" />
+								</div>
+							))}
+						</div>
+					</SkeletonCard>
+				</div>
 			</div>
 		</div>
 	);

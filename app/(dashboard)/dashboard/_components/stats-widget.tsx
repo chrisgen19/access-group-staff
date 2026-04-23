@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Heart, Inbox, Lock, Medal, Send, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -207,7 +207,7 @@ function StatItem({
 function StatsWidgetSkeleton() {
 	return (
 		<SkeletonCard
-			className="p-6 animate-pulse flex flex-col gap-6 h-full"
+			className="p-6 animate-pulse flex flex-col gap-6"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition stats"
@@ -328,7 +328,7 @@ export function StatsWidget() {
 
 	if (isError || !data?.data) {
 		return (
-			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] h-full">
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 				<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight mb-2">
 					Recognition Stats
 				</h3>
@@ -346,7 +346,7 @@ export function StatsWidget() {
 	const showEmpty = resolvedVisibility.visible && stats.topRecipients.length === 0;
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6 h-full">
+		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6">
 			<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight shrink-0">
 				Recognition Stats
 			</h3>
@@ -470,6 +470,47 @@ export function StatsWidget() {
 					</div>
 				</div>
 			) : null}
+		</div>
+	);
+}
+
+export function StickyStatsWidget() {
+	const widgetRef = useRef<HTMLDivElement>(null);
+	const [stickyTop, setStickyTop] = useState(32);
+
+	useEffect(() => {
+		const widget = widgetRef.current;
+		if (!widget) return;
+
+		const updateStickyOffset = () => {
+			const viewportHeight = window.innerHeight;
+			const widgetHeight = widget.offsetHeight;
+			const offset = 32;
+			const nextTop =
+				widgetHeight + offset * 2 > viewportHeight
+					? viewportHeight - widgetHeight - offset
+					: offset;
+
+			setStickyTop(nextTop);
+		};
+
+		updateStickyOffset();
+
+		const resizeObserver =
+			typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateStickyOffset);
+
+		resizeObserver?.observe(widget);
+		window.addEventListener("resize", updateStickyOffset);
+
+		return () => {
+			resizeObserver?.disconnect();
+			window.removeEventListener("resize", updateStickyOffset);
+		};
+	}, []);
+
+	return (
+		<div ref={widgetRef} className="lg:sticky" style={{ top: stickyTop }}>
+			<StatsWidget />
 		</div>
 	);
 }
