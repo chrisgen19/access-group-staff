@@ -35,7 +35,7 @@ interface NavItem {
 	label: string;
 	adminLabel?: string;
 	href: string;
-	icon: React.ComponentType<{ size?: number }>;
+	icon: React.ComponentType<{ size?: number; className?: string }>;
 	minRole: MinRole;
 	children?: NavChild[];
 }
