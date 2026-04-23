@@ -35,7 +35,7 @@ interface NavItem {
 	label: string;
 	adminLabel?: string;
 	href: string;
-	icon: React.ComponentType<{ size?: number }>;
+	icon: React.ComponentType<{ size?: number; className?: string }>;
 	minRole: MinRole;
 	children?: NavChild[];
 }
@@ -151,12 +151,17 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 						? pathname === item.href
 						: pathname === item.href ||
 							(item.href !== "/dashboard" && pathname.startsWith(item.href));
+					const resolvedLabel =
+						roleLevel[userRole] >= roleLevel.ADMIN && item.adminLabel
+							? item.adminLabel
+							: item.label;
 
 					return (
 						<div key={item.href}>
 							<Link
 								href={item.href}
 								onClick={onNavigate}
+								title={resolvedLabel}
 								className={cn(
 									"flex w-full items-center gap-3 rounded-full px-4 py-3 text-sm font-medium transition-all duration-200",
 									isActive
@@ -164,18 +169,14 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 										: "text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5",
 								)}
 							>
-								<item.icon size={22} />
-								<span className="flex-1">
-									{roleLevel[userRole] >= roleLevel.ADMIN && item.adminLabel
-										? item.adminLabel
-										: item.label}
-								</span>
+								<item.icon size={22} className="shrink-0" />
+								<span className="min-w-0 flex-1 truncate">{resolvedLabel}</span>
 								{item.href === "/dashboard/recognition" && <NotificationBadge />}
 								{hasChildren && (
 									<ChevronDown
 										size={16}
 										className={cn(
-											"transition-transform duration-200",
+											"shrink-0 transition-transform duration-200",
 											isInGroup ? "rotate-0" : "-rotate-90",
 										)}
 									/>
@@ -192,6 +193,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 												key={child.href}
 												href={child.href}
 												onClick={onNavigate}
+												title={child.label}
 												className={cn(
 													"flex w-full items-center rounded-full px-4 py-2 text-sm font-medium transition-all duration-200",
 													childActive
@@ -199,7 +201,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 														: "text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5",
 												)}
 											>
-												{child.label}
+												<span className="block min-w-0 truncate">{child.label}</span>
 											</Link>
 										);
 									})}
@@ -215,7 +217,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 				onClick={handleSignOut}
 				className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
 			>
-				<LogOut size={22} />
+				<LogOut size={22} className="shrink-0" />
 				Sign Out
 			</button>
 
@@ -230,7 +232,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 
 export function DashboardSidebar({ helpMeEnabled }: { helpMeEnabled: boolean }) {
 	return (
-		<aside className="hidden w-72 sticky top-0 h-screen flex-col p-4 pr-2 md:flex">
+		<aside className="sticky top-0 hidden h-screen w-[13.5rem] flex-col p-4 pr-2 md:flex">
 			<SidebarNav helpMeEnabled={helpMeEnabled} />
 		</aside>
 	);
