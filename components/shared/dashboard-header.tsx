@@ -40,10 +40,7 @@ export function DashboardHeader({
 	return (
 		<header className="sticky top-0 z-10 flex h-20 items-center justify-between bg-card px-4 sm:px-8">
 			<div className="flex items-center md:hidden">
-				<MobileSidebarTrigger
-					helpMeEnabled={helpMeEnabled}
-					initialUserRole={initialUserRole}
-				/>
+				<MobileSidebarTrigger helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 			</div>
 
 			<div className="flex-1 md:flex-none" />
