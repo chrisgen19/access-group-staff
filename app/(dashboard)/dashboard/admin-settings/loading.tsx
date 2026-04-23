@@ -40,14 +40,17 @@ function SettingsPanelSkeleton({
 export default function AdminSettingsLoading() {
 	return (
 		<div
-			className="max-w-7xl mx-auto space-y-8 mt-2 animate-pulse"
+			className="mx-auto max-w-7xl space-y-6 animate-pulse sm:space-y-8"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading admin settings"
 		>
-			<div className="space-y-3">
-				<SkeletonLine className="h-10 w-52" />
-				<SkeletonLine className="h-5 w-80" />
+			<div className="rounded-[2rem] border border-gray-200/60 bg-card px-5 py-5 shadow-[0_20px_50px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 sm:px-7 sm:py-6">
+				<div className="space-y-3">
+					<SkeletonLine className="h-3 w-28" />
+					<SkeletonLine className="h-10 w-52" />
+					<SkeletonLine className="h-5 w-80" />
+				</div>
 			</div>
 
 			{/* Recognition Settings */}

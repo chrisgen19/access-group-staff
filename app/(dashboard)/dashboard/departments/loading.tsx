@@ -3,18 +3,20 @@ import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primiti
 export default function DepartmentsLoading() {
 	return (
 		<div
-			className="max-w-7xl mx-auto space-y-8 mt-2 animate-pulse"
+			className="mx-auto max-w-7xl space-y-6 animate-pulse sm:space-y-8"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading departments"
 		>
-			{/* Page header + Add button */}
-			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-				<div className="space-y-3">
-					<SkeletonLine className="h-10 w-48" />
-					<SkeletonLine className="h-5 w-80" />
+			<div className="rounded-[2rem] border border-gray-200/60 bg-card px-5 py-5 shadow-[0_20px_50px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 sm:px-7 sm:py-6">
+				<div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
+					<div className="space-y-3">
+						<SkeletonLine className="h-3 w-24" />
+						<SkeletonLine className="h-10 w-48" />
+						<SkeletonLine className="h-5 w-80" />
+					</div>
+					<SkeletonLine className="h-12 w-48 rounded-full" />
 				</div>
-				<SkeletonLine className="h-12 w-48 rounded-full" />
 			</div>
 
 			{/* Department table */}
