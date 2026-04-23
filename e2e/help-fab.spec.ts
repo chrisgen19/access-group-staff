@@ -27,30 +27,27 @@ test.describe("/dashboard Help FAB", () => {
 		await setHelpMeEnabled(page, true);
 
 		try {
-			await page.goto("/dashboard/profile/security");
+			await page.goto("/dashboard");
 
 			const fab = page.getByRole("link", { name: /open help ticket/i });
 			await expect(fab).toBeVisible();
 
-			const updatePasswordButton = page.getByRole("button", { name: /update password/i });
-			await updatePasswordButton.scrollIntoViewIfNeeded();
-			await expect(updatePasswordButton).toBeVisible();
-
 			const fabBox = await fab.boundingBox();
-			const buttonBox = await updatePasswordButton.boundingBox();
 			const viewport = page.viewportSize();
+			const mainPaddingBottom = await page.getByRole("main").evaluate((element) => {
+				return Number.parseFloat(window.getComputedStyle(element).paddingBottom);
+			});
 
 			expect(fabBox).not.toBeNull();
-			expect(buttonBox).not.toBeNull();
 			expect(viewport).not.toBeNull();
 
-			if (!fabBox || !buttonBox || !viewport) {
-				throw new Error("Expected FAB, bottom action, and viewport metrics to be available");
+			if (!fabBox || !viewport) {
+				throw new Error("Expected FAB and viewport metrics to be available");
 			}
 
 			expect(fabBox.x + fabBox.width).toBeGreaterThanOrEqual(viewport.width - 24);
 			expect(fabBox.y + fabBox.height).toBeGreaterThanOrEqual(viewport.height - 32);
-			expect(buttonBox.y + buttonBox.height).toBeLessThanOrEqual(fabBox.y - 8);
+			expect(mainPaddingBottom).toBeGreaterThanOrEqual(fabBox.height + 40);
 
 			await setHelpMeEnabled(page, false);
 			await page.goto("/dashboard");

@@ -42,12 +42,13 @@ describe("DashboardLayout", () => {
 		mockedGetHelpMeEnabled.mockResolvedValue(true);
 
 		const { container } = render(await DashboardLayout({ children: <div>Dashboard content</div> }));
+		const main = screen.getByRole("main");
+		const styleAttr = main.getAttribute("style");
 
-		expect(screen.getByRole("main")).toHaveClass(
-			"pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]",
-			"md:pb-8",
-		);
-		expect(screen.getByRole("main")).not.toHaveClass("sm:pb-8");
+		expect(main).toHaveClass("pb-8", "md:pb-8");
+		expect(main).not.toHaveClass("sm:pb-8");
+		expect(styleAttr).toContain("padding-bottom:");
+		expect(styleAttr).toContain("6.5rem");
 		expect(container.firstChild).toHaveClass("bg-background");
 	});
 
@@ -55,10 +56,9 @@ describe("DashboardLayout", () => {
 		mockedGetHelpMeEnabled.mockResolvedValue(false);
 
 		render(await DashboardLayout({ children: <div>Dashboard content</div> }));
+		const main = screen.getByRole("main");
 
-		expect(screen.getByRole("main")).toHaveClass("pb-8");
-		expect(screen.getByRole("main")).not.toHaveClass(
-			"pb-[calc(6.5rem+env(safe-area-inset-bottom,0px))]",
-		);
+		expect(main).toHaveClass("pb-8");
+		expect(main.getAttribute("style")).toBeNull();
 	});
 });
