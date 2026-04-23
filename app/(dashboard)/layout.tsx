@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 			<DashboardSidebar helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
 			<div className="relative flex min-h-screen min-w-0 flex-1 flex-col bg-background/92 md:bg-card md:shadow-sm md:backdrop-blur-sm md:my-2 md:mr-2 md:rounded-l-[2rem] md:border md:border-gray-100 dark:md:border-white/5">
 				<DashboardHeader helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
-				<main className="flex-1 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:px-8 sm:pb-8">
+				<main className="flex-1 px-4 pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:px-8 md:pb-8">
 					<div className="mx-auto min-w-0">{children}</div>
 				</main>
 			</div>
