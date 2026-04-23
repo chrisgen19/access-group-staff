@@ -1,6 +1,7 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
 import { getServerSession } from "@/lib/auth-utils";
 import { TicketForm } from "../_components/ticket-form";
@@ -12,22 +13,19 @@ export default async function NewTicketPage() {
 	if (!(await getHelpMeEnabled())) notFound();
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-6 mt-2">
+		<div className="mx-auto max-w-7xl space-y-6">
 			<Link
 				href="/dashboard/helpme"
-				className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+				className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-gray-200/50 hover:text-foreground dark:hover:bg-white/5"
 			>
 				<ArrowLeft size={16} /> Back to tickets
 			</Link>
 
-			<div>
-				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-					Raise a Ticket
-				</h1>
-				<p className="mt-2 text-base text-muted-foreground">
-					Describe your issue and the right team will respond as soon as possible.
-				</p>
-			</div>
+			<DashboardPageHeader
+				eyebrow="Support"
+				title="Raise a Ticket"
+				description="Describe your issue and the right team will respond as soon as possible."
+			/>
 
 			<div className="max-w-3xl">
 				<TicketForm />
