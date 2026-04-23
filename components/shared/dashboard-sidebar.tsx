@@ -165,7 +165,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 								)}
 							>
 								<item.icon size={22} />
-								<span className="flex-1">
+								<span className="min-w-0 flex-1 truncate">
 									{roleLevel[userRole] >= roleLevel.ADMIN && item.adminLabel
 										? item.adminLabel
 										: item.label}
@@ -199,7 +199,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 														: "text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5",
 												)}
 											>
-												{child.label}
+												<span className="block min-w-0 truncate">{child.label}</span>
 											</Link>
 										);
 									})}
@@ -230,7 +230,7 @@ function SidebarNav({ onNavigate, helpMeEnabled }: SidebarNavProps) {
 
 export function DashboardSidebar({ helpMeEnabled }: { helpMeEnabled: boolean }) {
 	return (
-		<aside className="hidden w-72 sticky top-0 h-screen flex-col p-4 pr-2 md:flex">
+		<aside className="sticky top-0 hidden h-screen w-[13.5rem] flex-col p-4 pr-2 md:flex">
 			<SidebarNav helpMeEnabled={helpMeEnabled} />
 		</aside>
 	);
