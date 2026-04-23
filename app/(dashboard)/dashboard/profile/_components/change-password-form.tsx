@@ -50,8 +50,8 @@ export function ChangePasswordForm() {
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Change Password
 				</h3>
@@ -61,7 +61,7 @@ export function ChangePasswordForm() {
 			</div>
 
 			<form onSubmit={handleSubmit(onSubmit)}>
-				<div className="px-8 py-6 space-y-5">
+				<div className="space-y-5 px-5 py-6 sm:px-8">
 					<div>
 						<label
 							htmlFor="currentPassword"
@@ -147,11 +147,11 @@ export function ChangePasswordForm() {
 					</div>
 				</div>
 
-				<div className="px-8 py-6 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-200/60 dark:border-white/10 flex justify-end">
+				<div className="flex justify-end border-t border-gray-200/60 bg-gray-50/50 px-5 py-6 dark:border-white/10 dark:bg-white/[0.02] sm:px-8">
 					<button
 						type="submit"
 						disabled={isLoading}
-						className="inline-flex justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50"
+						className="inline-flex w-full justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 disabled:opacity-50 sm:w-auto"
 					>
 						{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
 						Update Password

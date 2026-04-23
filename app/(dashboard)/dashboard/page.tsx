@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { getServerSession } from "@/lib/auth-utils";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
 import { RecognitionFeedWidget } from "./_components/recognition-feed-widget";
@@ -14,25 +15,21 @@ export default async function DashboardPage() {
 	const isAdmin = hasMinRole(getUserRole(session), "ADMIN");
 
 	return (
-		<div className="max-w-7xl mx-auto mt-2 space-y-8">
-			{/* Top Row: Welcome + Send Button */}
-			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-				<div>
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-						Welcome back, {(user.firstName as string) ?? user.name}!
-					</h1>
-					<p className="mt-2 text-base text-muted-foreground">
-						Here&apos;s what&apos;s happening at Access Group today.
-					</p>
-				</div>
-				<Link
-					href="/dashboard/recognition/create"
-					className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-				>
-					<Plus className="-ml-1 h-5 w-5" />
-					Send Recognition Card
-				</Link>
-			</div>
+		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+			<DashboardPageHeader
+				eyebrow="Dashboard"
+				title={<>Welcome back, {(user.firstName as string) ?? user.name}!</>}
+				description="Here’s what’s happening at Access Group today."
+				actions={
+					<Link
+						href="/dashboard/recognition/create"
+						className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30"
+					>
+						<Plus className="-ml-1 h-5 w-5" />
+						Send Recognition Card
+					</Link>
+				}
+			/>
 
 			{/* Widgets: Public Feed + Stats */}
 			<div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-8">

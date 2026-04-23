@@ -34,7 +34,7 @@ export function MonthPicker({ items, selected }: MonthPickerProps) {
 
 	return (
 		<Select value={selected} onValueChange={handleChange} disabled={isPending}>
-			<SelectTrigger className="w-64">
+			<SelectTrigger className="w-full rounded-full bg-card sm:w-64">
 				<SelectValue />
 			</SelectTrigger>
 			<SelectContent>

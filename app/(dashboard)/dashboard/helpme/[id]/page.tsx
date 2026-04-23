@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { Badge } from "@/components/ui/badge";
 import { getTicketByIdForCurrentUser } from "@/lib/actions/helpme-actions";
 import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
@@ -59,35 +60,32 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 	const creatorDisplay = displayReplyAuthor(ticket.createdBy, viewerRole);
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-6 mt-2">
+		<div className="mx-auto max-w-7xl space-y-6">
 			<Link
 				href="/dashboard/helpme"
-				className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+				className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-gray-200/50 hover:text-foreground dark:hover:bg-white/5"
 			>
 				<ArrowLeft size={16} /> Back to tickets
 			</Link>
 
-			<div className="max-w-4xl space-y-6">
-				<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-8 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] space-y-5">
-					<div className="flex flex-wrap items-start justify-between gap-3">
-						<div>
-							<h1 className="text-[1.5rem] font-medium leading-tight text-foreground tracking-tight">
-								{ticket.subject}
-							</h1>
-							<p className="text-sm text-muted-foreground mt-1.5">
-								Raised by {creatorDisplay.displayName} · {formatDateTime(ticket.createdAt)}
-							</p>
-						</div>
-						<div className="flex items-center gap-2">
-							<span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/10">
-								{CATEGORY_LABEL[ticket.category]}
-							</span>
-							<Badge variant="secondary" className={STATUS_STYLES[ticket.status]}>
-								{STATUS_LABEL[ticket.status]}
-							</Badge>
-						</div>
-					</div>
+			<DashboardPageHeader
+				eyebrow="Support"
+				title={ticket.subject}
+				description={`Raised by ${creatorDisplay.displayName} · ${formatDateTime(ticket.createdAt)}`}
+				meta={
+					<>
+						<span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/10">
+							{CATEGORY_LABEL[ticket.category]}
+						</span>
+						<Badge variant="secondary" className={STATUS_STYLES[ticket.status]}>
+							{STATUS_LABEL[ticket.status]}
+						</Badge>
+					</>
+				}
+			/>
 
+			<div className="max-w-4xl space-y-6">
+				<div className="space-y-5 rounded-[2rem] border border-gray-200/60 bg-card p-8 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] dark:border-white/10">
 					<div
 						className="prose prose-sm dark:prose-invert max-w-none text-foreground/90"
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized here on read to protect against any pre-rich-text legacy rows
@@ -117,11 +115,11 @@ export default async function TicketDetailPage({ params }: { params: Promise<{ i
 				</div>
 
 				{ticket.status === "CLOSED" ? (
-					<div className="rounded-[2rem] border border-dashed border-gray-200 dark:border-white/10 bg-card/50 p-6 text-center text-sm text-muted-foreground">
+					<div className="rounded-[2rem] border border-dashed border-gray-200 bg-card/50 p-6 text-center text-sm text-muted-foreground dark:border-white/10">
 						This ticket is closed. Create a new ticket if you need further help.
 					</div>
 				) : (
-					<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
+					<div className="rounded-[2rem] border border-gray-200/60 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] dark:border-white/10">
 						<ReplyForm ticketId={ticket.id} />
 					</div>
 				)}

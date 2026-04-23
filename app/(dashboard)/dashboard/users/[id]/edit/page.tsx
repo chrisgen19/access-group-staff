@@ -2,6 +2,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canManageUsers } from "@/lib/permissions";
@@ -45,22 +46,20 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 		: null;
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<div className="flex items-center gap-4">
-				<Link
-					href={`/dashboard/users/${user.id}`}
-					aria-label="Back to user details"
-					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
-				>
-					<ArrowLeft className="h-5 w-5" />
-				</Link>
-				<div className="flex-1 min-w-0">
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight truncate">
-						Edit {user.firstName} {user.lastName}
-					</h1>
-					<p className="mt-1 text-base text-muted-foreground truncate">{user.email}</p>
-				</div>
-			</div>
+		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+			<Link
+				href={`/dashboard/users/${user.id}`}
+				aria-label="Back to user details"
+				className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-gray-200/50 hover:text-foreground dark:hover:bg-white/5"
+			>
+				<ArrowLeft className="h-4 w-4" />
+				Back to user details
+			</Link>
+			<DashboardPageHeader
+				eyebrow="Staff"
+				title={`Edit ${user.firstName} ${user.lastName}`}
+				description={user.email}
+			/>
 
 			<UserForm
 				mode="edit"

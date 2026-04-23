@@ -11,3 +11,10 @@ export const E2E_RECIPIENT = {
 	firstName: "E2E",
 	lastName: "Recipient",
 };
+
+export const E2E_ADMIN = {
+	email: "e2e.admin@example.test",
+	password: "E2ePassword123!",
+	firstName: "E2E",
+	lastName: "Admin",
+};

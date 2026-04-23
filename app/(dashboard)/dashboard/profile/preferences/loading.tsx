@@ -13,18 +13,18 @@ export default function PreferencesLoading() {
 	return (
 		<div className="animate-pulse" role="status" aria-busy="true" aria-label="Loading preferences">
 			<SkeletonCard className="overflow-hidden">
-				<div className="px-8 pt-8 pb-2">
+				<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 					<SkeletonLine className="h-7 w-40" />
 				</div>
 
-				<div className="px-8 py-6 space-y-8">
+				<div className="space-y-8 px-5 py-6 sm:px-8">
 					{/* Background Color */}
 					<div className="space-y-4">
 						<div className="space-y-2">
 							<SkeletonLine className="h-4 w-40" />
 							<SkeletonLine className="h-3 w-72" />
 						</div>
-						<div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+						<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
 							{["b0", "b1", "b2", "b3", "b4", "b5"].map((key) => (
 								<OptionButtonSkeleton key={key} />
 							))}
@@ -37,7 +37,7 @@ export default function PreferencesLoading() {
 							<SkeletonLine className="h-4 w-24" />
 							<SkeletonLine className="h-3 w-64" />
 						</div>
-						<div className="grid grid-cols-2 gap-3 max-w-xs">
+						<div className="grid max-w-xs grid-cols-2 gap-3">
 							{["v0", "v1"].map((key) => (
 								<div
 									key={key}
@@ -56,7 +56,7 @@ export default function PreferencesLoading() {
 							<SkeletonLine className="h-4 w-24" />
 							<SkeletonLine className="h-3 w-64" />
 						</div>
-						<div className="grid grid-cols-3 gap-3 max-w-sm">
+						<div className="grid max-w-sm grid-cols-2 gap-3 sm:grid-cols-3">
 							{["s0", "s1", "s2"].map((key) => (
 								<div
 									key={key}

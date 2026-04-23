@@ -38,8 +38,8 @@ export function ActivityLogRetentionPanel({ initialDays }: { initialDays: number
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Activity Log Retention
 				</h3>
@@ -48,8 +48,8 @@ export function ActivityLogRetentionPanel({ initialDays }: { initialDays: number
 				</p>
 			</div>
 
-			<div className="px-8 py-6">
-				<div className="flex items-center justify-between gap-4 rounded-2xl border border-gray-200 dark:border-white/10 p-5">
+			<div className="px-5 py-6 sm:px-8">
+				<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 					<div className="flex-1">
 						<p className="text-sm font-medium text-foreground">Retention period (days)</p>
 						<p className="text-xs text-muted-foreground">
@@ -57,17 +57,17 @@ export function ActivityLogRetentionPanel({ initialDays }: { initialDays: number
 						</p>
 					</div>
 
-					<div className="flex items-center gap-2">
+					<div className="flex w-full items-center gap-2 sm:w-auto">
 						<Input
 							type="number"
 							min={ACTIVITY_LOG_RETENTION_MIN}
 							max={ACTIVITY_LOG_RETENTION_MAX}
 							value={days}
 							onChange={(e) => setDays(e.target.value)}
-							className="w-28"
+							className="w-full sm:w-28"
 							disabled={isPending}
 						/>
-						<Button onClick={handleSave} disabled={isPending}>
+						<Button onClick={handleSave} disabled={isPending} className="shrink-0">
 							{isPending ? "Saving…" : "Save"}
 						</Button>
 					</div>

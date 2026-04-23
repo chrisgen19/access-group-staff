@@ -55,14 +55,14 @@ export default function PreferencesPage() {
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Preferences
 				</h3>
 			</div>
 
-			<div className="px-8 py-6 space-y-8">
+			<div className="space-y-8 px-5 py-6 sm:px-8">
 				{/* Background Color */}
 				<div className="space-y-4">
 					<div>
@@ -77,7 +77,7 @@ export default function PreferencesPage() {
 						)}
 					</div>
 
-					<div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+					<div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
 						{BG_OPTIONS.map((option) => {
 							const isSelected = bgColorId === option.id;
 							return (
@@ -129,7 +129,7 @@ export default function PreferencesPage() {
 						</p>
 					</div>
 
-					<div className="grid grid-cols-2 gap-3 max-w-xs">
+					<div className="grid max-w-xs grid-cols-2 gap-3">
 						{CARD_VIEW_OPTIONS.map((option) => {
 							const isSelected = cardView === option.id;
 							const Icon = VIEW_ICONS[option.id];
@@ -178,7 +178,7 @@ export default function PreferencesPage() {
 						</p>
 					</div>
 
-					<div className="grid grid-cols-3 gap-3 max-w-sm">
+					<div className="grid max-w-sm grid-cols-2 gap-3 sm:grid-cols-3">
 						{CARD_SIZE_OPTIONS.map((option) => {
 							const isSelected = cardSize === option.id;
 							const Icon = SIZE_ICONS[option.id];

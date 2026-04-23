@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
@@ -14,17 +15,18 @@ export default async function ProfileLayout({ children }: { children: React.Reac
 	});
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<div>
-				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-					My Profile
-				</h1>
-				<div className="mt-2 flex items-center gap-2">
-					<p className="text-base text-muted-foreground">{user.email}</p>
-					<Badge variant="outline">{user.role}</Badge>
-					{user.department && <Badge variant="secondary">{user.department.name}</Badge>}
-				</div>
-			</div>
+		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+			<DashboardPageHeader
+				eyebrow="Account"
+				title="My Profile"
+				description={user.email}
+				meta={
+					<>
+						<Badge variant="outline">{user.role}</Badge>
+						{user.department && <Badge variant="secondary">{user.department.name}</Badge>}
+					</>
+				}
+			/>
 
 			<div className="flex flex-col gap-8 sm:flex-row">
 				<ProfileNav />

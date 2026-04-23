@@ -3,18 +3,20 @@ import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primiti
 export default function DashboardLoading() {
 	return (
 		<div
-			className="max-w-7xl mx-auto mt-2 space-y-8 animate-pulse"
+			className="mx-auto max-w-7xl space-y-6 animate-pulse sm:space-y-8"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading dashboard"
 		>
-			{/* Welcome header + Send button */}
-			<div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-				<div className="space-y-3">
-					<SkeletonLine className="h-10 w-80" />
-					<SkeletonLine className="h-5 w-72" />
+			<div className="rounded-[2rem] border border-gray-200/60 bg-card px-5 py-5 shadow-[0_20px_50px_-40px_rgba(0,0,0,0.45)] dark:border-white/10 sm:px-7 sm:py-6">
+				<div className="flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-end lg:justify-between">
+					<div className="space-y-3">
+						<SkeletonLine className="h-3 w-20" />
+						<SkeletonLine className="h-10 w-80" />
+						<SkeletonLine className="h-5 w-72" />
+					</div>
+					<SkeletonLine className="h-12 w-56 rounded-full" />
 				</div>
-				<SkeletonLine className="h-12 w-56 rounded-full" />
 			</div>
 
 			{/* Feed (left on lg) + Stats (right on lg). On mobile, stats comes first. */}
@@ -48,9 +50,9 @@ export default function DashboardLoading() {
 				</SkeletonCard>
 
 				{/* Stats widget skeleton */}
-				<SkeletonCard className="p-6 space-y-6 h-full order-1 lg:order-2">
+				<SkeletonCard className="order-1 h-full space-y-6 p-6 lg:order-2">
 					<SkeletonLine className="h-6 w-40" />
-					<div className="grid grid-cols-3 gap-4">
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						{["s0", "s1", "s2"].map((key) => (
 							<div key={key} className="flex items-center gap-3">
 								<SkeletonLine className="h-10 w-10 rounded-full" />

@@ -106,8 +106,8 @@ export function LeaderboardVisibilityPanel({
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					Leaderboard Visibility
 				</h3>
@@ -118,8 +118,8 @@ export function LeaderboardVisibilityPanel({
 				</p>
 			</div>
 
-			<div className="px-8 py-6 space-y-4">
-				<div className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-white/10 p-5 gap-4">
+			<div className="space-y-4 px-5 py-6 sm:px-8">
+				<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 					<div className="min-w-0">
 						<p className="text-sm font-medium text-foreground">Visibility mode</p>
 						<p className="text-xs text-muted-foreground">{MODE_DESCRIPTIONS[mode]}</p>
@@ -129,7 +129,7 @@ export function LeaderboardVisibilityPanel({
 						onValueChange={(val) => handleModeChange(val as LeaderboardVisibilityMode)}
 						disabled={isPending}
 					>
-						<SelectTrigger className="w-56 shrink-0">
+						<SelectTrigger className="w-full shrink-0 rounded-full sm:w-56">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -143,7 +143,7 @@ export function LeaderboardVisibilityPanel({
 				</div>
 
 				{mode === "last_n_days_of_month" && (
-					<div className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-white/10 p-5 gap-4">
+					<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 						<div className="min-w-0">
 							<p className="text-sm font-medium text-foreground">Reveal days</p>
 							<p className="text-xs text-muted-foreground">
@@ -158,14 +158,14 @@ export function LeaderboardVisibilityPanel({
 							onChange={(e) => setDays(Number.parseInt(e.target.value, 10))}
 							onBlur={handleDaysBlur}
 							disabled={isPending}
-							className="w-24 shrink-0"
+							className="w-full shrink-0 sm:w-24"
 						/>
 					</div>
 				)}
 
 				{mode === "custom_range" && (
-					<div className="rounded-2xl border border-gray-200 dark:border-white/10 p-5 space-y-4">
-						<div className="flex items-center justify-between gap-4">
+					<div className="space-y-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:p-5">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
 							<div>
 								<Label
 									htmlFor="leaderboard-custom-start"
@@ -182,10 +182,10 @@ export function LeaderboardVisibilityPanel({
 								onChange={(e) => setCustomStart(e.target.value)}
 								onBlur={handleCustomStartBlur}
 								disabled={isPending}
-								className="w-48 shrink-0"
+								className="w-full shrink-0 sm:w-48"
 							/>
 						</div>
-						<div className="flex items-center justify-between gap-4">
+						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
 							<div>
 								<Label
 									htmlFor="leaderboard-custom-end"
@@ -202,7 +202,7 @@ export function LeaderboardVisibilityPanel({
 								onChange={(e) => setCustomEnd(e.target.value)}
 								onBlur={handleCustomEndBlur}
 								disabled={isPending}
-								className="w-48 shrink-0"
+								className="w-full shrink-0 sm:w-48"
 							/>
 						</div>
 					</div>

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import {
 	getHelpMeEnabled,
 	getLeaderboardVisibilitySettings,
@@ -23,15 +24,12 @@ export default async function AdminSettingsPage() {
 	]);
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<div>
-				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-					Admin Settings
-				</h1>
-				<p className="mt-2 text-base text-muted-foreground">
-					Manage application settings and configurations.
-				</p>
-			</div>
+		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+			<DashboardPageHeader
+				eyebrow="Administration"
+				title="Admin Settings"
+				description="Manage application settings and configurations."
+			/>
 
 			<RecognitionSettingsPanel initialLimit={topLimit} />
 

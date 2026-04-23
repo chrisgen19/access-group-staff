@@ -28,7 +28,7 @@ export function HelpFab({ enabled = true }: { enabled?: boolean } = {}) {
 					<Link
 						href={href}
 						aria-label="Open help ticket"
-						className="fixed bottom-6 right-6 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30"
+						className="fixed right-6 bottom-safe-6 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-200 hover:bg-primary/90 hover:shadow-xl focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30"
 					>
 						<HelpCircle className="h-6 w-6" />
 					</Link>

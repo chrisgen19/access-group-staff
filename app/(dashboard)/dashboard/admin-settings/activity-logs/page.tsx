@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import type { ActivityAction, Prisma } from "@/app/generated/prisma/client";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { pruneActivityLogsIfNeeded } from "@/lib/activity-log";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
@@ -107,15 +108,12 @@ export default async function ActivityLogsPage({
 	});
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<div>
-				<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight">
-					Activity Logs
-				</h1>
-				<p className="mt-2 text-base text-muted-foreground">
-					Audit trail of authentication and account events.
-				</p>
-			</div>
+		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+			<DashboardPageHeader
+				eyebrow="Administration"
+				title="Activity Logs"
+				description="Audit trail of authentication and account events."
+			/>
 
 			<ActivityLogFilters
 				users={users}

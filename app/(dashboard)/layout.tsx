@@ -13,11 +13,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
 	const initialUserRole = session.user.role as "STAFF" | "ADMIN" | "SUPERADMIN";
 
 	return (
-		<div className="flex min-h-screen bg-background">
+		<div className="flex min-h-screen bg-background [background-image:radial-gradient(circle_at_top,oklch(0.985_0.012_18/0.78),transparent_36%)] dark:[background-image:linear-gradient(to_bottom,oklch(0.16_0.01_18),transparent_45%)]">
 			<DashboardSidebar helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
-			<div className="flex flex-1 flex-col bg-card sm:my-2 sm:mr-2 sm:rounded-l-[2rem] shadow-sm border border-gray-100 dark:border-white/5">
+			<div className="relative flex min-h-screen min-w-0 flex-1 flex-col bg-background/92 md:bg-card md:shadow-sm md:backdrop-blur-sm md:my-2 md:mr-2 md:rounded-l-[2rem] md:border md:border-gray-100 dark:md:border-white/5">
 				<DashboardHeader helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
-				<main className="flex-1 px-4 pb-8 sm:px-8">{children}</main>
+				<main
+					className="flex-1 px-4 pb-8 sm:px-8"
+					style={
+						helpMeEnabled
+							? { paddingBottom: "calc(6.5rem + env(safe-area-inset-bottom, 0px))" }
+							: undefined
+					}
+				>
+					{children}
+				</main>
 			</div>
 			<HelpFab enabled={helpMeEnabled} />
 		</div>

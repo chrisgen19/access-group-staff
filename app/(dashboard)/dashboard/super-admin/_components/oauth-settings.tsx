@@ -89,8 +89,8 @@ export function OAuthSettingsPanel({
 	}
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
-			<div className="px-8 pt-8 pb-2">
+		<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] dark:border-white/10">
+			<div className="px-5 pt-6 pb-2 sm:px-8 sm:pt-8">
 				<h3 className="text-[1.5rem] leading-tight font-medium text-foreground tracking-tight">
 					OAuth Providers
 				</h3>
@@ -99,7 +99,7 @@ export function OAuthSettingsPanel({
 				</p>
 			</div>
 
-			<div className="px-8 py-6 space-y-4">
+			<div className="space-y-4 px-5 py-6 sm:px-8">
 				{PROVIDERS.map((provider) => {
 					const availabilityKey = AVAILABILITY_KEY_MAP[provider.key];
 					const isConfigured = providerAvailability[availabilityKey];
@@ -110,7 +110,7 @@ export function OAuthSettingsPanel({
 						<div
 							key={provider.key}
 							className={cn(
-								"flex items-center justify-between rounded-2xl border p-5 transition-all duration-200",
+								"flex flex-col gap-4 rounded-2xl border p-4 transition-all duration-200 sm:flex-row sm:items-center sm:justify-between sm:p-5",
 								!isConfigured && "opacity-60",
 								isEnabled
 									? "border-primary/20 bg-primary/5"
@@ -121,7 +121,7 @@ export function OAuthSettingsPanel({
 								<div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 dark:bg-white/10">
 									{provider.icon}
 								</div>
-								<div>
+								<div className="min-w-0">
 									<p className="text-sm font-medium text-foreground">{provider.name}</p>
 									<p className="text-xs text-muted-foreground">
 										{isConfigured
@@ -131,7 +131,7 @@ export function OAuthSettingsPanel({
 								</div>
 							</div>
 
-							<div className="flex items-center gap-3">
+							<div className="flex items-center gap-3 self-start sm:self-auto">
 								<span
 									className={cn(
 										"text-xs font-medium",

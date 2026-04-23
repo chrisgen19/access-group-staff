@@ -2,6 +2,7 @@ import { ArrowLeft, Clock, Pencil } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Role } from "@/app/generated/prisma/client";
+import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { Badge } from "@/components/ui/badge";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
@@ -60,36 +61,37 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 				user.shiftSchedule?.days.find((d) => d.dayOfWeek === dayOfWeek),
 			)
 		: null;
+	const userName = `${user.firstName} ${user.lastName}`;
 
 	return (
-		<div className="max-w-7xl mx-auto space-y-8 mt-2">
-			<div className="flex items-center gap-4">
-				<Link
-					href="/dashboard/users"
-					aria-label="Back to staff directory"
-					className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
-				>
-					<ArrowLeft className="h-5 w-5" />
-				</Link>
-				<div className="flex-1 min-w-0">
-					<h1 className="text-[2.25rem] leading-tight font-medium text-foreground tracking-tight truncate">
-						{user.firstName} {user.lastName}
-					</h1>
-					<p className="mt-1 text-base text-muted-foreground truncate">{user.email}</p>
-				</div>
-				{user.deletedAt === null && (
-					<Link
-						href={`/dashboard/users/${user.id}/edit`}
-						className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30 transition-all duration-200"
-					>
-						<Pencil className="h-4 w-4" />
-						Edit User
-					</Link>
-				)}
-			</div>
+		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
+			<Link
+				href="/dashboard/users"
+				aria-label="Back to staff directory"
+				className="inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-gray-200/50 hover:text-foreground dark:hover:bg-white/5"
+			>
+				<ArrowLeft className="h-4 w-4" />
+				Back to staff directory
+			</Link>
+			<DashboardPageHeader
+				eyebrow="Staff"
+				title={userName}
+				description={user.email}
+				actions={
+					user.deletedAt === null ? (
+						<Link
+							href={`/dashboard/users/${user.id}/edit`}
+							className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-primary/30"
+						>
+							<Pencil className="h-4 w-4" />
+							Edit User
+						</Link>
+					) : null
+				}
+			/>
 
 			<div className="grid gap-6 md:grid-cols-2">
-				<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+				<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] dark:border-white/10">
 					<div className="px-8 pt-8 pb-2">
 						<h2 className="text-[1.25rem] font-medium text-foreground">Personal Info</h2>
 					</div>
@@ -137,8 +139,8 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 				</div>
 			</div>
 
-			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
-				<div className="px-8 pt-8 pb-4 flex items-center justify-between gap-4">
+			<div className="overflow-hidden rounded-[2rem] border border-gray-200/60 bg-card shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] dark:border-white/10">
+				<div className="flex flex-col gap-4 px-8 pt-8 pb-4 sm:flex-row sm:items-center sm:justify-between">
 					<div className="flex items-center gap-3">
 						<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
 							<Clock className="h-5 w-5" />
@@ -182,7 +184,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 						</div>
 					)}
 					{orderedDays && (
-						<div className="grid grid-cols-7 gap-2">
+						<div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
 							{DISPLAY_DAY_ORDER.map((dayOfWeek) => {
 								const day = orderedDays[dayOfWeek];
 								const isWorking = !!(day?.isWorking && day.startTime && day.endTime);

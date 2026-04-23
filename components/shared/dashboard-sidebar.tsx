@@ -20,7 +20,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AccessGroupLogo } from "@/components/shared/access-logos";
 import { NotificationBadge } from "@/components/shared/notification-badge";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { UserAvatar } from "@/components/shared/user-avatar";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { signOut, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -108,14 +109,22 @@ interface SidebarNavProps {
 	onNavigate?: () => void;
 	helpMeEnabled: boolean;
 	initialUserRole: MinRole;
+	mode?: "desktop" | "mobile";
 }
 
-function SidebarNav({ onNavigate, helpMeEnabled, initialUserRole }: SidebarNavProps) {
+function SidebarNav({
+	onNavigate,
+	helpMeEnabled,
+	initialUserRole,
+	mode = "desktop",
+}: SidebarNavProps) {
 	const pathname = usePathname();
 	const router = useRouter();
 	const { data: session, isPending } = useSession();
 	const sessionRole = session?.user?.role as string | undefined;
 	const userRole = (sessionRole ?? (isPending ? initialUserRole : "STAFF")) as MinRole;
+	const user = session?.user;
+	const isMobile = mode === "mobile";
 
 	const roleLevel: Record<MinRole, number> = {
 		STAFF: 0,
@@ -141,11 +150,39 @@ function SidebarNav({ onNavigate, helpMeEnabled, initialUserRole }: SidebarNavPr
 
 	return (
 		<>
-			<div className="h-16 flex items-center px-4 mb-4 text-primary">
-				<AccessGroupLogo color="currentColor" className="h-8 w-auto" />
+			<div
+				className={cn("mb-4 text-primary", isMobile ? "px-1 py-2" : "flex h-16 items-center px-4")}
+			>
+				<div className="flex items-center gap-3">
+					<AccessGroupLogo color="currentColor" className="h-8 w-auto" />
+					{isMobile && (
+						<div className="min-w-0">
+							<p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+								Access Group
+							</p>
+							<p className="text-sm font-semibold text-foreground">Dashboard Navigation</p>
+						</div>
+					)}
+				</div>
+				{isMobile && user && (
+					<div className="mt-4 flex items-center gap-3 px-1 py-1 text-foreground">
+						<UserAvatar
+							firstName={user.firstName ?? ""}
+							lastName={user.lastName ?? ""}
+							avatar={user.avatar}
+							image={user.image}
+							size="lg"
+							className="bg-[oklch(0.96_0.03_18)] text-primary dark:bg-primary/15"
+						/>
+						<div className="min-w-0">
+							<p className="truncate text-sm font-semibold">{user.name}</p>
+							<p className="truncate text-xs text-muted-foreground">{user.email ?? "Signed in"}</p>
+						</div>
+					</div>
+				)}
 			</div>
 
-			<nav className="flex-1 space-y-1">
+			<nav className={cn("flex-1", isMobile ? "space-y-2" : "space-y-1")}>
 				{filteredItems.map((item) => {
 					const hasChildren = !!item.children?.length;
 					const isInGroup = item.href !== "/dashboard" && pathname.startsWith(item.href);
@@ -186,7 +223,12 @@ function SidebarNav({ onNavigate, helpMeEnabled, initialUserRole }: SidebarNavPr
 							</Link>
 
 							{hasChildren && isInGroup && (
-								<div className="mt-1 ml-7 space-y-1 border-l border-gray-200/60 dark:border-white/10 pl-3">
+								<div
+									className={cn(
+										"mt-1 ml-7 space-y-1 border-l border-gray-200/60 pl-3 dark:border-white/10",
+										isMobile && "ml-5 py-2 pr-2",
+									)}
+								>
 									{item.children?.map((child) => {
 										const childActive =
 											pathname === child.href || pathname.startsWith(`${child.href}/`);
@@ -217,7 +259,9 @@ function SidebarNav({ onNavigate, helpMeEnabled, initialUserRole }: SidebarNavPr
 			<button
 				type="button"
 				onClick={handleSignOut}
-				className="flex w-full items-center gap-3 rounded-full px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors"
+				className={cn(
+					"mt-4 flex w-full items-center gap-3 rounded-full px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-gray-200/50 dark:hover:bg-white/5",
+				)}
 			>
 				<LogOut size={22} className="shrink-0" />
 				Sign Out
@@ -241,7 +285,7 @@ export function DashboardSidebar({
 }) {
 	return (
 		<aside className="sticky top-0 hidden h-screen w-[13.5rem] flex-col p-4 pr-2 md:flex">
-			<SidebarNav helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} />
+			<SidebarNav helpMeEnabled={helpMeEnabled} initialUserRole={initialUserRole} mode="desktop" />
 		</aside>
 	);
 }
@@ -260,16 +304,25 @@ export function MobileSidebarTrigger({
 			<button
 				type="button"
 				onClick={() => setOpen(true)}
-				className="inline-flex items-center justify-center rounded-full p-2 text-muted-foreground hover:bg-gray-200/50 dark:hover:bg-white/5 transition-colors md:hidden"
+				className="inline-flex items-center justify-center rounded-full border border-black/5 bg-card/80 p-2.5 text-muted-foreground shadow-sm transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 md:hidden"
 			>
 				<Menu size={22} />
 			</button>
 			<Sheet open={open} onOpenChange={setOpen}>
-				<SheetContent side="left" className="w-72 p-4" showCloseButton={false}>
+				<SheetContent
+					side="left"
+					className="w-[min(88vw,22rem)] border-r border-black/5 bg-[linear-gradient(to_bottom,oklch(0.99_0.01_18),oklch(1_0_0))] p-4 px-safe pt-safe pb-safe dark:border-white/10 dark:bg-[linear-gradient(to_bottom,oklch(0.2_0.01_18),oklch(0.18_0_0))]"
+					showCloseButton={false}
+				>
+					<SheetTitle className="sr-only">Dashboard navigation</SheetTitle>
+					<SheetDescription className="sr-only">
+						Browse dashboard sections and account actions.
+					</SheetDescription>
 					<SidebarNav
 						onNavigate={() => setOpen(false)}
 						helpMeEnabled={helpMeEnabled}
 						initialUserRole={initialUserRole}
+						mode="mobile"
 					/>
 				</SheetContent>
 			</Sheet>
