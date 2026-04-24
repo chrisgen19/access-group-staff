@@ -2,7 +2,7 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, Heart, Inbox, Lock, Medal, Send, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -31,6 +31,9 @@ const PODIUM_STYLES = [
 		countBg: "bg-orange-50 dark:bg-orange-400/10 text-orange-600 dark:text-orange-400",
 	},
 ] as const;
+
+const STATS_STICKY_OFFSET = 32;
+const STATS_STICKY_BREAKPOINT_QUERY = "(min-width: 1024px)";
 
 type LeaderboardVisibilityMode = "always" | "last_n_days_of_month" | "custom_range";
 
@@ -207,7 +210,7 @@ function StatItem({
 function StatsWidgetSkeleton() {
 	return (
 		<SkeletonCard
-			className="p-6 animate-pulse flex flex-col gap-6 h-full"
+			className="p-6 animate-pulse flex flex-col gap-6"
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition stats"
@@ -230,8 +233,8 @@ function StatsWidgetSkeleton() {
 					</div>
 				))}
 			</div>
-			<div className="flex flex-col min-h-0 flex-1">
-				<div className="flex items-center gap-2 mb-3 shrink-0">
+			<div>
+				<div className="flex items-center gap-2 mb-3">
 					<SkeletonLine className="h-4 w-4 rounded" />
 					<SkeletonLine className="h-4 w-32" />
 				</div>
@@ -267,12 +270,12 @@ function LockedLeaderboard({
 	const showCountdown = msRemaining !== null && msRemaining > 0;
 
 	return (
-		<div className="flex flex-col min-h-0 flex-1">
-			<div className="flex items-center gap-2 mb-3 shrink-0">
+		<div>
+			<div className="flex items-center gap-2 mb-3">
 				<Lock size={16} className="text-muted-foreground" />
 				<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 			</div>
-			<div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+			<div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 mb-3">
 					<Lock size={18} className="text-primary" />
 				</div>
@@ -328,7 +331,7 @@ export function StatsWidget() {
 
 	if (isError || !data?.data) {
 		return (
-			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] h-full">
+			<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)]">
 				<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight mb-2">
 					Recognition Stats
 				</h3>
@@ -346,7 +349,7 @@ export function StatsWidget() {
 	const showEmpty = resolvedVisibility.visible && stats.topRecipients.length === 0;
 
 	return (
-		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6 h-full">
+		<div className="rounded-[2rem] border border-gray-200/60 dark:border-white/10 bg-card p-6 shadow-[0_2px_20px_-4px_rgba(0,0,0,0.03)] flex flex-col gap-6">
 			<h3 className="text-[1.25rem] font-medium text-foreground tracking-tight shrink-0">
 				Recognition Stats
 			</h3>
@@ -394,12 +397,12 @@ export function StatsWidget() {
 			</div>
 
 			{showList ? (
-				<div className="flex flex-col min-h-0 flex-1">
-					<div className="flex items-center gap-2 mb-3 shrink-0">
+				<div>
+					<div className="flex items-center gap-2 mb-3">
 						<Trophy size={16} className="text-primary" />
 						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 					</div>
-					<ol className="space-y-2 overflow-y-auto pr-1 flex-1 min-h-0">
+					<ol className="space-y-2">
 						{stats.topRecipients.map((person, index) => {
 							const isPodium = index < 3;
 							const style = isPodium ? PODIUM_STYLES[index] : null;
@@ -458,18 +461,92 @@ export function StatsWidget() {
 			) : showLocked ? (
 				<LockedLeaderboard visibility={resolvedVisibility} msRemaining={msRemaining} />
 			) : showEmpty ? (
-				<div className="flex flex-col min-h-0 flex-1">
-					<div className="flex items-center gap-2 mb-3 shrink-0">
+				<div>
+					<div className="flex items-center gap-2 mb-3">
 						<Trophy size={16} className="text-primary" />
 						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
 					</div>
-					<div className="flex flex-1 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
+					<div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 						<p className="text-sm text-muted-foreground">
 							No recognitions yet this month — be the first!
 						</p>
 					</div>
 				</div>
 			) : null}
+		</div>
+	);
+}
+
+export function StickyStatsWidget() {
+	const widgetRef = useRef<HTMLDivElement>(null);
+	const [stickyTop, setStickyTop] = useState(STATS_STICKY_OFFSET);
+
+	useEffect(() => {
+		const widget = widgetRef.current;
+		if (!widget) return;
+
+		const breakpoint = window.matchMedia(STATS_STICKY_BREAKPOINT_QUERY);
+		let resizeObserver: ResizeObserver | null = null;
+		let viewport: VisualViewport | null | undefined;
+
+		const updateStickyOffset = () => {
+			const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+			const widgetHeight = widget.offsetHeight;
+			// Negative top is intentional for tall cards: it lets the card scroll
+			// until its bottom is visible, then stick while the feed continues.
+			const nextTop =
+				widgetHeight + STATS_STICKY_OFFSET * 2 > viewportHeight
+					? viewportHeight - widgetHeight - STATS_STICKY_OFFSET
+					: STATS_STICKY_OFFSET;
+
+			setStickyTop(nextTop);
+		};
+
+		const teardownStickyMeasurement = () => {
+			resizeObserver?.disconnect();
+			resizeObserver = null;
+			window.removeEventListener("resize", updateStickyOffset);
+			viewport?.removeEventListener("resize", updateStickyOffset);
+			viewport = undefined;
+		};
+
+		const setupStickyMeasurement = () => {
+			updateStickyOffset();
+
+			resizeObserver =
+				typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateStickyOffset);
+
+			resizeObserver?.observe(widget);
+			viewport = window.visualViewport;
+			window.addEventListener("resize", updateStickyOffset);
+			viewport?.addEventListener("resize", updateStickyOffset);
+		};
+
+		const handleBreakpointChange = (event: MediaQueryListEvent) => {
+			teardownStickyMeasurement();
+
+			if (event.matches) {
+				setupStickyMeasurement();
+			} else {
+				setStickyTop(STATS_STICKY_OFFSET);
+			}
+		};
+
+		if (breakpoint.matches) {
+			setupStickyMeasurement();
+		}
+
+		breakpoint.addEventListener("change", handleBreakpointChange);
+
+		return () => {
+			teardownStickyMeasurement();
+			breakpoint.removeEventListener("change", handleBreakpointChange);
+		};
+	}, []);
+
+	return (
+		<div ref={widgetRef} className="lg:sticky" style={{ top: stickyTop }}>
+			<StatsWidget />
 		</div>
 	);
 }
