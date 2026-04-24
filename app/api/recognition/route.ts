@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import type { Prisma } from "@/app/generated/prisma/client";
+import { Prisma } from "@/app/generated/prisma/client";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
@@ -192,11 +192,15 @@ export async function GET(request: NextRequest) {
 				...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
 			});
 		} catch (err) {
-			// Only surface as a client error when the caller provided a cursor — a
-			// malformed cursor is the only way bad user input can make this query
-			// throw. Any other failure (pool exhaustion, timeouts, DB down) is an
-			// infrastructure problem and should fall through to the outer 500.
-			if (cursor) {
+			// A malformed cursor produces a Prisma validation / known-request error.
+			// Infrastructure failures (pool exhaustion, timeouts, DB down) are different
+			// classes of error and must fall through to the outer 500 — mapping them to
+			// 400 would hide real outages as client bad-input in monitoring.
+			const isCursorError =
+				!!cursor &&
+				(err instanceof Prisma.PrismaClientValidationError ||
+					err instanceof Prisma.PrismaClientKnownRequestError);
+			if (isCursorError) {
 				return Response.json({ success: false, error: "Invalid cursor" }, { status: 400 });
 			}
 			throw err;

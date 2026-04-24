@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
+import { Prisma } from "@/app/generated/prisma/client";
 
 vi.mock("@/lib/auth-utils", () => ({
 	requireSession: vi.fn(),
@@ -135,8 +136,10 @@ describe("GET /api/recognition (cursor pagination)", () => {
 		expect(call?.skip).toBeUndefined();
 	});
 
-	test("maps Prisma findMany errors to 400 only when a cursor was supplied", async () => {
-		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(new Error("bad cursor"));
+	test("maps Prisma validation errors with a cursor to 400 Invalid cursor", async () => {
+		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(
+			new Prisma.PrismaClientValidationError("bad cursor", { clientVersion: "x" }),
+		);
 
 		const res = await GET(makeRequest("http://x/api/recognition?cursor=abc"));
 		const body = await res.json();
@@ -145,8 +148,20 @@ describe("GET /api/recognition (cursor pagination)", () => {
 		expect(body).toEqual({ success: false, error: "Invalid cursor" });
 	});
 
-	test("surfaces findMany failures without a cursor as 500 (infra error)", async () => {
+	test("surfaces infra errors (e.g. DB down) with a cursor as 500, not 400", async () => {
 		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(new Error("db down"));
+
+		const res = await GET(makeRequest("http://x/api/recognition?cursor=abc"));
+		const body = await res.json();
+
+		expect(res.status).toBe(500);
+		expect(body).toEqual({ success: false, error: "Internal server error" });
+	});
+
+	test("surfaces findMany failures without a cursor as 500", async () => {
+		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(
+			new Prisma.PrismaClientValidationError("db down", { clientVersion: "x" }),
+		);
 
 		const res = await GET(makeRequest("http://x/api/recognition"));
 		const body = await res.json();
