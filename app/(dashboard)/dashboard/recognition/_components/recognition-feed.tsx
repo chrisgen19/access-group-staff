@@ -1,16 +1,36 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { Button } from "@/components/ui/button";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useUnreadCardIds } from "@/hooks/use-unread-card-ids";
 import { formatRecognitionDate, getSelectedValues, type RecognitionCard } from "@/lib/recognition";
 import { cn } from "@/lib/utils";
 import { usePreferencesStore } from "@/stores/use-preferences-store";
 import { CardInteractionBar } from "./card-interaction-bar";
 import { RecognitionCardMini } from "./recognition-card-mini";
+
+type FeedFilter = "all" | "received" | "sent" | "department";
+
+interface FeedPage {
+	success: boolean;
+	data: RecognitionCard[];
+	nextCursor: string | null;
+}
+
+function buildFeedUrl(filter: FeedFilter, limit: number, cursor?: string | null) {
+	const params = new URLSearchParams();
+	if (filter !== "all") params.set("filter", filter);
+	params.set("limit", String(limit));
+	if (cursor) params.set("cursor", cursor);
+	const query = params.toString();
+	return `/api/recognition${query ? `?${query}` : ""}`;
+}
 
 function CardSkeleton() {
 	return (
@@ -100,7 +120,7 @@ function CardActions({
 }
 
 interface RecognitionFeedProps {
-	filter?: "all" | "received" | "sent" | "department";
+	filter?: FeedFilter;
 	showTitle?: boolean;
 	showActions?: boolean;
 	currentUserId?: string;
@@ -109,9 +129,16 @@ interface RecognitionFeedProps {
 	emptyTitle?: string;
 	emptyDescription?: string;
 	onShare?: (cardId: string) => void;
+	limit?: number;
+	infinite?: boolean;
 }
 
-export function RecognitionFeed({
+export function RecognitionFeed(props: RecognitionFeedProps) {
+	if (props.infinite) return <RecognitionFeedInfinite {...props} />;
+	return <RecognitionFeedStatic {...props} />;
+}
+
+function RecognitionFeedStatic({
 	filter = "all",
 	showTitle = true,
 	showActions = false,
@@ -121,19 +148,12 @@ export function RecognitionFeed({
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
 	onShare,
+	limit = 50,
 }: RecognitionFeedProps) {
-	const cardView = usePreferencesStore((s) => s.cardView);
-	const cardSize = usePreferencesStore((s) => s.cardSize);
-	const { unreadCardIds } = useUnreadCardIds(filter === "received");
-	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
-
-	const { data, isPending } = useQuery<{
-		success: boolean;
-		data: RecognitionCard[];
-	}>({
-		queryKey: ["recognition-cards", filter],
+	const { data, isPending } = useQuery<FeedPage>({
+		queryKey: ["recognition-cards", filter, { limit, infinite: false }],
 		queryFn: async () => {
-			const res = await fetch(`/api/recognition${queryParam}`);
+			const res = await fetch(buildFeedUrl(filter, limit));
 			if (!res.ok) throw new Error("Failed to fetch recognition cards");
 			return res.json();
 		},
@@ -141,6 +161,136 @@ export function RecognitionFeed({
 	});
 
 	const cards = data?.data ?? [];
+
+	return (
+		<FeedLayout
+			filter={filter}
+			showTitle={showTitle}
+			showActions={showActions}
+			currentUserId={currentUserId}
+			isAdmin={isAdmin}
+			cardMaxWidth={cardMaxWidth}
+			emptyTitle={emptyTitle}
+			emptyDescription={emptyDescription}
+			onShare={onShare}
+			cards={cards}
+			isPending={isPending}
+		/>
+	);
+}
+
+function RecognitionFeedInfinite({
+	filter = "all",
+	showTitle = true,
+	showActions = false,
+	currentUserId = "",
+	isAdmin = false,
+	cardMaxWidth,
+	emptyTitle = "No recognition cards yet",
+	emptyDescription = "Be the first to recognize a colleague!",
+	onShare,
+	limit = 10,
+}: RecognitionFeedProps) {
+	const { data, isPending, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery<
+		FeedPage,
+		Error,
+		{ pages: FeedPage[] },
+		readonly unknown[],
+		string | null
+	>({
+		queryKey: ["recognition-cards", filter, { limit, infinite: true }],
+		initialPageParam: null,
+		queryFn: async ({ pageParam }) => {
+			const res = await fetch(buildFeedUrl(filter, limit, pageParam));
+			if (!res.ok) throw new Error("Failed to fetch recognition cards");
+			return res.json();
+		},
+		getNextPageParam: (last) => last.nextCursor ?? undefined,
+		staleTime: 30_000,
+	});
+
+	const cards = data?.pages.flatMap((p) => p.data) ?? [];
+
+	const { ref: sentinelRef, isIntersecting } = useIntersectionObserver({
+		enabled: !!hasNextPage && !isFetchingNextPage,
+	});
+
+	useEffect(() => {
+		if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+			fetchNextPage();
+		}
+	}, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+	return (
+		<FeedLayout
+			filter={filter}
+			showTitle={showTitle}
+			showActions={showActions}
+			currentUserId={currentUserId}
+			isAdmin={isAdmin}
+			cardMaxWidth={cardMaxWidth}
+			emptyTitle={emptyTitle}
+			emptyDescription={emptyDescription}
+			onShare={onShare}
+			cards={cards}
+			isPending={isPending}
+			footer={
+				hasNextPage ? (
+					<>
+						<div ref={sentinelRef} aria-hidden className="h-px w-full" />
+						{isFetchingNextPage ? (
+							<CardSkeleton />
+						) : (
+							<div className="flex justify-center pt-2">
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => fetchNextPage()}
+									disabled={isFetchingNextPage}
+								>
+									Load more
+								</Button>
+							</div>
+						)}
+					</>
+				) : null
+			}
+		/>
+	);
+}
+
+interface FeedLayoutProps {
+	filter: FeedFilter;
+	showTitle: boolean;
+	showActions: boolean;
+	currentUserId: string;
+	isAdmin: boolean;
+	cardMaxWidth?: string;
+	emptyTitle: string;
+	emptyDescription: string;
+	onShare?: (cardId: string) => void;
+	cards: RecognitionCard[];
+	isPending: boolean;
+	footer?: React.ReactNode;
+}
+
+function FeedLayout({
+	filter,
+	showTitle,
+	showActions,
+	currentUserId,
+	isAdmin,
+	cardMaxWidth,
+	emptyTitle,
+	emptyDescription,
+	onShare,
+	cards,
+	isPending,
+	footer,
+}: FeedLayoutProps) {
+	const cardView = usePreferencesStore((s) => s.cardView);
+	const cardSize = usePreferencesStore((s) => s.cardSize);
+	const { unreadCardIds } = useUnreadCardIds(filter === "received");
 
 	const handleShare = (cardId: string) => {
 		onShare?.(cardId);
@@ -295,6 +445,7 @@ export function RecognitionFeed({
 					</div>
 				);
 			})}
+			{footer}
 		</div>
 	);
 }

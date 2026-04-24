@@ -70,6 +70,7 @@ export function RecognitionFeedWidget({ currentUserId, isAdmin }: RecognitionFee
 					isAdmin={isAdmin}
 					emptyTitle={currentTab.emptyTitle}
 					emptyDescription={currentTab.emptyDescription}
+					limit={10}
 				/>
 			</div>
 		</div>

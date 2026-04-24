@@ -33,6 +33,8 @@ export function RecognitionFeedClient({
 				emptyTitle={emptyTitle}
 				emptyDescription={emptyDescription}
 				onShare={setShareCardId}
+				limit={10}
+				infinite
 			/>
 			<ShareDialog
 				open={!!shareCardId}
