@@ -13,6 +13,7 @@ import {
 } from "@/lib/actions/recognition-actions";
 import { useSession } from "@/lib/auth-client";
 import { formatLocalDate } from "@/lib/date-utils";
+import { invalidateRecognitionFeed } from "@/lib/recognition-cache";
 import {
 	type CreateRecognitionCardInput,
 	createRecognitionCardSchema,
@@ -373,9 +374,7 @@ export function RecognitionForm({
 			}
 
 			await Promise.all([
-				queryClient.invalidateQueries({
-					queryKey: ["recognition-cards"],
-				}),
+				invalidateRecognitionFeed(queryClient),
 				queryClient.invalidateQueries({
 					queryKey: ["recognition-stats"],
 				}),

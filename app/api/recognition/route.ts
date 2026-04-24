@@ -171,12 +171,46 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		const cards = await prisma.recognitionCard.findMany({
-			where,
-			include,
-			orderBy: { createdAt: "desc" },
-			take: 50,
-		});
+		const limitParam = Number(request.nextUrl.searchParams.get("limit"));
+		const limit = Math.floor(
+			Math.min(50, Math.max(1, Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50)),
+		);
+		const rawCursor = request.nextUrl.searchParams.get("cursor");
+		// Cursor is a card id (uuid ≈ 36 chars). Anything longer is malformed input we ignore.
+		const cursor =
+			rawCursor && rawCursor.length > 0 && rawCursor.length <= 64 ? rawCursor : undefined;
+
+		let rows: Awaited<
+			ReturnType<typeof prisma.recognitionCard.findMany<{ include: typeof include }>>
+		>;
+		try {
+			rows = await prisma.recognitionCard.findMany({
+				where,
+				include,
+				orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+				take: limit + 1,
+				...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+			});
+		} catch (err) {
+			// A malformed cursor produces a Prisma validation / known-request error.
+			// Infrastructure failures (pool exhaustion, timeouts, DB down) are different
+			// classes of error and must fall through to the outer 500 — mapping them to
+			// 400 would hide real outages as client bad-input in monitoring.
+			// Name check (not instanceof) keeps us resilient to Prisma constructor
+			// drift between majors.
+			const name = err instanceof Error ? err.name : "";
+			const isCursorError =
+				!!cursor &&
+				(name === "PrismaClientValidationError" || name === "PrismaClientKnownRequestError");
+			if (isCursorError) {
+				return Response.json({ success: false, error: "Invalid cursor" }, { status: 400 });
+			}
+			throw err;
+		}
+
+		const hasMore = rows.length > limit;
+		const cards = hasMore ? rows.slice(0, limit) : rows;
+		const nextCursor = hasMore ? (cards[cards.length - 1]?.id ?? null) : null;
 
 		const cardIds = cards.map((c) => c.id);
 
@@ -230,6 +264,7 @@ export async function GET(request: NextRequest) {
 				...mapCounts(card),
 				reactionSummary: Array.from(reactionsByCard.get(card.id)?.values() ?? []),
 			})),
+			nextCursor,
 		});
 	} catch {
 		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });

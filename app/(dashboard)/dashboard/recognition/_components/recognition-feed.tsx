@@ -1,10 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { type InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
+import { Button } from "@/components/ui/button";
+import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useUnreadCardIds } from "@/hooks/use-unread-card-ids";
 import { formatRecognitionDate, getSelectedValues, type RecognitionCard } from "@/lib/recognition";
 import { cn } from "@/lib/utils";
@@ -12,10 +15,87 @@ import { usePreferencesStore } from "@/stores/use-preferences-store";
 import { CardInteractionBar } from "./card-interaction-bar";
 import { RecognitionCardMini } from "./recognition-card-mini";
 
-function CardSkeleton() {
+type FeedFilter = "all" | "received" | "sent" | "department";
+
+interface FeedPage {
+	success: boolean;
+	data: RecognitionCard[];
+	nextCursor: string | null;
+}
+
+async function fetchFeedPage(url: string): Promise<FeedPage> {
+	const res = await fetch(url);
+	if (!res.ok) throw new Error("Failed to fetch recognition cards");
+	const body = (await res.json()) as FeedPage;
+	if (!body.success) throw new Error("Failed to fetch recognition cards");
+	return body;
+}
+
+function buildFeedUrl(filter: FeedFilter, limit: number, cursor?: string | null) {
+	const params = new URLSearchParams();
+	if (filter !== "all") params.set("filter", filter);
+	params.set("limit", String(limit));
+	if (cursor) params.set("cursor", cursor);
+	const query = params.toString();
+	return `/api/recognition${query ? `?${query}` : ""}`;
+}
+
+function AutoCardSkeleton({ cardMaxWidth }: { cardMaxWidth?: string }) {
+	const cardView = usePreferencesStore((s) => s.cardView);
+	return cardView === "physical" ? (
+		<PhysicalCardSkeleton cardMaxWidth={cardMaxWidth} />
+	) : (
+		<ListCardSkeleton cardMaxWidth={cardMaxWidth} />
+	);
+}
+
+function PhysicalCardSkeleton({ cardMaxWidth }: { cardMaxWidth?: string }) {
 	return (
 		<SkeletonCard
-			className="p-6 animate-pulse"
+			className={cn("p-0 overflow-hidden animate-pulse", cardMaxWidth)}
+			role="status"
+			aria-busy="true"
+			aria-label="Loading recognition card"
+		>
+			<div className="bg-[#e6e7e8] dark:bg-white/5 flex flex-col md:flex-row gap-3 md:gap-4 p-3 md:p-5">
+				<div className="flex-1 flex flex-col gap-2">
+					<SkeletonLine className="h-12 w-full rounded-sm" />
+					<SkeletonLine className="h-24 md:h-28 w-full rounded-sm" />
+					<SkeletonLine className="h-12 w-full rounded-sm" />
+				</div>
+				<div className="flex-1 flex flex-col gap-2">
+					<div className="flex items-center justify-between h-14 md:h-16 px-1">
+						<SkeletonLine className="h-5 md:h-7 w-16" />
+						<SkeletonLine className="h-8 md:h-10 w-20" />
+					</div>
+					<div className="bg-white/70 dark:bg-white/5 rounded-sm p-4 md:p-5 flex flex-col gap-2 flex-grow">
+						<SkeletonLine className="h-3 w-40" />
+						{Array.from({ length: 5 }).map((_, i) => (
+							<div
+								// biome-ignore lint/suspicious/noArrayIndexKey: skeleton only
+								key={i}
+								className="flex items-center gap-1.5"
+							>
+								<SkeletonLine className="h-5 w-5 md:h-6 md:w-6 rounded-sm" />
+								<SkeletonLine className="h-4 w-24" />
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+			<div className="px-5 py-3 flex items-center gap-4">
+				<SkeletonLine className="h-6 w-14 rounded-full" />
+				<SkeletonLine className="h-6 w-14 rounded-full" />
+				<SkeletonLine className="h-6 w-20 rounded-full ml-auto" />
+			</div>
+		</SkeletonCard>
+	);
+}
+
+function ListCardSkeleton({ cardMaxWidth }: { cardMaxWidth?: string }) {
+	return (
+		<SkeletonCard
+			className={cn("p-6 animate-pulse", cardMaxWidth)}
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition card"
@@ -100,7 +180,7 @@ function CardActions({
 }
 
 interface RecognitionFeedProps {
-	filter?: "all" | "received" | "sent" | "department";
+	filter?: FeedFilter;
 	showTitle?: boolean;
 	showActions?: boolean;
 	currentUserId?: string;
@@ -109,9 +189,16 @@ interface RecognitionFeedProps {
 	emptyTitle?: string;
 	emptyDescription?: string;
 	onShare?: (cardId: string) => void;
+	limit?: number;
+	infinite?: boolean;
 }
 
-export function RecognitionFeed({
+export function RecognitionFeed(props: RecognitionFeedProps) {
+	if (props.infinite) return <RecognitionFeedInfinite {...props} />;
+	return <RecognitionFeedStatic {...props} />;
+}
+
+function RecognitionFeedStatic({
 	filter = "all",
 	showTitle = true,
 	showActions = false,
@@ -121,30 +208,155 @@ export function RecognitionFeed({
 	emptyTitle = "No recognition cards yet",
 	emptyDescription = "Be the first to recognize a colleague!",
 	onShare,
+	limit = 50,
 }: RecognitionFeedProps) {
-	const cardView = usePreferencesStore((s) => s.cardView);
-	const cardSize = usePreferencesStore((s) => s.cardSize);
-	const { unreadCardIds } = useUnreadCardIds(filter === "received");
-	const queryParam = filter !== "all" ? `?filter=${filter}` : "";
-
-	const { data, isPending } = useQuery<{
-		success: boolean;
-		data: RecognitionCard[];
-	}>({
-		queryKey: ["recognition-cards", filter],
-		queryFn: async () => {
-			const res = await fetch(`/api/recognition${queryParam}`);
-			if (!res.ok) throw new Error("Failed to fetch recognition cards");
-			return res.json();
-		},
+	const { data, isPending } = useQuery<FeedPage>({
+		queryKey: ["recognition-cards", filter, { limit, infinite: false }],
+		queryFn: () => fetchFeedPage(buildFeedUrl(filter, limit)),
 		staleTime: 30_000,
 	});
 
 	const cards = data?.data ?? [];
 
+	return (
+		<FeedLayout
+			filter={filter}
+			showTitle={showTitle}
+			showActions={showActions}
+			currentUserId={currentUserId}
+			isAdmin={isAdmin}
+			cardMaxWidth={cardMaxWidth}
+			emptyTitle={emptyTitle}
+			emptyDescription={emptyDescription}
+			onShare={onShare}
+			cards={cards}
+			isPending={isPending}
+		/>
+	);
+}
+
+function RecognitionFeedInfinite({
+	filter = "all",
+	showTitle = true,
+	showActions = false,
+	currentUserId = "",
+	isAdmin = false,
+	cardMaxWidth,
+	emptyTitle = "No recognition cards yet",
+	emptyDescription = "Be the first to recognize a colleague!",
+	onShare,
+	limit = 10,
+}: RecognitionFeedProps) {
+	const { data, isPending, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery<
+		FeedPage,
+		Error,
+		InfiniteData<FeedPage>,
+		readonly unknown[],
+		string | null
+	>({
+		queryKey: ["recognition-cards", filter, { limit, infinite: true }],
+		initialPageParam: null,
+		queryFn: ({ pageParam }) => fetchFeedPage(buildFeedUrl(filter, limit, pageParam)),
+		getNextPageParam: (last) => last.nextCursor ?? undefined,
+		staleTime: 30_000,
+	});
+
+	const cards = data?.pages.flatMap((p) => p.data) ?? [];
+
+	const { ref: sentinelRef, isIntersecting } = useIntersectionObserver();
+
+	// Gate auto-fetch on the first user scroll. Prevents a cascade when the
+	// first page's rendered height is shorter than the viewport + rootMargin,
+	// which would otherwise chain through many pages at mount time.
+	const [hasScrolled, setHasScrolled] = useState(false);
+	useEffect(() => {
+		const onScroll = () => setHasScrolled(true);
+		window.addEventListener("scroll", onScroll, { once: true, passive: true });
+		return () => window.removeEventListener("scroll", onScroll);
+	}, []);
+
+	useEffect(() => {
+		if (hasScrolled && isIntersecting && hasNextPage && !isFetchingNextPage) {
+			fetchNextPage();
+		}
+	}, [hasScrolled, isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+	return (
+		<FeedLayout
+			filter={filter}
+			showTitle={showTitle}
+			showActions={showActions}
+			currentUserId={currentUserId}
+			isAdmin={isAdmin}
+			cardMaxWidth={cardMaxWidth}
+			emptyTitle={emptyTitle}
+			emptyDescription={emptyDescription}
+			onShare={onShare}
+			cards={cards}
+			isPending={isPending}
+			footer={
+				hasNextPage ? (
+					<>
+						<div ref={sentinelRef} aria-hidden className="h-10 w-full" />
+						{isFetchingNextPage ? (
+							<AutoCardSkeleton cardMaxWidth={cardMaxWidth} />
+						) : (
+							<div className="flex justify-center pt-2">
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => fetchNextPage()}
+									disabled={isFetchingNextPage}
+								>
+									Load more
+								</Button>
+							</div>
+						)}
+					</>
+				) : null
+			}
+		/>
+	);
+}
+
+interface FeedLayoutProps {
+	filter: FeedFilter;
+	showTitle: boolean;
+	showActions: boolean;
+	currentUserId: string;
+	isAdmin: boolean;
+	cardMaxWidth?: string;
+	emptyTitle: string;
+	emptyDescription: string;
+	onShare?: (cardId: string) => void;
+	cards: RecognitionCard[];
+	isPending: boolean;
+	footer?: React.ReactNode;
+}
+
+function FeedLayout({
+	filter,
+	showTitle,
+	showActions,
+	currentUserId,
+	isAdmin,
+	cardMaxWidth,
+	emptyTitle,
+	emptyDescription,
+	onShare,
+	cards,
+	isPending,
+	footer,
+}: FeedLayoutProps) {
+	const cardView = usePreferencesStore((s) => s.cardView);
+	const cardSize = usePreferencesStore((s) => s.cardSize);
+	const { unreadCardIds } = useUnreadCardIds(filter === "received");
+
 	const handleShare = (cardId: string) => {
 		onShare?.(cardId);
 	};
+
+	const Skeleton = cardView === "physical" ? PhysicalCardSkeleton : ListCardSkeleton;
 
 	if (isPending) {
 		return (
@@ -154,9 +366,9 @@ export function RecognitionFeed({
 						Recent Recognitions
 					</h3>
 				)}
-				<CardSkeleton />
-				<CardSkeleton />
-				<CardSkeleton />
+				<Skeleton cardMaxWidth={cardMaxWidth} />
+				<Skeleton cardMaxWidth={cardMaxWidth} />
+				<Skeleton cardMaxWidth={cardMaxWidth} />
 			</div>
 		);
 	}
@@ -295,6 +507,7 @@ export function RecognitionFeed({
 					</div>
 				);
 			})}
+			{footer}
 		</div>
 	);
 }

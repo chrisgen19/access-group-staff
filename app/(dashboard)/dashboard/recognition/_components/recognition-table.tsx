@@ -44,6 +44,7 @@ import {
 	getSelectedValues,
 	type RecognitionCard,
 } from "@/lib/recognition";
+import { invalidateRecognitionFeed } from "@/lib/recognition-cache";
 import { RecognitionFilterBar } from "./recognition-filter-bar";
 import { ShareDialog } from "./share-dialog";
 
@@ -270,7 +271,7 @@ export function RecognitionTable() {
 			const result = await deleteRecognitionCardAction(deleteCardId);
 			if (result.success) {
 				toast.success("Recognition card deleted");
-				queryClient.invalidateQueries({ queryKey: ["recognition-cards"] });
+				await invalidateRecognitionFeed(queryClient);
 			} else {
 				toast.error(result.error);
 			}
