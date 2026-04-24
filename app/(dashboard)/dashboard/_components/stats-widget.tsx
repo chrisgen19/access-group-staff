@@ -32,6 +32,9 @@ const PODIUM_STYLES = [
 	},
 ] as const;
 
+const STATS_STICKY_OFFSET = 32;
+const STATS_STICKY_BREAKPOINT_QUERY = "(min-width: 1024px)";
+
 type LeaderboardVisibilityMode = "always" | "last_n_days_of_month" | "custom_range";
 
 interface LeaderboardVisibility {
@@ -476,42 +479,68 @@ export function StatsWidget() {
 
 export function StickyStatsWidget() {
 	const widgetRef = useRef<HTMLDivElement>(null);
-	const [stickyTop, setStickyTop] = useState(32);
+	const [stickyTop, setStickyTop] = useState(STATS_STICKY_OFFSET);
 
 	useEffect(() => {
 		const widget = widgetRef.current;
 		if (!widget) return;
 
+		const breakpoint = window.matchMedia(STATS_STICKY_BREAKPOINT_QUERY);
+		let resizeObserver: ResizeObserver | null = null;
+		let viewport: VisualViewport | null | undefined;
+
 		const updateStickyOffset = () => {
 			const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
 			const widgetHeight = widget.offsetHeight;
-			const offset = 32;
 			// Negative top is intentional for tall cards: it lets the card scroll
 			// until its bottom is visible, then stick while the feed continues.
 			const nextTop =
-				widgetHeight + offset * 2 > viewportHeight
-					? viewportHeight - widgetHeight - offset
-					: offset;
+				widgetHeight + STATS_STICKY_OFFSET * 2 > viewportHeight
+					? viewportHeight - widgetHeight - STATS_STICKY_OFFSET
+					: STATS_STICKY_OFFSET;
 
 			setStickyTop(nextTop);
 		};
 
-		updateStickyOffset();
-
-		const resizeObserver =
-			typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateStickyOffset);
-
-		resizeObserver?.observe(widget);
-		const viewport = window.visualViewport;
-		window.addEventListener("resize", updateStickyOffset);
-		viewport?.addEventListener("resize", updateStickyOffset);
-		viewport?.addEventListener("scroll", updateStickyOffset);
-
-		return () => {
+		const teardownStickyMeasurement = () => {
 			resizeObserver?.disconnect();
+			resizeObserver = null;
 			window.removeEventListener("resize", updateStickyOffset);
 			viewport?.removeEventListener("resize", updateStickyOffset);
-			viewport?.removeEventListener("scroll", updateStickyOffset);
+			viewport = undefined;
+		};
+
+		const setupStickyMeasurement = () => {
+			updateStickyOffset();
+
+			resizeObserver =
+				typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateStickyOffset);
+
+			resizeObserver?.observe(widget);
+			viewport = window.visualViewport;
+			window.addEventListener("resize", updateStickyOffset);
+			viewport?.addEventListener("resize", updateStickyOffset);
+		};
+
+		const handleBreakpointChange = (event: MediaQueryListEvent) => {
+			teardownStickyMeasurement();
+
+			if (event.matches) {
+				setupStickyMeasurement();
+			} else {
+				setStickyTop(STATS_STICKY_OFFSET);
+			}
+		};
+
+		if (breakpoint.matches) {
+			setupStickyMeasurement();
+		}
+
+		breakpoint.addEventListener("change", handleBreakpointChange);
+
+		return () => {
+			teardownStickyMeasurement();
+			breakpoint.removeEventListener("change", handleBreakpointChange);
 		};
 	}, []);
 
