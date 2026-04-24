@@ -171,12 +171,24 @@ export async function GET(request: NextRequest) {
 			});
 		}
 
-		const cards = await prisma.recognitionCard.findMany({
+		const limitParam = Number(request.nextUrl.searchParams.get("limit"));
+		const limit = Math.min(
+			50,
+			Math.max(1, Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50),
+		);
+		const cursor = request.nextUrl.searchParams.get("cursor") || undefined;
+
+		const rows = await prisma.recognitionCard.findMany({
 			where,
 			include,
-			orderBy: { createdAt: "desc" },
-			take: 50,
+			orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+			take: limit + 1,
+			...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
 		});
+
+		const hasMore = rows.length > limit;
+		const cards = hasMore ? rows.slice(0, limit) : rows;
+		const nextCursor = hasMore ? (cards[cards.length - 1]?.id ?? null) : null;
 
 		const cardIds = cards.map((c) => c.id);
 
@@ -230,6 +242,7 @@ export async function GET(request: NextRequest) {
 				...mapCounts(card),
 				reactionSummary: Array.from(reactionsByCard.get(card.id)?.values() ?? []),
 			})),
+			nextCursor,
 		});
 	} catch {
 		return Response.json({ success: false, error: "Internal server error" }, { status: 500 });
