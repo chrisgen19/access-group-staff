@@ -135,7 +135,7 @@ describe("GET /api/recognition (cursor pagination)", () => {
 		expect(call?.skip).toBeUndefined();
 	});
 
-	test("maps Prisma findMany errors (e.g. bad cursor) to 400", async () => {
+	test("maps Prisma findMany errors to 400 only when a cursor was supplied", async () => {
 		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(new Error("bad cursor"));
 
 		const res = await GET(makeRequest("http://x/api/recognition?cursor=abc"));
@@ -143,6 +143,16 @@ describe("GET /api/recognition (cursor pagination)", () => {
 
 		expect(res.status).toBe(400);
 		expect(body).toEqual({ success: false, error: "Invalid cursor" });
+	});
+
+	test("surfaces findMany failures without a cursor as 500 (infra error)", async () => {
+		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(new Error("db down"));
+
+		const res = await GET(makeRequest("http://x/api/recognition"));
+		const body = await res.json();
+
+		expect(res.status).toBe(500);
+		expect(body).toEqual({ success: false, error: "Internal server error" });
 	});
 
 	test("empty result returns empty data + null nextCursor", async () => {

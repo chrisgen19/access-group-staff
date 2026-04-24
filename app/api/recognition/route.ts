@@ -180,18 +180,26 @@ export async function GET(request: NextRequest) {
 		const cursor =
 			rawCursor && rawCursor.length > 0 && rawCursor.length <= 64 ? rawCursor : undefined;
 
-		const rows = await prisma.recognitionCard
-			.findMany({
+		let rows: Awaited<
+			ReturnType<typeof prisma.recognitionCard.findMany<{ include: typeof include }>>
+		>;
+		try {
+			rows = await prisma.recognitionCard.findMany({
 				where,
 				include,
 				orderBy: [{ createdAt: "desc" }, { id: "desc" }],
 				take: limit + 1,
 				...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-			})
-			.catch(() => null);
-
-		if (rows === null) {
-			return Response.json({ success: false, error: "Invalid cursor" }, { status: 400 });
+			});
+		} catch (err) {
+			// Only surface as a client error when the caller provided a cursor — a
+			// malformed cursor is the only way bad user input can make this query
+			// throw. Any other failure (pool exhaustion, timeouts, DB down) is an
+			// infrastructure problem and should fall through to the outer 500.
+			if (cursor) {
+				return Response.json({ success: false, error: "Invalid cursor" }, { status: 400 });
+			}
+			throw err;
 		}
 
 		const hasMore = rows.length > limit;
