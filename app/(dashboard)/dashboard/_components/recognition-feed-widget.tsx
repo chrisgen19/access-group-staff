@@ -71,6 +71,7 @@ export function RecognitionFeedWidget({ currentUserId, isAdmin }: RecognitionFee
 					emptyTitle={currentTab.emptyTitle}
 					emptyDescription={currentTab.emptyDescription}
 					limit={10}
+					infinite
 				/>
 			</div>
 		</div>

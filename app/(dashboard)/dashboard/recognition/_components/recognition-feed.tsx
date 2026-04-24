@@ -211,9 +211,7 @@ function RecognitionFeedInfinite({
 
 	const cards = data?.pages.flatMap((p) => p.data) ?? [];
 
-	const { ref: sentinelRef, isIntersecting } = useIntersectionObserver({
-		enabled: !!hasNextPage && !isFetchingNextPage,
-	});
+	const { ref: sentinelRef, isIntersecting } = useIntersectionObserver();
 
 	useEffect(() => {
 		if (isIntersecting && hasNextPage && !isFetchingNextPage) {
@@ -237,7 +235,7 @@ function RecognitionFeedInfinite({
 			footer={
 				hasNextPage ? (
 					<>
-						<div ref={sentinelRef} aria-hidden className="h-px w-full" />
+						<div ref={sentinelRef} aria-hidden className="h-10 w-full" />
 						{isFetchingNextPage ? (
 							<CardSkeleton />
 						) : (
