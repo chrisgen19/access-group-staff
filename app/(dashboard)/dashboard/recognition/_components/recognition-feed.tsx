@@ -3,7 +3,7 @@
 import { type InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,55 @@ function buildFeedUrl(filter: FeedFilter, limit: number, cursor?: string | null)
 	return `/api/recognition${query ? `?${query}` : ""}`;
 }
 
-function CardSkeleton() {
+function AutoCardSkeleton() {
+	const cardView = usePreferencesStore((s) => s.cardView);
+	return cardView === "physical" ? <PhysicalCardSkeleton /> : <ListCardSkeleton />;
+}
+
+function PhysicalCardSkeleton() {
+	return (
+		<SkeletonCard
+			className="p-0 overflow-hidden animate-pulse"
+			role="status"
+			aria-busy="true"
+			aria-label="Loading recognition card"
+		>
+			<div className="bg-[#e6e7e8] dark:bg-white/5 flex flex-col md:flex-row gap-3 md:gap-4 p-3 md:p-5">
+				<div className="flex-1 flex flex-col gap-2">
+					<SkeletonLine className="h-12 w-full rounded-sm" />
+					<SkeletonLine className="h-24 md:h-28 w-full rounded-sm" />
+					<SkeletonLine className="h-12 w-full rounded-sm" />
+				</div>
+				<div className="flex-1 flex flex-col gap-2">
+					<div className="flex items-center justify-between h-14 md:h-16 px-1">
+						<SkeletonLine className="h-5 md:h-7 w-16" />
+						<SkeletonLine className="h-8 md:h-10 w-20" />
+					</div>
+					<div className="bg-white/70 dark:bg-white/5 rounded-sm p-4 md:p-5 flex flex-col gap-2 flex-grow">
+						<SkeletonLine className="h-3 w-40" />
+						{Array.from({ length: 5 }).map((_, i) => (
+							<div
+								// biome-ignore lint/suspicious/noArrayIndexKey: skeleton only
+								key={i}
+								className="flex items-center gap-1.5"
+							>
+								<SkeletonLine className="h-5 w-5 md:h-6 md:w-6 rounded-sm" />
+								<SkeletonLine className="h-4 w-24" />
+							</div>
+						))}
+					</div>
+				</div>
+			</div>
+			<div className="px-5 py-3 flex items-center gap-4">
+				<SkeletonLine className="h-6 w-14 rounded-full" />
+				<SkeletonLine className="h-6 w-14 rounded-full" />
+				<SkeletonLine className="h-6 w-20 rounded-full ml-auto" />
+			</div>
+		</SkeletonCard>
+	);
+}
+
+function ListCardSkeleton() {
 	return (
 		<SkeletonCard
 			className="p-6 animate-pulse"
@@ -213,11 +261,21 @@ function RecognitionFeedInfinite({
 
 	const { ref: sentinelRef, isIntersecting } = useIntersectionObserver();
 
+	// Gate auto-fetch on the first user scroll. Prevents a cascade when the
+	// first page's rendered height is shorter than the viewport + rootMargin,
+	// which would otherwise chain through many pages at mount time.
+	const [hasScrolled, setHasScrolled] = useState(false);
 	useEffect(() => {
-		if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+		const onScroll = () => setHasScrolled(true);
+		window.addEventListener("scroll", onScroll, { once: true, passive: true });
+		return () => window.removeEventListener("scroll", onScroll);
+	}, []);
+
+	useEffect(() => {
+		if (hasScrolled && isIntersecting && hasNextPage && !isFetchingNextPage) {
 			fetchNextPage();
 		}
-	}, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+	}, [hasScrolled, isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	return (
 		<FeedLayout
@@ -237,7 +295,7 @@ function RecognitionFeedInfinite({
 					<>
 						<div ref={sentinelRef} aria-hidden className="h-10 w-full" />
 						{isFetchingNextPage ? (
-							<CardSkeleton />
+							<AutoCardSkeleton />
 						) : (
 							<div className="flex justify-center pt-2">
 								<Button
@@ -294,6 +352,8 @@ function FeedLayout({
 		onShare?.(cardId);
 	};
 
+	const Skeleton = cardView === "physical" ? PhysicalCardSkeleton : ListCardSkeleton;
+
 	if (isPending) {
 		return (
 			<div className="space-y-4">
@@ -302,9 +362,9 @@ function FeedLayout({
 						Recent Recognitions
 					</h3>
 				)}
-				<CardSkeleton />
-				<CardSkeleton />
-				<CardSkeleton />
+				<Skeleton />
+				<Skeleton />
+				<Skeleton />
 			</div>
 		);
 	}

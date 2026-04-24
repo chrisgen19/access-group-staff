@@ -21,8 +21,9 @@ vi.mock("./recognition-card-mini", () => ({
 	RecognitionCardMini: () => <div />,
 }));
 
+const intersectingState = { current: false };
 vi.mock("@/hooks/use-intersection-observer", () => ({
-	useIntersectionObserver: () => ({ ref: () => {}, isIntersecting: false }),
+	useIntersectionObserver: () => ({ ref: () => {}, isIntersecting: intersectingState.current }),
 }));
 
 import { RecognitionFeed } from "./recognition-feed";
@@ -50,6 +51,7 @@ const fetchMock = vi.fn();
 
 beforeEach(() => {
 	fetchMock.mockReset();
+	intersectingState.current = false;
 	vi.stubGlobal("fetch", fetchMock);
 });
 
@@ -154,6 +156,46 @@ describe("RecognitionFeed (infinite)", () => {
 					?.status,
 			).toBe("error"),
 		);
+	});
+
+	test("auto-fetches next page when sentinel intersects after a user scroll", async () => {
+		fetchMock
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					success: true,
+					data: [makeCard("a"), makeCard("b")],
+					nextCursor: "b",
+				}),
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				json: async () => ({
+					success: true,
+					data: [makeCard("c")],
+					nextCursor: null,
+				}),
+			});
+
+		const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+		render(<RecognitionFeed filter="received" limit={2} infinite />, { wrapper: wrapper(client) });
+		await waitFor(() => expect(screen.getByText("message a")).toBeInTheDocument());
+
+		// Sentinel is in view but user hasn't scrolled yet — no second fetch.
+		await act(async () => {
+			intersectingState.current = true;
+			window.dispatchEvent(new Event("resize"));
+		});
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+
+		// First user scroll flips the gate; sentinel still intersecting → fetch fires.
+		await act(async () => {
+			window.dispatchEvent(new Event("scroll"));
+		});
+		await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+		const secondCall = fetchMock.mock.calls[1]?.[0] as string;
+		expect(secondCall).toContain("cursor=b");
 	});
 
 	test("hides Load more when nextCursor is null on first page", async () => {

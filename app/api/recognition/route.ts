@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { Prisma } from "@/app/generated/prisma/client";
+import type { Prisma } from "@/app/generated/prisma/client";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { getUserRole, hasMinRole } from "@/lib/permissions";
@@ -196,10 +196,12 @@ export async function GET(request: NextRequest) {
 			// Infrastructure failures (pool exhaustion, timeouts, DB down) are different
 			// classes of error and must fall through to the outer 500 — mapping them to
 			// 400 would hide real outages as client bad-input in monitoring.
+			// Name check (not instanceof) keeps us resilient to Prisma constructor
+			// drift between majors.
+			const name = err instanceof Error ? err.name : "";
 			const isCursorError =
 				!!cursor &&
-				(err instanceof Prisma.PrismaClientValidationError ||
-					err instanceof Prisma.PrismaClientKnownRequestError);
+				(name === "PrismaClientValidationError" || name === "PrismaClientKnownRequestError");
 			if (isCursorError) {
 				return Response.json({ success: false, error: "Invalid cursor" }, { status: 400 });
 			}

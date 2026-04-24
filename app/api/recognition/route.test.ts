@@ -1,6 +1,11 @@
 import type { NextRequest } from "next/server";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { Prisma } from "@/app/generated/prisma/client";
+
+function prismaValidationError(message = "invalid"): Error {
+	const err = new Error(message);
+	err.name = "PrismaClientValidationError";
+	return err;
+}
 
 vi.mock("@/lib/auth-utils", () => ({
 	requireSession: vi.fn(),
@@ -138,7 +143,7 @@ describe("GET /api/recognition (cursor pagination)", () => {
 
 	test("maps Prisma validation errors with a cursor to 400 Invalid cursor", async () => {
 		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(
-			new Prisma.PrismaClientValidationError("bad cursor", { clientVersion: "x" }),
+			prismaValidationError("bad cursor"),
 		);
 
 		const res = await GET(makeRequest("http://x/api/recognition?cursor=abc"));
@@ -160,7 +165,7 @@ describe("GET /api/recognition (cursor pagination)", () => {
 
 	test("surfaces findMany failures without a cursor as 500", async () => {
 		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(
-			new Prisma.PrismaClientValidationError("db down", { clientVersion: "x" }),
+			prismaValidationError("no-cursor path"),
 		);
 
 		const res = await GET(makeRequest("http://x/api/recognition"));
