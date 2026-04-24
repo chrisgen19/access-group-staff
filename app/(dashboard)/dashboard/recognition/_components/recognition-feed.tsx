@@ -1,6 +1,6 @@
 "use client";
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { type InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -21,6 +21,14 @@ interface FeedPage {
 	success: boolean;
 	data: RecognitionCard[];
 	nextCursor: string | null;
+}
+
+async function fetchFeedPage(url: string): Promise<FeedPage> {
+	const res = await fetch(url);
+	if (!res.ok) throw new Error("Failed to fetch recognition cards");
+	const body = (await res.json()) as FeedPage;
+	if (!body.success) throw new Error("Failed to fetch recognition cards");
+	return body;
 }
 
 function buildFeedUrl(filter: FeedFilter, limit: number, cursor?: string | null) {
@@ -152,11 +160,7 @@ function RecognitionFeedStatic({
 }: RecognitionFeedProps) {
 	const { data, isPending } = useQuery<FeedPage>({
 		queryKey: ["recognition-cards", filter, { limit, infinite: false }],
-		queryFn: async () => {
-			const res = await fetch(buildFeedUrl(filter, limit));
-			if (!res.ok) throw new Error("Failed to fetch recognition cards");
-			return res.json();
-		},
+		queryFn: () => fetchFeedPage(buildFeedUrl(filter, limit)),
 		staleTime: 30_000,
 	});
 
@@ -194,17 +198,13 @@ function RecognitionFeedInfinite({
 	const { data, isPending, hasNextPage, isFetchingNextPage, fetchNextPage } = useInfiniteQuery<
 		FeedPage,
 		Error,
-		{ pages: FeedPage[] },
+		InfiniteData<FeedPage>,
 		readonly unknown[],
 		string | null
 	>({
 		queryKey: ["recognition-cards", filter, { limit, infinite: true }],
 		initialPageParam: null,
-		queryFn: async ({ pageParam }) => {
-			const res = await fetch(buildFeedUrl(filter, limit, pageParam));
-			if (!res.ok) throw new Error("Failed to fetch recognition cards");
-			return res.json();
-		},
+		queryFn: ({ pageParam }) => fetchFeedPage(buildFeedUrl(filter, limit, pageParam)),
 		getNextPageParam: (last) => last.nextCursor ?? undefined,
 		staleTime: 30_000,
 	});

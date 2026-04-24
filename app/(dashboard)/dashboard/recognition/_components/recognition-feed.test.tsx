@@ -58,6 +58,30 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
+describe("RecognitionFeed (static)", () => {
+	test("fetches once, forwards limit, and renders no Load more", async () => {
+		fetchMock.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({
+				success: true,
+				data: [makeCard("a")],
+				nextCursor: null,
+			}),
+		});
+
+		const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+		render(<RecognitionFeed filter="all" limit={25} />, { wrapper: wrapper(client) });
+
+		await waitFor(() => expect(screen.getByText("message a")).toBeInTheDocument());
+		expect(screen.queryByRole("button", { name: /load more/i })).not.toBeInTheDocument();
+
+		const call = fetchMock.mock.calls[0]?.[0] as string;
+		expect(call).toContain("limit=25");
+		expect(call).not.toContain("filter=all");
+		expect(fetchMock).toHaveBeenCalledTimes(1);
+	});
+});
+
 describe("RecognitionFeed (infinite)", () => {
 	test("loads first page and renders Load more when nextCursor present", async () => {
 		fetchMock.mockResolvedValueOnce({
@@ -112,6 +136,24 @@ describe("RecognitionFeed (infinite)", () => {
 		expect(screen.queryByRole("button", { name: /load more/i })).not.toBeInTheDocument();
 		const secondCall = fetchMock.mock.calls[1]?.[0] as string;
 		expect(secondCall).toContain("cursor=b");
+	});
+
+	test("throws when body.success is false (consistent error envelope)", async () => {
+		fetchMock.mockResolvedValueOnce({
+			ok: true,
+			json: async () => ({ success: false, error: "nope" }),
+		});
+
+		const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+		render(<RecognitionFeed filter="received" limit={5} infinite />, { wrapper: wrapper(client) });
+
+		// Query errors cause isPending to finish without populating data; skeletons linger on error.
+		await waitFor(() =>
+			expect(
+				client.getQueryState(["recognition-cards", "received", { limit: 5, infinite: true }])
+					?.status,
+			).toBe("error"),
+		);
 	});
 
 	test("hides Load more when nextCursor is null on first page", async () => {

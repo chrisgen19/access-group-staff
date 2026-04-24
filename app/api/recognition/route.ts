@@ -172,19 +172,27 @@ export async function GET(request: NextRequest) {
 		}
 
 		const limitParam = Number(request.nextUrl.searchParams.get("limit"));
-		const limit = Math.min(
-			50,
-			Math.max(1, Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50),
+		const limit = Math.floor(
+			Math.min(50, Math.max(1, Number.isFinite(limitParam) && limitParam > 0 ? limitParam : 50)),
 		);
-		const cursor = request.nextUrl.searchParams.get("cursor") || undefined;
+		const rawCursor = request.nextUrl.searchParams.get("cursor");
+		// Cursor is a card id (uuid ≈ 36 chars). Anything longer is malformed input we ignore.
+		const cursor =
+			rawCursor && rawCursor.length > 0 && rawCursor.length <= 64 ? rawCursor : undefined;
 
-		const rows = await prisma.recognitionCard.findMany({
-			where,
-			include,
-			orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-			take: limit + 1,
-			...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
-		});
+		const rows = await prisma.recognitionCard
+			.findMany({
+				where,
+				include,
+				orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+				take: limit + 1,
+				...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+			})
+			.catch(() => null);
+
+		if (rows === null) {
+			return Response.json({ success: false, error: "Invalid cursor" }, { status: 400 });
+		}
 
 		const hasMore = rows.length > limit;
 		const cards = hasMore ? rows.slice(0, limit) : rows;

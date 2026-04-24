@@ -114,6 +114,37 @@ describe("GET /api/recognition (cursor pagination)", () => {
 		expect(call?.take).toBe(51);
 	});
 
+	test("floors fractional limit to an integer", async () => {
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([] as never);
+
+		await GET(makeRequest("http://x/api/recognition?limit=10.7"));
+
+		const call = vi.mocked(prisma.recognitionCard.findMany).mock.calls[0]?.[0];
+		expect(call?.take).toBe(11);
+		expect(Number.isInteger(call?.take)).toBe(true);
+	});
+
+	test("ignores oversized cursor (>64 chars) and returns first page", async () => {
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([] as never);
+		const huge = "x".repeat(200);
+
+		await GET(makeRequest(`http://x/api/recognition?cursor=${huge}`));
+
+		const call = vi.mocked(prisma.recognitionCard.findMany).mock.calls[0]?.[0];
+		expect(call?.cursor).toBeUndefined();
+		expect(call?.skip).toBeUndefined();
+	});
+
+	test("maps Prisma findMany errors (e.g. bad cursor) to 400", async () => {
+		vi.mocked(prisma.recognitionCard.findMany).mockRejectedValueOnce(new Error("bad cursor"));
+
+		const res = await GET(makeRequest("http://x/api/recognition?cursor=abc"));
+		const body = await res.json();
+
+		expect(res.status).toBe(400);
+		expect(body).toEqual({ success: false, error: "Invalid cursor" });
+	});
+
 	test("empty result returns empty data + null nextCursor", async () => {
 		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([] as never);
 
