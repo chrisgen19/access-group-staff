@@ -40,15 +40,19 @@ function buildFeedUrl(filter: FeedFilter, limit: number, cursor?: string | null)
 	return `/api/recognition${query ? `?${query}` : ""}`;
 }
 
-function AutoCardSkeleton() {
+function AutoCardSkeleton({ cardMaxWidth }: { cardMaxWidth?: string }) {
 	const cardView = usePreferencesStore((s) => s.cardView);
-	return cardView === "physical" ? <PhysicalCardSkeleton /> : <ListCardSkeleton />;
+	return cardView === "physical" ? (
+		<PhysicalCardSkeleton cardMaxWidth={cardMaxWidth} />
+	) : (
+		<ListCardSkeleton cardMaxWidth={cardMaxWidth} />
+	);
 }
 
-function PhysicalCardSkeleton() {
+function PhysicalCardSkeleton({ cardMaxWidth }: { cardMaxWidth?: string }) {
 	return (
 		<SkeletonCard
-			className="p-0 overflow-hidden animate-pulse"
+			className={cn("p-0 overflow-hidden animate-pulse", cardMaxWidth)}
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition card"
@@ -88,10 +92,10 @@ function PhysicalCardSkeleton() {
 	);
 }
 
-function ListCardSkeleton() {
+function ListCardSkeleton({ cardMaxWidth }: { cardMaxWidth?: string }) {
 	return (
 		<SkeletonCard
-			className="p-6 animate-pulse"
+			className={cn("p-6 animate-pulse", cardMaxWidth)}
 			role="status"
 			aria-busy="true"
 			aria-label="Loading recognition card"
@@ -295,7 +299,7 @@ function RecognitionFeedInfinite({
 					<>
 						<div ref={sentinelRef} aria-hidden className="h-10 w-full" />
 						{isFetchingNextPage ? (
-							<AutoCardSkeleton />
+							<AutoCardSkeleton cardMaxWidth={cardMaxWidth} />
 						) : (
 							<div className="flex justify-center pt-2">
 								<Button
@@ -362,9 +366,9 @@ function FeedLayout({
 						Recent Recognitions
 					</h3>
 				)}
-				<Skeleton />
-				<Skeleton />
-				<Skeleton />
+				<Skeleton cardMaxWidth={cardMaxWidth} />
+				<Skeleton cardMaxWidth={cardMaxWidth} />
+				<Skeleton cardMaxWidth={cardMaxWidth} />
 			</div>
 		);
 	}
