@@ -105,7 +105,7 @@ export function ActivityLogTable({
 				<p className="mt-2 text-base text-muted-foreground">
 					{hasActiveFilters
 						? "No entries match your current filters."
-						: "Auth events will appear here as they happen."}
+						: "Auth, account, and product activity will appear here as they happen."}
 				</p>
 				{hasActiveFilters && (
 					<Link

@@ -121,6 +121,35 @@ describe("toggleReactionAction", () => {
 
 		expect(result).toEqual({ success: false, error: "Card not found" });
 	});
+
+	test("P2002 race during create flips to remove and logs CARD_UNREACTED", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(OUTSIDER_ID) as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.recognitionCard.findUnique).mockResolvedValue(mockCard() as never);
+		// First deleteMany returns 0 (no existing reaction), so we proceed to create.
+		// Second deleteMany (after the P2002 unwind) returns 1 (the concurrent row).
+		vi.mocked(prisma.cardReaction.deleteMany)
+			.mockResolvedValueOnce({ count: 0 } as never)
+			.mockResolvedValueOnce({ count: 1 } as never);
+
+		const p2002 = Object.assign(new Error("Unique violation"), { code: "P2002" });
+		vi.mocked(prisma.$transaction).mockRejectedValue(p2002 as never);
+
+		const result = await toggleReactionAction(CARD_ID, "👏");
+
+		expect(result).toEqual({ success: true, action: "removed" });
+		expect(prisma.cardReaction.deleteMany).toHaveBeenCalledTimes(2);
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_UNREACTED",
+				actorId: OUTSIDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+				metadata: { emoji: "👏" },
+			}),
+		);
+	});
 });
 
 describe("addCommentAction", () => {

@@ -11,8 +11,13 @@ vi.mock("@/lib/auth-utils", () => ({
 vi.mock("@/lib/db", () => ({
 	prisma: {
 		user: { findUnique: vi.fn() },
-		recognitionCard: { create: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
-		notification: { create: vi.fn(), deleteMany: vi.fn() },
+		recognitionCard: {
+			create: vi.fn(),
+			findUnique: vi.fn(),
+			update: vi.fn(),
+			delete: vi.fn(),
+		},
+		notification: { create: vi.fn(), createMany: vi.fn(), deleteMany: vi.fn() },
 		$transaction: vi.fn(),
 	},
 }));
@@ -24,7 +29,11 @@ vi.mock("@/lib/activity-log", () => ({
 import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { createRecognitionCardAction } from "./recognition-actions";
+import {
+	createRecognitionCardAction,
+	deleteRecognitionCardAction,
+	updateRecognitionCardAction,
+} from "./recognition-actions";
 
 const SENDER_ID = "sender_123";
 const RECIPIENT_ID = "recipient_456";
@@ -41,8 +50,11 @@ const validInput = (overrides: Partial<Record<string, unknown>> = {}) => ({
 	...overrides,
 });
 
-const mockSession = (userId = SENDER_ID) => ({
-	user: { id: userId, name: "Test Sender", role: "STAFF" },
+const mockSession = (
+	userId: string = SENDER_ID,
+	role: "STAFF" | "ADMIN" | "SUPERADMIN" = "STAFF",
+) => ({
+	user: { id: userId, name: "Test Sender", role },
 	session: { id: "sess_1" },
 });
 
@@ -156,5 +168,79 @@ describe("createRecognitionCardAction", () => {
 		const result = await createRecognitionCardAction(validInput());
 
 		expect(result).toEqual({ success: false, error: "Unauthorized" });
+	});
+});
+
+describe("updateRecognitionCardAction", () => {
+	test("updates a card and logs CARD_UPDATED on happy path", async () => {
+		const CARD_ID = "card_existing";
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession() as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.recognitionCard.findUnique).mockResolvedValue({
+			senderId: SENDER_ID,
+			recipientId: RECIPIENT_ID,
+		} as never);
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: RECIPIENT_ID } as never);
+
+		const updatedCard = { id: CARD_ID, senderId: SENDER_ID, recipientId: RECIPIENT_ID };
+		const tx = {
+			recognitionCard: { update: vi.fn().mockResolvedValue(updatedCard) },
+			notification: {
+				create: vi.fn().mockResolvedValue({}),
+				deleteMany: vi.fn().mockResolvedValue({}),
+			},
+		};
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb(tx)) as never);
+
+		const result = await updateRecognitionCardAction(CARD_ID, validInput());
+
+		expect(result).toEqual({ success: true, data: updatedCard });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_UPDATED",
+				actorId: SENDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+			}),
+		);
+	});
+});
+
+describe("deleteRecognitionCardAction", () => {
+	test("deletes a card and logs CARD_DELETED on happy path (admin)", async () => {
+		const CARD_ID = "card_to_delete";
+		const ADMIN_ID = "admin_1";
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(ADMIN_ID, "ADMIN") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.recognitionCard.findUnique).mockResolvedValue({
+			id: CARD_ID,
+			senderId: SENDER_ID,
+			recipientId: RECIPIENT_ID,
+		} as never);
+
+		const tx = {
+			notification: {
+				deleteMany: vi.fn().mockResolvedValue({}),
+				createMany: vi.fn().mockResolvedValue({}),
+			},
+			recognitionCard: { delete: vi.fn().mockResolvedValue({}) },
+		};
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb(tx)) as never);
+
+		const result = await deleteRecognitionCardAction(CARD_ID);
+
+		expect(result).toEqual({ success: true });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_DELETED",
+				actorId: ADMIN_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+			}),
+		);
 	});
 });
