@@ -119,6 +119,23 @@ describe("setInitialPasswordAction", () => {
 		expect(prisma.account.findFirst).not.toHaveBeenCalled();
 	});
 
+	test("returns success even when post-persist logging fails", async () => {
+		vi.mocked(prisma.account.findFirst).mockResolvedValue(null);
+		vi.mocked(prisma.account.create).mockResolvedValue({} as never);
+		vi.mocked(logActivity).mockRejectedValueOnce(new Error("activity-log down"));
+		const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+		const result = await setInitialPasswordAction({
+			newPassword: "supersecret",
+			confirmPassword: "supersecret",
+		});
+
+		expect(result).toEqual({ success: true, data: null });
+		expect(prisma.account.create).toHaveBeenCalled();
+		expect(consoleErrorSpy).toHaveBeenCalled();
+		consoleErrorSpy.mockRestore();
+	});
+
 	test("handles concurrent-create race (P2002) as already-set", async () => {
 		vi.mocked(prisma.account.findFirst).mockResolvedValue(null);
 		vi.mocked(prisma.account.create).mockRejectedValue(

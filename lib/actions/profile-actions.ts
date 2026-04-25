@@ -125,16 +125,28 @@ export async function setInitialPasswordAction(formData: unknown) {
 			throw err;
 		}
 
-		const { ipAddress, userAgent } = extractRequestMeta(await headers());
-		await logActivity({
-			action: "PASSWORD_SET",
-			actorId: session.user.id,
-			ipAddress,
-			userAgent,
-		});
+		// Best-effort side effects: never flip a successful persist into a
+		// reported failure. If logging or revalidation throws, the user has
+		// still set their password successfully and a second attempt would
+		// only confuse them with "already set".
+		try {
+			const { ipAddress, userAgent } = extractRequestMeta(await headers());
+			await logActivity({
+				action: "PASSWORD_SET",
+				actorId: session.user.id,
+				ipAddress,
+				userAgent,
+			});
 
-		revalidatePath("/dashboard/profile/security");
-		revalidatePath("/dashboard/profile/connected-accounts");
+			revalidatePath("/dashboard/profile/security");
+			revalidatePath("/dashboard/profile/connected-accounts");
+		} catch (err) {
+			console.error("setInitialPasswordAction post-persist side effects failed", {
+				userId: session.user.id,
+				error: err instanceof Error ? err.message : String(err),
+			});
+		}
+
 		return { success: true as const, data: null };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to set password";
