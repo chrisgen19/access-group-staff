@@ -4,11 +4,15 @@ import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { z } from "zod";
+import { Prisma } from "@/app/generated/prisma/client";
 import { extractRequestMeta, logActivity } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { deleteFromR2, extractKeyFromUrl } from "@/lib/r2";
 import { setPasswordSchema } from "@/lib/validations/auth";
+
+const PASSWORD_ALREADY_SET_ERROR =
+	"A password is already set for this account. Use change password instead.";
 
 const updateProfileSchema = z.object({
 	displayName: z.string().optional(),
@@ -93,10 +97,7 @@ export async function setInitialPasswordAction(formData: unknown) {
 		});
 
 		if (existing) {
-			return {
-				success: false as const,
-				error: "A password is already set for this account. Use change password instead.",
-			};
+			return { success: false as const, error: PASSWORD_ALREADY_SET_ERROR };
 		}
 
 		const hashedPassword = await hashPassword(parsed.data.newPassword);
@@ -104,14 +105,25 @@ export async function setInitialPasswordAction(formData: unknown) {
 		// `accountId === userId` for credential accounts — matches better-auth's
 		// internal linkAccount call so subsequent sign-in flows treat it
 		// identically to a credential account created at registration.
-		await prisma.account.create({
-			data: {
-				userId: session.user.id,
-				accountId: session.user.id,
-				providerId: "credential",
-				password: hashedPassword,
-			},
-		});
+		try {
+			await prisma.account.create({
+				data: {
+					userId: session.user.id,
+					accountId: session.user.id,
+					providerId: "credential",
+					password: hashedPassword,
+				},
+			});
+		} catch (err) {
+			// Race-safety: a concurrent request can pass the `findFirst` check
+			// at the same moment and both reach `create`. The composite unique
+			// index on (user_id, provider_id) makes the second insert fail with
+			// P2002, which we surface as the same "already set" message.
+			if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+				return { success: false as const, error: PASSWORD_ALREADY_SET_ERROR };
+			}
+			throw err;
+		}
 
 		const { ipAddress, userAgent } = extractRequestMeta(await headers());
 		await logActivity({

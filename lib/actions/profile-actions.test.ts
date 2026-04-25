@@ -40,6 +40,7 @@ vi.mock("better-auth/crypto", () => ({
 }));
 
 import { hashPassword } from "better-auth/crypto";
+import { Prisma } from "@/app/generated/prisma/client";
 import { logActivity } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
@@ -116,5 +117,26 @@ describe("setInitialPasswordAction", () => {
 
 		expect(result.success).toBe(false);
 		expect(prisma.account.findFirst).not.toHaveBeenCalled();
+	});
+
+	test("handles concurrent-create race (P2002) as already-set", async () => {
+		vi.mocked(prisma.account.findFirst).mockResolvedValue(null);
+		vi.mocked(prisma.account.create).mockRejectedValue(
+			new Prisma.PrismaClientKnownRequestError("Unique constraint failed", {
+				code: "P2002",
+				clientVersion: "test",
+			}),
+		);
+
+		const result = await setInitialPasswordAction({
+			newPassword: "supersecret",
+			confirmPassword: "supersecret",
+		});
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/already set/i);
+		}
+		expect(logActivity).not.toHaveBeenCalled();
 	});
 });
