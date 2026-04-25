@@ -48,9 +48,9 @@ import { setInitialPasswordAction } from "./profile-actions";
 
 const USER_ID = "user_1";
 
-const mockSession = () => ({
+const mockSession = (sessionAgeMs = 60 * 1000) => ({
 	user: { id: USER_ID, name: "Tester", role: "STAFF" as const },
-	session: { id: "sess_1" },
+	session: { id: "sess_1", createdAt: new Date(Date.now() - sessionAgeMs) },
 });
 
 beforeEach(() => {
@@ -117,6 +117,25 @@ describe("setInitialPasswordAction", () => {
 
 		expect(result.success).toBe(false);
 		expect(prisma.account.findFirst).not.toHaveBeenCalled();
+	});
+
+	test("rejects when the session is older than the freshness window", async () => {
+		// 16 minutes — outside the 15-minute fresh-auth gate.
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(16 * 60 * 1000) as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+
+		const result = await setInitialPasswordAction({
+			newPassword: "supersecret",
+			confirmPassword: "supersecret",
+		});
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/sign out and sign back in/i);
+		}
+		expect(prisma.account.findFirst).not.toHaveBeenCalled();
+		expect(prisma.account.create).not.toHaveBeenCalled();
 	});
 
 	test("returns success even when post-persist logging fails", async () => {

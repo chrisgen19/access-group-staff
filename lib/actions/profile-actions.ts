@@ -14,6 +14,14 @@ import { setPasswordSchema } from "@/lib/validations/auth";
 const PASSWORD_ALREADY_SET_ERROR =
 	"A password is already set for this account. Use change password instead.";
 
+// Recent-auth gate for setInitialPasswordAction. Mirrors the intent of
+// better-auth's sensitiveSessionMiddleware but uses session.createdAt (the
+// actual sign-in timestamp) rather than updatedAt (which refreshes on every
+// request and so doesn't reflect when the user last proved their identity).
+const SET_PASSWORD_FRESH_AGE_MS = 15 * 60 * 1000;
+const STALE_SESSION_ERROR =
+	"For your security, please sign out and sign back in before setting a password.";
+
 const updateProfileSchema = z.object({
 	displayName: z.string().optional(),
 	phone: z.string().optional(),
@@ -89,6 +97,11 @@ export async function setInitialPasswordAction(formData: unknown) {
 
 		if (!parsed.success) {
 			return { success: false as const, error: parsed.error.flatten().fieldErrors };
+		}
+
+		const sessionAgeMs = Date.now() - new Date(session.session.createdAt).getTime();
+		if (sessionAgeMs > SET_PASSWORD_FRESH_AGE_MS) {
+			return { success: false as const, error: STALE_SESSION_ERROR };
 		}
 
 		const existing = await prisma.account.findFirst({
