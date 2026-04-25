@@ -31,11 +31,13 @@ export function WindowSelector({ value }: WindowSelectorProps) {
 	};
 
 	return (
-		<div
-			className="inline-flex items-center gap-1 rounded-lg border bg-card p-1"
-			role="radiogroup"
-			aria-label="Time window"
-		>
+		// Toggle-button pattern using `aria-pressed`, not radio. Real radios
+		// require arrow-key roving-tabindex behavior; plain Buttons would lie.
+		// `<fieldset>` is the semantic group container — biome rejects
+		// `role="group"` / `aria-label` on a plain div, and `<fieldset>` lets
+		// us label the group via a visually-hidden `<legend>`.
+		<fieldset className="inline-flex items-center gap-1 rounded-lg border bg-card p-1">
+			<legend className="sr-only">Time window</legend>
 			{OPTIONS.map((opt) => {
 				const active = opt.value === value;
 				return (
@@ -44,8 +46,7 @@ export function WindowSelector({ value }: WindowSelectorProps) {
 						type="button"
 						size="sm"
 						variant={active ? "default" : "ghost"}
-						role="radio"
-						aria-checked={active}
+						aria-pressed={active}
 						disabled={isPending}
 						onClick={() => select(opt.value)}
 						className={cn("h-8 px-3 text-xs", isPending && "opacity-70")}
@@ -54,6 +55,6 @@ export function WindowSelector({ value }: WindowSelectorProps) {
 					</Button>
 				);
 			})}
-		</div>
+		</fieldset>
 	);
 }

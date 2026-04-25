@@ -22,7 +22,10 @@ const ENGAGED_CARDS_LIMIT = 5;
 
 function parseWindow(raw: string | string[] | undefined): AllowedWindow {
 	const value = Array.isArray(raw) ? raw[0] : raw;
-	const n = Number.parseInt(value ?? "", 10);
+	// Strict numeric parse — `Number(...)` returns NaN for "30abc" whereas
+	// `parseInt` would silently accept it. Stops the URL from normalizing
+	// junk like `?window=30abc` to a valid window.
+	const n = value === undefined || value === "" ? Number.NaN : Number(value);
 	return (ALLOWED_WINDOWS as readonly number[]).includes(n) ? (n as AllowedWindow) : DEFAULT_WINDOW;
 }
 

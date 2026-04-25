@@ -539,4 +539,38 @@ describe("getMostEngagedCards", () => {
 		expect(prisma.activityLog.findMany).not.toHaveBeenCalled();
 		expect(prisma.recognitionCard.findMany).not.toHaveBeenCalled();
 	});
+
+	test("filters reactions by action=CARD_REACTED only (not CARD_UNREACTED)", async () => {
+		// Regression guard: the contract that this card counts attention-adds
+		// and not toggle-removes lives only in code comments. If the action
+		// filter is broadened, this test fails.
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+
+		await getMostEngagedCards(30, 5);
+
+		const groupArg = vi.mocked(prisma.activityLog.groupBy).mock.calls[0]?.[0];
+		expect(groupArg?.where?.action).toBe("CARD_REACTED");
+		expect(groupArg?.where?.targetType).toBe("recognition_card");
+
+		const commentArg = vi.mocked(prisma.activityLog.findMany).mock.calls[0]?.[0];
+		expect(commentArg?.where?.action).toBe("COMMENT_CREATED");
+	});
+
+	test("breaks total ties by cardId lexicographically", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ targetId: "zeta", _count: { _all: 4 } },
+			{ targetId: "alpha", _count: { _all: 4 } },
+			{ targetId: "mike", _count: { _all: 4 } },
+		] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{ id: "alpha", message: "", createdAt: new Date(), sender: userA, recipient: userB },
+			{ id: "mike", message: "", createdAt: new Date(), sender: userA, recipient: userB },
+			{ id: "zeta", message: "", createdAt: new Date(), sender: userA, recipient: userB },
+		] as never);
+
+		const result = await getMostEngagedCards(30, 10);
+		expect(result.map((r) => r.cardId)).toEqual(["alpha", "mike", "zeta"]);
+	});
 });

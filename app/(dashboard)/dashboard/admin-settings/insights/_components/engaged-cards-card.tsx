@@ -9,7 +9,10 @@ interface EngagedCardsCardProps {
 
 function truncate(message: string, max = 90): string {
 	const trimmed = message.trim().replace(/\s+/g, " ");
-	return trimmed.length <= max ? trimmed : `${trimmed.slice(0, max - 1)}…`;
+	// Slice by codepoints, not UTF-16 code units, so multi-codepoint emoji at
+	// the boundary don't render as a broken half-character.
+	const codepoints = Array.from(trimmed);
+	return codepoints.length <= max ? trimmed : `${codepoints.slice(0, max - 1).join("")}…`;
 }
 
 function fullName(user: { firstName: string; lastName: string } | null): string {
