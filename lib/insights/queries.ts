@@ -129,8 +129,13 @@ export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopR
 
 	const ids = grouped.map((g) => g.actorId).filter((id): id is string => id !== null);
 
+	// Filter `deletedAt: null` to match the rest of the app (requireSession,
+	// getUsersAction, etc.). Soft-deleted ex-employees still have user rows
+	// and their CARD_CREATED audit events stay (actorId remains non-null until
+	// hard-delete), so without this filter they'd silently show up on a live
+	// admin leaderboard.
 	const users = await prisma.user.findMany({
-		where: { id: { in: ids } },
+		where: { id: { in: ids }, deletedAt: null },
 		select: { id: true, firstName: true, lastName: true, avatar: true },
 	});
 	const usersById = new Map(users.map((u) => [u.id, u]));

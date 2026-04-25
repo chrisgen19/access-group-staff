@@ -203,6 +203,28 @@ describe("getTopRecognisers", () => {
 		expect(result[0]?.userId).toBe("u1");
 	});
 
+	test("excludes soft-deleted users via deletedAt filter on the user lookup", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ actorId: "u1", _count: { _all: 5 } },
+			{ actorId: "u2", _count: { _all: 9 } },
+		] as never);
+		// Simulate the DB-level filter: `findMany` with `deletedAt: null` only
+		// returns the live user. The deleted user's groupBy row should be
+		// dropped from the result.
+		vi.mocked(prisma.user.findMany).mockResolvedValue([
+			{ id: "u1", firstName: "Live", lastName: "User", avatar: null },
+		] as never);
+
+		const result = await getTopRecognisers(30, 10);
+
+		expect(result).toHaveLength(1);
+		expect(result[0]?.userId).toBe("u1");
+		// Verify the filter was actually requested at the query layer, not
+		// just that the mock happened to return one row.
+		const arg = vi.mocked(prisma.user.findMany).mock.calls[0]?.[0];
+		expect(arg?.where).toEqual({ id: { in: ["u1", "u2"] }, deletedAt: null });
+	});
+
 	test("filters out null actorIds in the where clause and short-circuits when group is empty", async () => {
 		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([] as never);
 
