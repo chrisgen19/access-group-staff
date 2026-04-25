@@ -92,6 +92,10 @@ const NAV_ITEMS: NavItem[] = [
 		minRole: "ADMIN",
 		children: [
 			{
+				label: "Insights",
+				href: "/dashboard/admin-settings/insights",
+			},
+			{
 				label: "Activity Logs",
 				href: "/dashboard/admin-settings/activity-logs",
 			},
