@@ -28,7 +28,12 @@ vi.mock("@/lib/db", () => ({
 	},
 }));
 
+vi.mock("@/lib/activity-log", () => ({
+	logActivityForRequest: vi.fn(),
+}));
+
 import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
@@ -80,6 +85,15 @@ describe("createTicketAction", () => {
 			}),
 			select: { id: true },
 		});
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "TICKET_CREATED",
+				actorId: STAFF_ID,
+				targetType: "help_me_ticket",
+				targetId: "ticket_1",
+				metadata: { category: "HR" },
+			}),
+		);
 	});
 
 	test("sanitizes HTML in body on create", async () => {
@@ -235,6 +249,15 @@ describe("replyToTicketAction", () => {
 		};
 		expect(call.data.bodyHtml).not.toContain("<script>");
 		expect(call.data.bodyHtml).toContain("Hello");
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "TICKET_REPLIED",
+				actorId: STAFF_ID,
+				targetType: "help_me_ticket",
+				targetId: "t1",
+				metadata: { replyId: "r1" },
+			}),
+		);
 	});
 
 	test("rejects when STAFF tries to reply to a ticket they don't own", async () => {

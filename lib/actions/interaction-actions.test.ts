@@ -14,6 +14,11 @@ vi.mock("@/lib/db", () => ({
 	},
 }));
 
+vi.mock("@/lib/activity-log", () => ({
+	logActivityForRequest: vi.fn(),
+}));
+
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
@@ -62,6 +67,15 @@ describe("toggleReactionAction", () => {
 			data: { cardId: CARD_ID, userId: OUTSIDER_ID, emoji: "👏" },
 		});
 		expect(tx.notification.createMany).toHaveBeenCalled();
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_REACTED",
+				actorId: OUTSIDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+				metadata: { emoji: "👏" },
+			}),
+		);
 	});
 
 	test("removes an existing reaction (toggle off)", async () => {
@@ -75,6 +89,15 @@ describe("toggleReactionAction", () => {
 
 		expect(result).toEqual({ success: true, action: "removed" });
 		expect(prisma.$transaction).not.toHaveBeenCalled();
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_UNREACTED",
+				actorId: OUTSIDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+				metadata: { emoji: "👏" },
+			}),
+		);
 	});
 
 	test("rejects invalid emoji", async () => {
@@ -122,6 +145,15 @@ describe("addCommentAction", () => {
 				data: { cardId: CARD_ID, userId: OUTSIDER_ID, body: "Nice!" },
 			}),
 		);
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "COMMENT_CREATED",
+				actorId: OUTSIDER_ID,
+				targetType: "card_comment",
+				targetId: created.id,
+				metadata: { cardId: CARD_ID },
+			}),
+		);
 	});
 
 	test("rejects empty body", async () => {
@@ -160,6 +192,14 @@ describe("editCommentAction", () => {
 		const result = await editCommentAction(COMMENT_ID, "Edited");
 
 		expect(result).toEqual({ success: true, data: updated });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "COMMENT_UPDATED",
+				actorId: OUTSIDER_ID,
+				targetType: "card_comment",
+				targetId: COMMENT_ID,
+			}),
+		);
 	});
 
 	test("blocks non-owner (even admin) from editing", async () => {
@@ -194,6 +234,14 @@ describe("deleteCommentAction", () => {
 
 		expect(result).toEqual({ success: true });
 		expect(prisma.cardComment.delete).toHaveBeenCalledWith({ where: { id: COMMENT_ID } });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "COMMENT_DELETED",
+				actorId: OUTSIDER_ID,
+				targetType: "card_comment",
+				targetId: COMMENT_ID,
+			}),
+		);
 	});
 
 	test("allows admin to delete another user's comment", async () => {

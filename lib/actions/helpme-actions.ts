@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import type { Role } from "@/app/generated/prisma/client";
 import { getHelpMeEnabled } from "@/lib/actions/settings-actions";
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
@@ -39,6 +40,14 @@ export async function createTicketAction(formData: unknown) {
 				createdById: session.user.id,
 			},
 			select: { id: true },
+		});
+
+		await logActivityForRequest({
+			action: "TICKET_CREATED",
+			actorId: session.user.id,
+			targetType: "help_me_ticket",
+			targetId: ticket.id,
+			metadata: { category: parsed.data.category },
 		});
 
 		revalidatePath("/dashboard/helpme");
@@ -163,6 +172,14 @@ export async function replyToTicketAction(ticketId: string, formData: unknown) {
 				bodyHtml: sanitized,
 			},
 			select: { id: true },
+		});
+
+		await logActivityForRequest({
+			action: "TICKET_REPLIED",
+			actorId: session.user.id,
+			targetType: "help_me_ticket",
+			targetId: ticketId,
+			metadata: { replyId: reply.id },
 		});
 
 		revalidatePath(`/dashboard/helpme/${ticketId}`);

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { type ActivityAction, Prisma } from "@/app/generated/prisma/client";
 import { env } from "@/env";
 import {
@@ -43,6 +44,25 @@ export async function logActivity(input: LogActivityInput) {
 			return;
 		}
 		console.error("activity-log write failed", {
+			action: input.action,
+			error: err instanceof Error ? err.message : String(err),
+		});
+	}
+}
+
+/**
+ * Convenience wrapper for the common Server-Action shape: pull request meta
+ * from `headers()` and log. Wraps both calls so a malformed `headers()` (or
+ * any unexpected throw) can never flip a successful persist into a failure.
+ */
+export async function logActivityForRequest(
+	input: Omit<LogActivityInput, "ipAddress" | "userAgent">,
+) {
+	try {
+		const { ipAddress, userAgent } = extractRequestMeta(await headers());
+		await logActivity({ ...input, ipAddress, userAgent });
+	} catch (err) {
+		console.error("logActivityForRequest failed", {
 			action: input.action,
 			error: err instanceof Error ? err.message : String(err),
 		});

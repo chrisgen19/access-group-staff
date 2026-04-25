@@ -21,9 +21,23 @@ const ACTION_LABELS: Record<ActivityAction, string> = {
 	PASSWORD_RESET: "Password reset",
 	PASSWORD_SET: "Password set",
 	USER_VISITED: "Visited",
+	CARD_CREATED: "Card created",
+	CARD_UPDATED: "Card edited",
+	CARD_DELETED: "Card deleted",
+	CARD_REACTED: "Card reacted",
+	CARD_UNREACTED: "Reaction removed",
+	COMMENT_CREATED: "Comment added",
+	COMMENT_UPDATED: "Comment edited",
+	COMMENT_DELETED: "Comment deleted",
+	TICKET_CREATED: "Ticket created",
+	TICKET_REPLIED: "Ticket replied",
 };
 
-const DESTRUCTIVE_ACTIONS = new Set<ActivityAction>(["SIGN_IN_FAILED"]);
+const DESTRUCTIVE_ACTIONS = new Set<ActivityAction>([
+	"SIGN_IN_FAILED",
+	"CARD_DELETED",
+	"COMMENT_DELETED",
+]);
 
 type LogWithActor = ActivityLog & {
 	actor: { id: string; firstName: string; lastName: string; email: string } | null;

@@ -17,6 +17,11 @@ vi.mock("@/lib/db", () => ({
 	},
 }));
 
+vi.mock("@/lib/activity-log", () => ({
+	logActivityForRequest: vi.fn(),
+}));
+
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { createRecognitionCardAction } from "./recognition-actions";
@@ -80,6 +85,18 @@ describe("createRecognitionCardAction", () => {
 				cardId: createdCard.id,
 			}),
 		});
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_CREATED",
+				actorId: SENDER_ID,
+				targetType: "recognition_card",
+				targetId: createdCard.id,
+				metadata: expect.objectContaining({
+					recipientId: RECIPIENT_ID,
+					valuesPicked: ["PEOPLE"],
+				}),
+			}),
+		);
 	});
 
 	test("rejects sending a card to yourself", async () => {

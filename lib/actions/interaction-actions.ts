@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import type { Role } from "@/app/generated/prisma/client";
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { hasMinRole } from "@/lib/permissions";
@@ -45,6 +46,13 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 		});
 
 		if (deleted.count > 0) {
+			await logActivityForRequest({
+				action: "CARD_UNREACTED",
+				actorId: session.user.id,
+				targetType: "recognition_card",
+				targetId: cardId,
+				metadata: { emoji },
+			});
 			return { success: true as const, action: "removed" as const };
 		}
 
@@ -69,12 +77,26 @@ export async function toggleReactionAction(cardId: string, emoji: string) {
 					});
 				}
 			});
+			await logActivityForRequest({
+				action: "CARD_REACTED",
+				actorId: session.user.id,
+				targetType: "recognition_card",
+				targetId: cardId,
+				metadata: { emoji },
+			});
 			return { success: true as const, action: "added" as const };
 		} catch (err) {
 			// A concurrent add already created the row — our click flips to remove.
 			if (err instanceof Error && "code" in err && (err as { code: string }).code === "P2002") {
 				await prisma.cardReaction.deleteMany({
 					where: { cardId, userId: session.user.id, emoji },
+				});
+				await logActivityForRequest({
+					action: "CARD_UNREACTED",
+					actorId: session.user.id,
+					targetType: "recognition_card",
+					targetId: cardId,
+					metadata: { emoji },
 				});
 				return { success: true as const, action: "removed" as const };
 			}
@@ -138,6 +160,14 @@ export async function addCommentAction(cardId: string, body: string) {
 			return created;
 		});
 
+		await logActivityForRequest({
+			action: "COMMENT_CREATED",
+			actorId: session.user.id,
+			targetType: "card_comment",
+			targetId: comment.id,
+			metadata: { cardId },
+		});
+
 		return { success: true as const, data: comment };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to add comment";
@@ -187,6 +217,13 @@ export async function editCommentAction(commentId: string, body: string) {
 			},
 		});
 
+		await logActivityForRequest({
+			action: "COMMENT_UPDATED",
+			actorId: session.user.id,
+			targetType: "card_comment",
+			targetId: commentId,
+		});
+
 		return { success: true as const, data: updated };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to edit comment";
@@ -213,6 +250,14 @@ export async function deleteCommentAction(commentId: string) {
 		}
 
 		await prisma.cardComment.delete({ where: { id: commentId } });
+
+		await logActivityForRequest({
+			action: "COMMENT_DELETED",
+			actorId: session.user.id,
+			targetType: "card_comment",
+			targetId: commentId,
+		});
+
 		return { success: true as const };
 	} catch (error) {
 		const message = error instanceof Error ? error.message : "Failed to delete comment";
