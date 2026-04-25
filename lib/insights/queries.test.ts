@@ -242,6 +242,18 @@ describe("getTopRecognisers", () => {
 		expect(result).toEqual([]);
 		expect(prisma.activityLog.groupBy).not.toHaveBeenCalled();
 	});
+
+	test("returns empty array when limit <= 0 without doing any DB work", async () => {
+		// Regression guard against `slice(0, -n)` returning all-but-last n
+		// silently. Caller asking for "0 results" should get [].
+		const result = await getTopRecognisers(30, 0);
+		expect(result).toEqual([]);
+		expect(prisma.activityLog.groupBy).not.toHaveBeenCalled();
+		expect(prisma.user.findMany).not.toHaveBeenCalled();
+
+		const negative = await getTopRecognisers(30, -3);
+		expect(negative).toEqual([]);
+	});
 });
 
 describe("getCategoryMix", () => {

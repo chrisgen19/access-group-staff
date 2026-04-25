@@ -117,6 +117,11 @@ export interface TopRecogniser {
  *   any future hard-delete path.
  */
 export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopRecogniser[]> {
+	// Guard non-positive limit before any DB work — `slice(0, -n)` returns
+	// all-but-last n items, which would silently produce wrong results
+	// rather than the empty array a caller asking for "0 results" expects.
+	// Mirrors the daysBack <= 0 short-circuit below.
+	if (limit <= 0) return [];
 	const days = recentManilaDayKeys(daysBack);
 	const earliest = days[0];
 	if (!earliest) return [];
