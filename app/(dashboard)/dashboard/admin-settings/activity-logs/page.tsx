@@ -1,8 +1,7 @@
-import { redirect } from "next/navigation";
 import type { ActivityAction, Prisma } from "@/app/generated/prisma/client";
 import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { pruneActivityLogsIfNeeded } from "@/lib/activity-log";
-import { requireRole } from "@/lib/auth-utils";
+import { requireRoleOrRedirect } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { ActivityLogFilters } from "./_components/activity-log-filters";
 import { ActivityLogTable } from "./_components/activity-log-table";
@@ -65,11 +64,7 @@ export default async function ActivityLogsPage({
 }: {
 	searchParams: Promise<SearchParams>;
 }) {
-	try {
-		await requireRole("ADMIN");
-	} catch {
-		redirect("/dashboard");
-	}
+	await requireRoleOrRedirect("ADMIN");
 
 	await pruneActivityLogsIfNeeded();
 

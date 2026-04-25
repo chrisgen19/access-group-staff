@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
 import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
-import { requireRole } from "@/lib/auth-utils";
+import { requireRoleOrRedirect } from "@/lib/auth-utils";
 import { getCardCadence, getTopValues } from "@/lib/insights/queries";
 import { CadenceCard } from "./_components/cadence-card";
 import { TopValuesCard } from "./_components/top-values-card";
@@ -8,11 +7,7 @@ import { TopValuesCard } from "./_components/top-values-card";
 const DAYS_BACK = 30;
 
 export default async function InsightsPage() {
-	try {
-		await requireRole("ADMIN");
-	} catch {
-		redirect("/dashboard");
-	}
+	await requireRoleOrRedirect("ADMIN");
 
 	const [cadence, topValues] = await Promise.all([
 		getCardCadence(DAYS_BACK),

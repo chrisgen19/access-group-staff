@@ -1,20 +1,15 @@
-import { redirect } from "next/navigation";
 import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import {
 	getActivityLogRetentionDays,
 	getOAuthProviderAvailability,
 	getOAuthSettings,
 } from "@/lib/actions/settings-actions";
-import { requireRole } from "@/lib/auth-utils";
+import { requireRoleOrRedirect } from "@/lib/auth-utils";
 import { ActivityLogRetentionPanel } from "./_components/activity-log-retention";
 import { OAuthSettingsPanel } from "./_components/oauth-settings";
 
 export default async function SuperAdminPage() {
-	try {
-		await requireRole("SUPERADMIN");
-	} catch {
-		redirect("/dashboard");
-	}
+	await requireRoleOrRedirect("SUPERADMIN");
 
 	const [oauthSettings, providerAvailability, retentionDays] = await Promise.all([
 		getOAuthSettings(),
