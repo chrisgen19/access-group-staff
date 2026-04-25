@@ -323,6 +323,7 @@ describe("editReplyAction", () => {
 				metadata: { ticketId: "t1" },
 			}),
 		);
+		expect(logActivityForRequest).toHaveBeenCalledTimes(1);
 	});
 
 	test("rejects edit from non-author", async () => {
@@ -369,6 +370,7 @@ describe("deleteReplyAction", () => {
 				metadata: { ticketId: "t1" },
 			}),
 		);
+		expect(logActivityForRequest).toHaveBeenCalledTimes(1);
 	});
 
 	test("rejects delete from non-author (even if ADMIN)", async () => {
