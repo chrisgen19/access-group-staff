@@ -134,7 +134,10 @@ describe("toggleReactionAction", () => {
 			.mockResolvedValueOnce({ count: 1 } as never);
 
 		const p2002 = Object.assign(new Error("Unique violation"), { code: "P2002" });
-		vi.mocked(prisma.$transaction).mockRejectedValue(p2002 as never);
+		// `mockRejectedValueOnce` (not `mockRejectedValue`) so that if a future
+		// refactor adds a second `$transaction` call to the recovery branch,
+		// the test fails loudly instead of silently passing on a double-reject.
+		vi.mocked(prisma.$transaction).mockRejectedValueOnce(p2002 as never);
 
 		const result = await toggleReactionAction(CARD_ID, "👏");
 
