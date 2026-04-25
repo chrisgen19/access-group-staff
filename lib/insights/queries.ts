@@ -227,3 +227,136 @@ export async function getCategoryMix(daysBack = 30): Promise<CategoryTally[]> {
 			return a.category.localeCompare(b.category, "en");
 		});
 }
+
+export interface EngagedCard {
+	cardId: string;
+	message: string;
+	createdAt: Date;
+	reactions: number;
+	comments: number;
+	total: number;
+	sender: { id: string; firstName: string; lastName: string; avatar: string | null } | null;
+	recipient: { id: string; firstName: string; lastName: string; avatar: string | null } | null;
+}
+
+/**
+ * Most-engaged recognition cards by combined `CARD_REACTED` + `COMMENT_CREATED`
+ * events in the last `daysBack` Manila days. Joined back to `RecognitionCard`
+ * for display (message, sender, recipient).
+ *
+ * Notes:
+ * - `CARD_REACTED` events store the card id on `targetId`. We groupBy that.
+ * - `COMMENT_CREATED` events store the card id on `metadata.cardId` (the
+ *   `targetId` is the comment id). Prisma can't groupBy on a JSON field, so
+ *   we tally those in memory.
+ * - We do not net out `CARD_UNREACTED` events. The intent of this card is
+ *   "what's getting attention" — repeated toggling is still attention. If
+ *   that surfaces noise in production we can reconsider.
+ * - Cards whose row was deleted between groupBy and findUnique are skipped
+ *   rather than rendered as a partial row (mirrors `getTopRecognisers`).
+ */
+export async function getMostEngagedCards(daysBack = 30, limit = 5): Promise<EngagedCard[]> {
+	if (limit <= 0) return [];
+	const days = recentManilaDayKeys(daysBack);
+	const earliest = days[0];
+	if (!earliest) return [];
+	const since = manilaDayStartUtc(earliest);
+
+	const [reactionGroups, commentRows] = await Promise.all([
+		prisma.activityLog.groupBy({
+			by: ["targetId"],
+			where: {
+				action: "CARD_REACTED",
+				createdAt: { gte: since },
+				targetType: "recognition_card",
+				targetId: { not: null },
+			},
+			_count: { _all: true },
+		}),
+		prisma.activityLog.findMany({
+			where: { action: "COMMENT_CREATED", createdAt: { gte: since } },
+			select: { metadata: true },
+		}),
+	]);
+
+	const tallies = new Map<string, { reactions: number; comments: number }>();
+	for (const g of reactionGroups) {
+		if (!g.targetId) continue;
+		tallies.set(g.targetId, { reactions: g._count._all, comments: 0 });
+	}
+	for (const row of commentRows) {
+		const meta = row.metadata as { cardId?: unknown } | null;
+		const cardId = meta?.cardId;
+		if (typeof cardId !== "string" || cardId.length === 0) continue;
+		const existing = tallies.get(cardId);
+		if (existing) existing.comments += 1;
+		else tallies.set(cardId, { reactions: 0, comments: 1 });
+	}
+
+	if (tallies.size === 0) return [];
+
+	// Rank ALL tallies before any DB lookup so we can backfill from lower-ranked
+	// live cards when a top-ranked card was deleted. Slicing to `limit` first
+	// would silently shrink the result (or empty it) if the top card no longer
+	// exists — `recognitionCard.findMany` skips deleted ids, and `ActivityLog`
+	// rows for that card's reactions/comments stay around with no FK enforcement.
+	const ranked = Array.from(tallies.entries())
+		.map(([cardId, t]) => ({ cardId, ...t, total: t.reactions + t.comments }))
+		.sort((a, b) => {
+			if (b.total !== a.total) return b.total - a.total;
+			// Stable tie-break by id so paginated/cached output is deterministic.
+			return a.cardId.localeCompare(b.cardId, "en");
+		});
+
+	const userSelect = {
+		id: true,
+		firstName: true,
+		lastName: true,
+		avatar: true,
+		deletedAt: true,
+	} as const;
+
+	const cards = await prisma.recognitionCard.findMany({
+		where: { id: { in: ranked.map((r) => r.cardId) } },
+		select: {
+			id: true,
+			message: true,
+			createdAt: true,
+			sender: { select: userSelect },
+			recipient: { select: userSelect },
+		},
+	});
+	const cardsById = new Map(cards.map((c) => [c.id, c]));
+
+	// Hide soft-deleted users from the leaderboard, mirroring `getTopRecognisers`.
+	const liveUser = (u: {
+		id: string;
+		firstName: string;
+		lastName: string;
+		avatar: string | null;
+		deletedAt: Date | null;
+	}) =>
+		u.deletedAt
+			? null
+			: { id: u.id, firstName: u.firstName, lastName: u.lastName, avatar: u.avatar };
+
+	const result: EngagedCard[] = [];
+	for (const r of ranked) {
+		if (result.length >= limit) break;
+		const card = cardsById.get(r.cardId);
+		// Card row deleted (or raced delete between groupBy and findMany) — skip
+		// and continue down the ranked list rather than truncating the result.
+		if (!card) continue;
+		result.push({
+			cardId: r.cardId,
+			message: card.message,
+			createdAt: card.createdAt,
+			reactions: r.reactions,
+			comments: r.comments,
+			total: r.total,
+			sender: liveUser(card.sender),
+			recipient: liveUser(card.recipient),
+		});
+	}
+	return result;
+}

@@ -3,25 +3,48 @@ import { requireRoleOrRedirect } from "@/lib/auth-utils";
 import {
 	getCardCadence,
 	getCategoryMix,
+	getMostEngagedCards,
 	getTopRecognisers,
 	getTopValues,
 } from "@/lib/insights/queries";
 import { CadenceCard } from "./_components/cadence-card";
 import { CategoryMixCard } from "./_components/category-mix-card";
+import { EngagedCardsCard } from "./_components/engaged-cards-card";
 import { TopRecognisersCard } from "./_components/top-recognisers-card";
 import { TopValuesCard } from "./_components/top-values-card";
+import { WindowSelector } from "./_components/window-selector";
 
-const DAYS_BACK = 30;
+const ALLOWED_WINDOWS = [30, 90] as const;
+type AllowedWindow = (typeof ALLOWED_WINDOWS)[number];
+const DEFAULT_WINDOW: AllowedWindow = 30;
 const TOP_RECOGNISERS_LIMIT = 10;
+const ENGAGED_CARDS_LIMIT = 5;
 
-export default async function InsightsPage() {
+function parseWindow(raw: string | string[] | undefined): AllowedWindow {
+	const value = Array.isArray(raw) ? raw[0] : raw;
+	// Strict numeric parse — `Number(...)` returns NaN for "30abc" whereas
+	// `parseInt` would silently accept it. Stops the URL from normalizing
+	// junk like `?window=30abc` to a valid window.
+	const n = value === undefined || value === "" ? Number.NaN : Number(value);
+	return (ALLOWED_WINDOWS as readonly number[]).includes(n) ? (n as AllowedWindow) : DEFAULT_WINDOW;
+}
+
+export default async function InsightsPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ window?: string | string[] }>;
+}) {
 	await requireRoleOrRedirect("ADMIN");
 
-	const [cadence, topValues, topRecognisers, categoryMix] = await Promise.all([
-		getCardCadence(DAYS_BACK),
-		getTopValues(DAYS_BACK),
-		getTopRecognisers(DAYS_BACK, TOP_RECOGNISERS_LIMIT),
-		getCategoryMix(DAYS_BACK),
+	const params = await searchParams;
+	const daysBack = parseWindow(params.window);
+
+	const [cadence, topValues, topRecognisers, categoryMix, engagedCards] = await Promise.all([
+		getCardCadence(daysBack),
+		getTopValues(daysBack),
+		getTopRecognisers(daysBack, TOP_RECOGNISERS_LIMIT),
+		getCategoryMix(daysBack),
+		getMostEngagedCards(daysBack, ENGAGED_CARDS_LIMIT),
 	]);
 
 	return (
@@ -32,11 +55,16 @@ export default async function InsightsPage() {
 				description="Aggregate trends across recognition activity. Updated on each visit."
 			/>
 
+			<div className="flex justify-end">
+				<WindowSelector value={daysBack} />
+			</div>
+
 			<div className="grid gap-6 lg:grid-cols-2">
-				<CadenceCard data={cadence} daysBack={DAYS_BACK} />
-				<TopValuesCard data={topValues} daysBack={DAYS_BACK} />
-				<TopRecognisersCard data={topRecognisers} daysBack={DAYS_BACK} />
-				<CategoryMixCard data={categoryMix} daysBack={DAYS_BACK} />
+				<CadenceCard data={cadence} daysBack={daysBack} />
+				<TopValuesCard data={topValues} daysBack={daysBack} />
+				<TopRecognisersCard data={topRecognisers} daysBack={daysBack} />
+				<CategoryMixCard data={categoryMix} daysBack={daysBack} />
+				<EngagedCardsCard data={engagedCards} daysBack={daysBack} />
 			</div>
 		</div>
 	);
