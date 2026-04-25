@@ -99,8 +99,10 @@ export async function setInitialPasswordAction(formData: unknown) {
 			return { success: false as const, error: parsed.error.flatten().fieldErrors };
 		}
 
-		const sessionAgeMs = Date.now() - new Date(session.session.createdAt).getTime();
-		if (sessionAgeMs > SET_PASSWORD_FRESH_AGE_MS) {
+		// Fail closed if createdAt is malformed/missing — `new Date(undefined).getTime()`
+		// returns NaN and `NaN > N` is false, which would silently bypass the gate.
+		const createdAtMs = new Date(session.session.createdAt).getTime();
+		if (!Number.isFinite(createdAtMs) || Date.now() - createdAtMs > SET_PASSWORD_FRESH_AGE_MS) {
 			return { success: false as const, error: STALE_SESSION_ERROR };
 		}
 

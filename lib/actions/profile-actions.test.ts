@@ -119,6 +119,26 @@ describe("setInitialPasswordAction", () => {
 		expect(prisma.account.findFirst).not.toHaveBeenCalled();
 	});
 
+	test("fails closed when session.createdAt is missing/malformed", async () => {
+		vi.mocked(requireSession).mockResolvedValue({
+			user: { id: USER_ID, name: "Tester", role: "STAFF" as const },
+			// createdAt deliberately invalid — adapter inconsistency or unexpected shape.
+			session: { id: "sess_1", createdAt: undefined },
+		} as unknown as Awaited<ReturnType<typeof requireSession>>);
+
+		const result = await setInitialPasswordAction({
+			newPassword: "supersecret",
+			confirmPassword: "supersecret",
+		});
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/sign out and sign back in/i);
+		}
+		expect(prisma.account.findFirst).not.toHaveBeenCalled();
+		expect(prisma.account.create).not.toHaveBeenCalled();
+	});
+
 	test("rejects when the session is older than the freshness window", async () => {
 		// 16 minutes — outside the 15-minute fresh-auth gate.
 		vi.mocked(requireSession).mockResolvedValue(
@@ -144,15 +164,18 @@ describe("setInitialPasswordAction", () => {
 		vi.mocked(logActivity).mockRejectedValueOnce(new Error("activity-log down"));
 		const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		const result = await setInitialPasswordAction({
-			newPassword: "supersecret",
-			confirmPassword: "supersecret",
-		});
+		try {
+			const result = await setInitialPasswordAction({
+				newPassword: "supersecret",
+				confirmPassword: "supersecret",
+			});
 
-		expect(result).toEqual({ success: true, data: null });
-		expect(prisma.account.create).toHaveBeenCalled();
-		expect(consoleErrorSpy).toHaveBeenCalled();
-		consoleErrorSpy.mockRestore();
+			expect(result).toEqual({ success: true, data: null });
+			expect(prisma.account.create).toHaveBeenCalled();
+			expect(consoleErrorSpy).toHaveBeenCalled();
+		} finally {
+			consoleErrorSpy.mockRestore();
+		}
 	});
 
 	test("handles concurrent-create race (P2002) as already-set", async () => {
