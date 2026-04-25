@@ -16,8 +16,12 @@ export default function InsightsLoading() {
 				</div>
 			</div>
 
+			<div className="flex justify-end">
+				<SkeletonLine className="h-10 w-44 rounded-lg" />
+			</div>
+
 			<div className="grid gap-6 lg:grid-cols-2">
-				{["c0", "c1", "c2", "c3"].map((key) => (
+				{["c0", "c1", "c2", "c3", "c4"].map((key) => (
 					<div key={key} className="rounded-xl bg-card p-5 ring-1 ring-foreground/10 space-y-4">
 						<SkeletonLine className="h-4 w-32" />
 						<SkeletonLine className="h-3 w-64" />

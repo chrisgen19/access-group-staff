@@ -4,11 +4,18 @@ vi.mock("@/lib/db", () => ({
 	prisma: {
 		activityLog: { findMany: vi.fn(), groupBy: vi.fn() },
 		user: { findMany: vi.fn() },
+		recognitionCard: { findMany: vi.fn() },
 	},
 }));
 
 import { prisma } from "@/lib/db";
-import { getCardCadence, getCategoryMix, getTopRecognisers, getTopValues } from "./queries";
+import {
+	getCardCadence,
+	getCategoryMix,
+	getMostEngagedCards,
+	getTopRecognisers,
+	getTopValues,
+} from "./queries";
 
 // 2026-04-25 12:00:00 UTC == 2026-04-25 20:00 Manila — comfortably mid-day so
 // boundary maths around midnight don't shift the "today" key in either TZ.
@@ -326,5 +333,185 @@ describe("getCategoryMix", () => {
 		const result = await getCategoryMix(0);
 		expect(result).toEqual([]);
 		expect(prisma.activityLog.findMany).not.toHaveBeenCalled();
+	});
+});
+
+describe("getMostEngagedCards", () => {
+	const userA = {
+		id: "uA",
+		firstName: "Ann",
+		lastName: "Lee",
+		avatar: null,
+		deletedAt: null,
+	};
+	const userB = {
+		id: "uB",
+		firstName: "Bea",
+		lastName: "Cruz",
+		avatar: null,
+		deletedAt: null,
+	};
+	const userDeleted = {
+		id: "uD",
+		firstName: "Del",
+		lastName: "Eted",
+		avatar: null,
+		deletedAt: new Date("2026-04-01T00:00:00.000Z"),
+	};
+
+	test("merges reaction groups + comment metadata, sorts by total desc", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ targetId: "card1", _count: { _all: 3 } },
+			{ targetId: "card2", _count: { _all: 1 } },
+		] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([
+			{ metadata: { cardId: "card1" } },
+			{ metadata: { cardId: "card1" } },
+			{ metadata: { cardId: "card2" } },
+			{ metadata: { cardId: "card3" } },
+		] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{
+				id: "card1",
+				message: "Great work",
+				createdAt: new Date("2026-04-20T00:00:00.000Z"),
+				sender: userA,
+				recipient: userB,
+			},
+			{
+				id: "card2",
+				message: "Nice job",
+				createdAt: new Date("2026-04-21T00:00:00.000Z"),
+				sender: userA,
+				recipient: userB,
+			},
+			{
+				id: "card3",
+				message: "Solo comment",
+				createdAt: new Date("2026-04-22T00:00:00.000Z"),
+				sender: userA,
+				recipient: userB,
+			},
+		] as never);
+
+		const result = await getMostEngagedCards(30, 10);
+
+		// card1: 3 reactions + 2 comments = 5; card2: 1 + 1 = 2; card3: 0 + 1 = 1
+		expect(result.map((r) => ({ id: r.cardId, total: r.total }))).toEqual([
+			{ id: "card1", total: 5 },
+			{ id: "card2", total: 2 },
+			{ id: "card3", total: 1 },
+		]);
+		expect(result[0]?.reactions).toBe(3);
+		expect(result[0]?.comments).toBe(2);
+	});
+
+	test("counts comment-only cards even when no reactions exist", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([
+			{ metadata: { cardId: "cardX" } },
+			{ metadata: { cardId: "cardX" } },
+		] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{
+				id: "cardX",
+				message: "m",
+				createdAt: new Date("2026-04-20T00:00:00.000Z"),
+				sender: userA,
+				recipient: userB,
+			},
+		] as never);
+
+		const result = await getMostEngagedCards(30, 5);
+		expect(result).toHaveLength(1);
+		expect(result[0]).toMatchObject({ cardId: "cardX", reactions: 0, comments: 2, total: 2 });
+	});
+
+	test("ignores comment rows with missing/wrong-type metadata.cardId", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([
+			{ metadata: null },
+			{ metadata: {} },
+			{ metadata: { cardId: 42 } },
+			{ metadata: { cardId: "" } },
+			{ metadata: { cardId: "good" } },
+		] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{
+				id: "good",
+				message: "m",
+				createdAt: new Date("2026-04-20T00:00:00.000Z"),
+				sender: userA,
+				recipient: userB,
+			},
+		] as never);
+
+		const result = await getMostEngagedCards(30, 5);
+		expect(result).toHaveLength(1);
+		expect(result[0]?.cardId).toBe("good");
+	});
+
+	test("respects the limit parameter", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ targetId: "c1", _count: { _all: 5 } },
+			{ targetId: "c2", _count: { _all: 4 } },
+			{ targetId: "c3", _count: { _all: 3 } },
+		] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{ id: "c1", message: "", createdAt: new Date(), sender: userA, recipient: userB },
+			{ id: "c2", message: "", createdAt: new Date(), sender: userA, recipient: userB },
+		] as never);
+
+		const result = await getMostEngagedCards(30, 2);
+		expect(result.map((r) => r.cardId)).toEqual(["c1", "c2"]);
+	});
+
+	test("skips cards whose row is missing (raced delete)", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ targetId: "alive", _count: { _all: 2 } },
+			{ targetId: "gone", _count: { _all: 5 } },
+		] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{ id: "alive", message: "", createdAt: new Date(), sender: userA, recipient: userB },
+		] as never);
+
+		const result = await getMostEngagedCards(30, 5);
+		expect(result.map((r) => r.cardId)).toEqual(["alive"]);
+	});
+
+	test("nulls out soft-deleted sender/recipient rather than dropping the card", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ targetId: "c1", _count: { _all: 3 } },
+		] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{
+				id: "c1",
+				message: "m",
+				createdAt: new Date(),
+				sender: userDeleted,
+				recipient: userB,
+			},
+		] as never);
+
+		const result = await getMostEngagedCards(30, 5);
+		expect(result).toHaveLength(1);
+		expect(result[0]?.sender).toBeNull();
+		expect(result[0]?.recipient).toEqual({
+			id: "uB",
+			firstName: "Bea",
+			lastName: "Cruz",
+			avatar: null,
+		});
+	});
+
+	test("returns empty array when daysBack <= 0 or limit <= 0 with no DB work", async () => {
+		expect(await getMostEngagedCards(0, 5)).toEqual([]);
+		expect(await getMostEngagedCards(30, 0)).toEqual([]);
+		expect(prisma.activityLog.groupBy).not.toHaveBeenCalled();
+		expect(prisma.activityLog.findMany).not.toHaveBeenCalled();
+		expect(prisma.recognitionCard.findMany).not.toHaveBeenCalled();
 	});
 });
