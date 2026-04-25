@@ -1,7 +1,10 @@
+import type { TicketCategory } from "@/app/generated/prisma/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CategoryTally } from "@/lib/insights/queries";
 
-const CATEGORY_LABELS: Record<string, string> = {
+// Typed against the enum so a future `TicketCategory` value (e.g. LEGAL)
+// fails the build here rather than rendering as the raw enum string.
+const CATEGORY_LABELS: Record<TicketCategory, string> = {
 	HR: "HR",
 	IT_WEBSITE: "IT / Website",
 	PAYROLL: "Payroll",
@@ -35,7 +38,7 @@ export function CategoryMixCard({ data, daysBack }: CategoryMixCardProps) {
 							return (
 								<li key={c.category} className="grid grid-cols-[8rem_1fr_auto] items-center gap-3">
 									<span className="truncate text-sm font-medium">
-										{CATEGORY_LABELS[c.category] ?? c.category}
+										{CATEGORY_LABELS[c.category]}
 									</span>
 									<div className="h-2 overflow-hidden rounded-full bg-muted">
 										<div

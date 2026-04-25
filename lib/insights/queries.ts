@@ -89,7 +89,7 @@ export async function getTopValues(daysBack = 30): Promise<ValueTally[]> {
 	}
 	return Array.from(counts.entries())
 		.sort(([aLabel, aCount], [bLabel, bCount]) =>
-			bCount === aCount ? aLabel.localeCompare(bLabel) : bCount - aCount,
+			bCount === aCount ? aLabel.localeCompare(bLabel, "en") : bCount - aCount,
 		)
 		.map(([value, count]) => ({ value, count }));
 }
@@ -105,9 +105,16 @@ export interface TopRecogniser {
 /**
  * Top recognisers by `CARD_CREATED` count over the last `daysBack` Manila
  * days, joined back to `User` for display. Sorted by count desc with name
- * tie-break. Excludes events whose actor has been deleted entirely (rare —
- * `actorId` is `SetNull` on user delete in the schema, so deleted users'
- * events still exist but with `actorId = null`).
+ * tie-break.
+ *
+ * Excludes:
+ * - Soft-deleted users (via `deletedAt: null` on the user lookup) — keeps
+ *   the leaderboard consistent with the rest of the app's user-listing
+ *   surfaces (`requireSession`, `getUsersAction`).
+ * - Rows whose user row was missing entirely from the lookup. The schema
+ *   has `actorId: SetNull on delete`, but the app currently soft-deletes
+ *   only — so this branch is essentially a defensive guard for races and
+ *   any future hard-delete path.
  */
 export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopRecogniser[]> {
 	const days = recentManilaDayKeys(daysBack);
@@ -162,7 +169,7 @@ export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopR
 			if (b.count !== a.count) return b.count - a.count;
 			const an = `${a.firstName} ${a.lastName}`;
 			const bn = `${b.firstName} ${b.lastName}`;
-			return an.localeCompare(bn);
+			return an.localeCompare(bn, "en");
 		})
 		.slice(0, limit);
 }
@@ -212,6 +219,6 @@ export async function getCategoryMix(daysBack = 30): Promise<CategoryTally[]> {
 		.map(([category, count]) => ({ category, count }))
 		.sort((a, b) => {
 			if (b.count !== a.count) return b.count - a.count;
-			return a.category.localeCompare(b.category);
+			return a.category.localeCompare(b.category, "en");
 		});
 }
