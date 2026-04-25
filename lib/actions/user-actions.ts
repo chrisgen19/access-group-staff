@@ -2,7 +2,9 @@
 
 import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
-import type { Prisma, Role } from "@/app/generated/prisma/client";
+import { headers } from "next/headers";
+import { Prisma, type Role } from "@/app/generated/prisma/client";
+import { extractRequestMeta, logActivity } from "@/lib/activity-log";
 import { auth } from "@/lib/auth";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
@@ -321,21 +323,62 @@ export async function adminResetPasswordAction(userId: string, formData: unknown
 			where: { userId, providerId: "credential" },
 		});
 
-		if (!account) {
-			return { success: false as const, error: "User does not have a password-based account" };
-		}
-
 		const hashedPassword = await hashPassword(parsed.data.newPassword);
 
-		await prisma.$transaction([
-			prisma.account.update({
-				where: { id: account.id },
-				data: { password: hashedPassword },
-			}),
-			prisma.session.deleteMany({
-				where: { userId },
-			}),
-		]);
+		if (account) {
+			await prisma.$transaction([
+				prisma.account.update({
+					where: { id: account.id },
+					data: { password: hashedPassword },
+				}),
+				prisma.session.deleteMany({
+					where: { userId },
+				}),
+			]);
+		} else {
+			// `accountId === userId` for credential accounts — matches better-auth's
+			// internal linkAccount call so subsequent sign-in flows treat it
+			// identically to a credential account created at registration.
+			try {
+				await prisma.account.create({
+					data: {
+						userId,
+						accountId: userId,
+						providerId: "credential",
+						password: hashedPassword,
+					},
+				});
+			} catch (err) {
+				// Race-safety: a concurrent self-service set-password (#151) can
+				// pass our `findFirst` check at the same moment the admin does
+				// and both reach `create`. The composite unique index on
+				// (user_id, provider_id) makes the second insert fail with P2002.
+				if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+					return {
+						success: false as const,
+						error: "A password was just set for this user. Reload and try again.",
+					};
+				}
+				throw err;
+			}
+		}
+
+		try {
+			const { ipAddress, userAgent } = extractRequestMeta(await headers());
+			await logActivity({
+				action: account ? "PASSWORD_RESET" : "PASSWORD_SET",
+				actorId: session.user.id,
+				targetType: "user",
+				targetId: userId,
+				ipAddress,
+				userAgent,
+			});
+		} catch (err) {
+			console.error("adminResetPasswordAction post-persist side effects failed", {
+				userId,
+				error: err instanceof Error ? err.message : String(err),
+			});
+		}
 
 		return { success: true as const, data: null };
 	} catch (error) {
