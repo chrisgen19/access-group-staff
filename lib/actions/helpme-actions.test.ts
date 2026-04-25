@@ -314,6 +314,15 @@ describe("editReplyAction", () => {
 
 		expect(result).toEqual({ success: true });
 		expect(prisma.ticketReply.update).toHaveBeenCalled();
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "TICKET_REPLY_UPDATED",
+				actorId: STAFF_ID,
+				targetType: "ticket_reply",
+				targetId: "r1",
+				metadata: { ticketId: "t1" },
+			}),
+		);
 	});
 
 	test("rejects edit from non-author", async () => {
@@ -350,6 +359,15 @@ describe("deleteReplyAction", () => {
 
 		expect(result).toEqual({ success: true });
 		expect(prisma.ticketReply.delete).toHaveBeenCalledWith({ where: { id: "r1" } });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "TICKET_REPLY_DELETED",
+				actorId: STAFF_ID,
+				targetType: "ticket_reply",
+				targetId: "r1",
+				metadata: { ticketId: "t1" },
+			}),
+		);
 	});
 
 	test("rejects delete from non-author (even if ADMIN)", async () => {

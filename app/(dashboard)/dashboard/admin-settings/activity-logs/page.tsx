@@ -28,6 +28,8 @@ const ACTIONS: ActivityAction[] = [
 	"COMMENT_DELETED",
 	"TICKET_CREATED",
 	"TICKET_REPLIED",
+	"TICKET_REPLY_UPDATED",
+	"TICKET_REPLY_DELETED",
 ];
 
 interface SearchParams {

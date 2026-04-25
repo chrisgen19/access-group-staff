@@ -27,6 +27,8 @@ const ACTION_LABELS: Record<ActivityAction, string> = {
 	COMMENT_DELETED: "Comment deleted",
 	TICKET_CREATED: "Ticket created",
 	TICKET_REPLIED: "Ticket replied",
+	TICKET_REPLY_UPDATED: "Ticket reply edited",
+	TICKET_REPLY_DELETED: "Ticket reply deleted",
 };
 
 interface ActivityLogFiltersProps {

@@ -221,6 +221,14 @@ export async function editReplyAction(replyId: string, formData: unknown) {
 			data: { bodyHtml: sanitized, editedAt: new Date() },
 		});
 
+		await logActivityForRequest({
+			action: "TICKET_REPLY_UPDATED",
+			actorId: session.user.id,
+			targetType: "ticket_reply",
+			targetId: replyId,
+			metadata: { ticketId: existing.ticketId },
+		});
+
 		revalidatePath(`/dashboard/helpme/${existing.ticketId}`);
 		return { success: true as const };
 	} catch (error) {
@@ -245,6 +253,15 @@ export async function deleteReplyAction(replyId: string) {
 		}
 
 		await prisma.ticketReply.delete({ where: { id: replyId } });
+
+		await logActivityForRequest({
+			action: "TICKET_REPLY_DELETED",
+			actorId: session.user.id,
+			targetType: "ticket_reply",
+			targetId: replyId,
+			metadata: { ticketId: existing.ticketId },
+		});
+
 		revalidatePath(`/dashboard/helpme/${existing.ticketId}`);
 		return { success: true as const };
 	} catch (error) {
