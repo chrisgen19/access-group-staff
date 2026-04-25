@@ -1,9 +1,27 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { createRecognitionCardSchema } from "@/lib/validations/recognition";
+
+function pickedValues(input: {
+	valuesPeople: boolean;
+	valuesSafety: boolean;
+	valuesRespect: boolean;
+	valuesCommunication: boolean;
+	valuesContinuousImprovement: boolean;
+}): string[] {
+	const labels: Array<[boolean, string]> = [
+		[input.valuesPeople, "PEOPLE"],
+		[input.valuesSafety, "SAFETY"],
+		[input.valuesRespect, "RESPECT"],
+		[input.valuesCommunication, "COMMUNICATION"],
+		[input.valuesContinuousImprovement, "CONTINUOUS_IMPROVEMENT"],
+	];
+	return labels.filter(([on]) => on).map(([, label]) => label);
+}
 
 export async function createRecognitionCardAction(formData: unknown) {
 	try {
@@ -58,6 +76,14 @@ export async function createRecognitionCardAction(formData: unknown) {
 			});
 
 			return created;
+		});
+
+		await logActivityForRequest({
+			action: "CARD_CREATED",
+			actorId: session.user.id,
+			targetType: "recognition_card",
+			targetId: card.id,
+			metadata: { recipientId, valuesPicked: pickedValues(rest) },
 		});
 
 		revalidatePath("/dashboard/recognition");
@@ -146,6 +172,13 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			return updated;
 		});
 
+		await logActivityForRequest({
+			action: "CARD_UPDATED",
+			actorId: session.user.id,
+			targetType: "recognition_card",
+			targetId: cardId,
+		});
+
 		revalidatePath("/dashboard/recognition");
 		revalidatePath("/dashboard");
 		revalidatePath(`/recognition/${cardId}`);
@@ -193,6 +226,13 @@ export async function deleteRecognitionCardAction(cardId: string) {
 					})),
 				});
 			}
+		});
+
+		await logActivityForRequest({
+			action: "CARD_DELETED",
+			actorId: session.user.id,
+			targetType: "recognition_card",
+			targetId: cardId,
 		});
 
 		revalidatePath("/dashboard/recognition");

@@ -18,6 +18,16 @@ const ACTIONS: ActivityAction[] = [
 	"PASSWORD_RESET",
 	"PASSWORD_SET",
 	"USER_VISITED",
+	"CARD_CREATED",
+	"CARD_UPDATED",
+	"CARD_DELETED",
+	"CARD_REACTED",
+	"CARD_UNREACTED",
+	"COMMENT_CREATED",
+	"COMMENT_UPDATED",
+	"COMMENT_DELETED",
+	"TICKET_CREATED",
+	"TICKET_REPLIED",
 ];
 
 interface SearchParams {
@@ -113,7 +123,7 @@ export default async function ActivityLogsPage({
 			<DashboardPageHeader
 				eyebrow="Administration"
 				title="Activity Logs"
-				description="Audit trail of authentication and account events."
+				description="Audit trail of authentication, account, and product activity."
 			/>
 
 			<ActivityLogFilters

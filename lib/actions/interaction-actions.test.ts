@@ -14,6 +14,11 @@ vi.mock("@/lib/db", () => ({
 	},
 }));
 
+vi.mock("@/lib/activity-log", () => ({
+	logActivityForRequest: vi.fn(),
+}));
+
+import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
@@ -62,6 +67,15 @@ describe("toggleReactionAction", () => {
 			data: { cardId: CARD_ID, userId: OUTSIDER_ID, emoji: "👏" },
 		});
 		expect(tx.notification.createMany).toHaveBeenCalled();
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_REACTED",
+				actorId: OUTSIDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+				metadata: { emoji: "👏" },
+			}),
+		);
 	});
 
 	test("removes an existing reaction (toggle off)", async () => {
@@ -75,6 +89,15 @@ describe("toggleReactionAction", () => {
 
 		expect(result).toEqual({ success: true, action: "removed" });
 		expect(prisma.$transaction).not.toHaveBeenCalled();
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_UNREACTED",
+				actorId: OUTSIDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+				metadata: { emoji: "👏" },
+			}),
+		);
 	});
 
 	test("rejects invalid emoji", async () => {
@@ -98,6 +121,38 @@ describe("toggleReactionAction", () => {
 
 		expect(result).toEqual({ success: false, error: "Card not found" });
 	});
+
+	test("P2002 race during create flips to remove and logs CARD_UNREACTED", async () => {
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(OUTSIDER_ID) as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.recognitionCard.findUnique).mockResolvedValue(mockCard() as never);
+		// First deleteMany returns 0 (no existing reaction), so we proceed to create.
+		// Second deleteMany (after the P2002 unwind) returns 1 (the concurrent row).
+		vi.mocked(prisma.cardReaction.deleteMany)
+			.mockResolvedValueOnce({ count: 0 } as never)
+			.mockResolvedValueOnce({ count: 1 } as never);
+
+		const p2002 = Object.assign(new Error("Unique violation"), { code: "P2002" });
+		// `mockRejectedValueOnce` (not `mockRejectedValue`) so that if a future
+		// refactor adds a second `$transaction` call to the recovery branch,
+		// the test fails loudly instead of silently passing on a double-reject.
+		vi.mocked(prisma.$transaction).mockRejectedValueOnce(p2002 as never);
+
+		const result = await toggleReactionAction(CARD_ID, "👏");
+
+		expect(result).toEqual({ success: true, action: "removed" });
+		expect(prisma.cardReaction.deleteMany).toHaveBeenCalledTimes(2);
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_UNREACTED",
+				actorId: OUTSIDER_ID,
+				targetType: "recognition_card",
+				targetId: CARD_ID,
+				metadata: { emoji: "👏" },
+			}),
+		);
+	});
 });
 
 describe("addCommentAction", () => {
@@ -120,6 +175,15 @@ describe("addCommentAction", () => {
 		expect(tx.cardComment.create).toHaveBeenCalledWith(
 			expect.objectContaining({
 				data: { cardId: CARD_ID, userId: OUTSIDER_ID, body: "Nice!" },
+			}),
+		);
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "COMMENT_CREATED",
+				actorId: OUTSIDER_ID,
+				targetType: "card_comment",
+				targetId: created.id,
+				metadata: { cardId: CARD_ID },
 			}),
 		);
 	});
@@ -160,6 +224,14 @@ describe("editCommentAction", () => {
 		const result = await editCommentAction(COMMENT_ID, "Edited");
 
 		expect(result).toEqual({ success: true, data: updated });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "COMMENT_UPDATED",
+				actorId: OUTSIDER_ID,
+				targetType: "card_comment",
+				targetId: COMMENT_ID,
+			}),
+		);
 	});
 
 	test("blocks non-owner (even admin) from editing", async () => {
@@ -194,6 +266,14 @@ describe("deleteCommentAction", () => {
 
 		expect(result).toEqual({ success: true });
 		expect(prisma.cardComment.delete).toHaveBeenCalledWith({ where: { id: COMMENT_ID } });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "COMMENT_DELETED",
+				actorId: OUTSIDER_ID,
+				targetType: "card_comment",
+				targetId: COMMENT_ID,
+			}),
+		);
 	});
 
 	test("allows admin to delete another user's comment", async () => {

@@ -10,9 +10,14 @@ vi.mock("@/lib/db", () => ({
 	},
 }));
 
+const headersMock = vi.fn(async () => new Headers({ "user-agent": "vitest-ua" }));
+vi.mock("next/headers", () => ({
+	headers: () => headersMock(),
+}));
+
 import { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { logActivity } from "./activity-log";
+import { logActivity, logActivityForRequest } from "./activity-log";
 
 function p2002Error(): Prisma.PrismaClientKnownRequestError {
 	return new Prisma.PrismaClientKnownRequestError(
@@ -96,6 +101,55 @@ describe("logActivity", () => {
 		expect(errorSpy).toHaveBeenCalledWith(
 			"activity-log write failed",
 			expect.objectContaining({ action: "USER_VISITED" }),
+		);
+	});
+});
+
+describe("logActivityForRequest", () => {
+	let errorSpy: ReturnType<typeof vi.spyOn>;
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+		headersMock.mockResolvedValue(new Headers({ "user-agent": "vitest-ua" }));
+	});
+
+	afterEach(() => {
+		errorSpy.mockRestore();
+	});
+
+	test("forwards request meta + input to activityLog.create", async () => {
+		vi.mocked(prisma.activityLog.create).mockResolvedValue({} as never);
+
+		await logActivityForRequest({
+			action: "CARD_CREATED",
+			actorId: "user_1",
+			targetType: "recognition_card",
+			targetId: "card_1",
+		});
+
+		expect(prisma.activityLog.create).toHaveBeenCalledWith({
+			data: expect.objectContaining({
+				action: "CARD_CREATED",
+				actorId: "user_1",
+				targetType: "recognition_card",
+				targetId: "card_1",
+				userAgent: "vitest-ua",
+			}),
+		});
+	});
+
+	test("returns success even when headers() throws", async () => {
+		headersMock.mockRejectedValueOnce(new Error("headers blew up"));
+
+		await expect(
+			logActivityForRequest({ action: "CARD_CREATED", actorId: "user_1" }),
+		).resolves.toBeUndefined();
+
+		expect(prisma.activityLog.create).not.toHaveBeenCalled();
+		expect(errorSpy).toHaveBeenCalledWith(
+			"logActivityForRequest failed",
+			expect.objectContaining({ action: "CARD_CREATED" }),
 		);
 	});
 });
