@@ -295,14 +295,18 @@ export async function getMostEngagedCards(daysBack = 30, limit = 5): Promise<Eng
 
 	if (tallies.size === 0) return [];
 
+	// Rank ALL tallies before any DB lookup so we can backfill from lower-ranked
+	// live cards when a top-ranked card was deleted. Slicing to `limit` first
+	// would silently shrink the result (or empty it) if the top card no longer
+	// exists — `recognitionCard.findMany` skips deleted ids, and `ActivityLog`
+	// rows for that card's reactions/comments stay around with no FK enforcement.
 	const ranked = Array.from(tallies.entries())
 		.map(([cardId, t]) => ({ cardId, ...t, total: t.reactions + t.comments }))
 		.sort((a, b) => {
 			if (b.total !== a.total) return b.total - a.total;
 			// Stable tie-break by id so paginated/cached output is deterministic.
 			return a.cardId.localeCompare(b.cardId, "en");
-		})
-		.slice(0, limit);
+		});
 
 	const userSelect = {
 		id: true,
@@ -336,20 +340,23 @@ export async function getMostEngagedCards(daysBack = 30, limit = 5): Promise<Eng
 			? null
 			: { id: u.id, firstName: u.firstName, lastName: u.lastName, avatar: u.avatar };
 
-	return ranked.flatMap((r) => {
+	const result: EngagedCard[] = [];
+	for (const r of ranked) {
+		if (result.length >= limit) break;
 		const card = cardsById.get(r.cardId);
-		if (!card) return [];
-		return [
-			{
-				cardId: r.cardId,
-				message: card.message,
-				createdAt: card.createdAt,
-				reactions: r.reactions,
-				comments: r.comments,
-				total: r.total,
-				sender: liveUser(card.sender),
-				recipient: liveUser(card.recipient),
-			},
-		];
-	});
+		// Card row deleted (or raced delete between groupBy and findMany) — skip
+		// and continue down the ranked list rather than truncating the result.
+		if (!card) continue;
+		result.push({
+			cardId: r.cardId,
+			message: card.message,
+			createdAt: card.createdAt,
+			reactions: r.reactions,
+			comments: r.comments,
+			total: r.total,
+			sender: liveUser(card.sender),
+			recipient: liveUser(card.recipient),
+		});
+	}
+	return result;
 }

@@ -481,6 +481,31 @@ describe("getMostEngagedCards", () => {
 		expect(result.map((r) => r.cardId)).toEqual(["alive"]);
 	});
 
+	test("backfills from lower-ranked live cards when the top card was deleted", async () => {
+		// Regression: previously sliced to limit *before* the card lookup, so a
+		// deleted top-ranked card silently shrank (or emptied) the result.
+		// limit=1 + top card "gone" missing + lower card "alive" present should
+		// still return one row — the live one — not an empty list.
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
+			{ targetId: "gone", _count: { _all: 10 } },
+			{ targetId: "alive", _count: { _all: 3 } },
+		] as never);
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+		vi.mocked(prisma.recognitionCard.findMany).mockResolvedValue([
+			{
+				id: "alive",
+				message: "still here",
+				createdAt: new Date(),
+				sender: userA,
+				recipient: userB,
+			},
+		] as never);
+
+		const result = await getMostEngagedCards(30, 1);
+		expect(result).toHaveLength(1);
+		expect(result[0]?.cardId).toBe("alive");
+	});
+
 	test("nulls out soft-deleted sender/recipient rather than dropping the card", async () => {
 		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([
 			{ targetId: "c1", _count: { _all: 3 } },
