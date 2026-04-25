@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
 import type { Role } from "@/app/generated/prisma/client";
 import { auth } from "@/lib/auth";
@@ -42,4 +43,27 @@ export async function requireRole(minimumRole: "ADMIN" | "SUPERADMIN") {
 		throw new AuthError("Forbidden", 403);
 	}
 	return session;
+}
+
+/**
+ * Server Component variant of `requireRole` that redirects unauthenticated /
+ * unauthorised users instead of throwing. Crucially, only `AuthError` is
+ * treated as a redirect signal — every other exception (DB outage, transient
+ * network glitch on the auth handler, programming bugs) is re-thrown so the
+ * route's `error.tsx` boundary can surface it. The previous bare-`catch` +
+ * `redirect("/dashboard")` pattern silently swallowed those, masking real
+ * issues from observability.
+ */
+export async function requireRoleOrRedirect(
+	minimumRole: "ADMIN" | "SUPERADMIN",
+	redirectTo = "/dashboard",
+) {
+	try {
+		return await requireRole(minimumRole);
+	} catch (err) {
+		if (err instanceof AuthError) {
+			redirect(redirectTo);
+		}
+		throw err;
+	}
 }
