@@ -31,12 +31,15 @@ const ACTION_LABELS: Record<ActivityAction, string> = {
 	COMMENT_DELETED: "Comment deleted",
 	TICKET_CREATED: "Ticket created",
 	TICKET_REPLIED: "Ticket replied",
+	TICKET_REPLY_UPDATED: "Ticket reply edited",
+	TICKET_REPLY_DELETED: "Ticket reply deleted",
 };
 
 const DESTRUCTIVE_ACTIONS = new Set<ActivityAction>([
 	"SIGN_IN_FAILED",
 	"CARD_DELETED",
 	"COMMENT_DELETED",
+	"TICKET_REPLY_DELETED",
 ]);
 
 type LogWithActor = ActivityLog & {

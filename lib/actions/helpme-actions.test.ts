@@ -314,6 +314,16 @@ describe("editReplyAction", () => {
 
 		expect(result).toEqual({ success: true });
 		expect(prisma.ticketReply.update).toHaveBeenCalled();
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "TICKET_REPLY_UPDATED",
+				actorId: STAFF_ID,
+				targetType: "ticket_reply",
+				targetId: "r1",
+				metadata: { ticketId: "t1" },
+			}),
+		);
+		expect(logActivityForRequest).toHaveBeenCalledTimes(1);
 	});
 
 	test("rejects edit from non-author", async () => {
@@ -332,6 +342,7 @@ describe("editReplyAction", () => {
 			error: "You can only edit your own replies",
 		});
 		expect(prisma.ticketReply.update).not.toHaveBeenCalled();
+		expect(logActivityForRequest).not.toHaveBeenCalled();
 	});
 });
 
@@ -350,6 +361,16 @@ describe("deleteReplyAction", () => {
 
 		expect(result).toEqual({ success: true });
 		expect(prisma.ticketReply.delete).toHaveBeenCalledWith({ where: { id: "r1" } });
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "TICKET_REPLY_DELETED",
+				actorId: STAFF_ID,
+				targetType: "ticket_reply",
+				targetId: "r1",
+				metadata: { ticketId: "t1" },
+			}),
+		);
+		expect(logActivityForRequest).toHaveBeenCalledTimes(1);
 	});
 
 	test("rejects delete from non-author (even if ADMIN)", async () => {
@@ -368,6 +389,7 @@ describe("deleteReplyAction", () => {
 			error: "You can only delete your own replies",
 		});
 		expect(prisma.ticketReply.delete).not.toHaveBeenCalled();
+		expect(logActivityForRequest).not.toHaveBeenCalled();
 	});
 });
 
@@ -398,6 +420,7 @@ describe("when Help Me module is disabled", () => {
 
 		expect(result).toEqual({ success: false, error: "Help Me module is disabled" });
 		expect(prisma.ticketReply.update).not.toHaveBeenCalled();
+		expect(logActivityForRequest).not.toHaveBeenCalled();
 	});
 
 	test("deleteReplyAction rejects and does not delete", async () => {
@@ -405,6 +428,7 @@ describe("when Help Me module is disabled", () => {
 
 		expect(result).toEqual({ success: false, error: "Help Me module is disabled" });
 		expect(prisma.ticketReply.delete).not.toHaveBeenCalled();
+		expect(logActivityForRequest).not.toHaveBeenCalled();
 	});
 
 	test("listTicketsForCurrentUser returns an empty list and does not query", async () => {
