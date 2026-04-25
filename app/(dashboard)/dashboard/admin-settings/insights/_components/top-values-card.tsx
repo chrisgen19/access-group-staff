@@ -16,7 +16,8 @@ interface TopValuesCardProps {
 
 export function TopValuesCard({ data, daysBack }: TopValuesCardProps) {
 	const total = data.reduce((sum, v) => sum + v.count, 0);
-	const max = data[0]?.count ?? 0;
+	// Don't assume `data` is sorted — the component owns its own visual scale.
+	const max = data.reduce((m, v) => Math.max(m, v.count), 0);
 
 	return (
 		<Card>
