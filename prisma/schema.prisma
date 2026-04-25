@@ -33,6 +33,7 @@ enum ActivityAction {
   OAUTH_ACCOUNT_LINKED
   PASSWORD_CHANGED
   PASSWORD_RESET
+  PASSWORD_SET
   USER_VISITED
 }
 
@@ -152,6 +153,7 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, providerId])
   @@map("accounts")
 }
 
