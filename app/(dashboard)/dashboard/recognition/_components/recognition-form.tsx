@@ -422,7 +422,7 @@ export function RecognitionForm({
 				<ProgressBar currentStep={step} />
 
 				{isAdmin && step === 1 && (
-					<div className="w-full max-w-5xl rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+					<div className="w-full max-w-5xl rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
 						<label className="flex items-start gap-3 cursor-pointer">
 							<input
 								type="checkbox"
@@ -434,11 +434,11 @@ export function RecognitionForm({
 										setValue("externalSenderName", undefined, { shouldValidate: true });
 									}
 								}}
-								className="mt-0.5 h-4 w-4 accent-amber-600"
+								className="mt-0.5 h-4 w-4 accent-primary"
 							/>
 							<span>
 								<span className="font-medium">Log a physical card</span>
-								<span className="block text-xs text-amber-800/80">
+								<span className="block text-xs text-muted-foreground">
 									Use this when recording a paper card from someone outside the platform. The
 									recipient will be notified, and the card will be marked as logged by you.
 								</span>

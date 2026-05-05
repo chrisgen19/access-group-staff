@@ -6,6 +6,7 @@ import {
 	ChevronRight,
 	Eye,
 	Heart,
+	Mail,
 	Pencil,
 	Search,
 	Share2,
@@ -373,7 +374,7 @@ export function RecognitionTable() {
 															lastName=""
 															avatar={null}
 															size="sm"
-															className="bg-amber-100 text-amber-900"
+															className="border border-dashed border-border bg-muted text-muted-foreground"
 														/>
 													) : (
 														<UserAvatar
@@ -390,9 +391,16 @@ export function RecognitionTable() {
 																`${card.sender.firstName} ${card.sender.lastName}`}
 														</p>
 														{card.externalSenderName ? (
-															<p className="text-xs text-muted-foreground truncate">
-																Physical card · logged by {card.sender.firstName}{" "}
-																{card.sender.lastName}
+															<p className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
+																<Mail
+																	size={10}
+																	className="opacity-70 shrink-0"
+																	aria-hidden="true"
+																/>
+																<span className="truncate">
+																	Physical card · logged by {card.sender.firstName}{" "}
+																	{card.sender.lastName}
+																</span>
 															</p>
 														) : (
 															card.sender.position && (

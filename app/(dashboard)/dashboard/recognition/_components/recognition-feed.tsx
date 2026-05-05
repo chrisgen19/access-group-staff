@@ -1,7 +1,7 @@
 "use client";
 
 import { type InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
+import { ArrowRight, Eye, Heart, Mail, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
@@ -413,7 +413,8 @@ function FeedLayout({
 						>
 							{isPhysicalCard && (
 								<div className="px-5 pt-4">
-									<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-medium text-amber-900 ring-1 ring-amber-200">
+									<span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+										<Mail size={11} className="opacity-70" aria-hidden="true" />
 										Physical card · logged by {adminName}
 									</span>
 								</div>
@@ -455,7 +456,7 @@ function FeedLayout({
 									lastName=""
 									avatar={null}
 									size="lg"
-									className="bg-amber-100 text-amber-900"
+									className="border border-dashed border-border bg-muted text-muted-foreground"
 								/>
 							) : (
 								<UserAvatar
@@ -473,7 +474,8 @@ function FeedLayout({
 										: `${card.sender.firstName} ${card.sender.lastName}`}
 								</span>
 								{isPhysicalCard ? (
-									<p className="text-muted-foreground text-xs">
+									<p className="text-muted-foreground text-xs flex items-center gap-1">
+										<Mail size={10} className="opacity-70" aria-hidden="true" />
 										Physical card · logged by {adminName}
 									</p>
 								) : (

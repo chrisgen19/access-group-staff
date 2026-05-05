@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -321,7 +321,8 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 	return (
 		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center py-8 px-4">
 			{isPhysicalCard && (
-				<div className="mb-4 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-900 ring-1 ring-amber-200">
+				<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-dashed border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+					<Mail size={12} className="opacity-70" aria-hidden="true" />
 					Physical card · logged by {adminName}
 				</div>
 			)}
