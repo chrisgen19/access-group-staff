@@ -201,6 +201,15 @@ describe("createRecognitionCardAction", () => {
 				message: expect.stringContaining("Jane Doe"),
 			}),
 		});
+		expect(logActivityForRequest).toHaveBeenCalledWith(
+			expect.objectContaining({
+				action: "CARD_CREATED",
+				metadata: expect.objectContaining({
+					physicalCard: true,
+					externalSenderName: "Jane Doe",
+				}),
+			}),
+		);
 	});
 
 	test("non-admin cannot submit externalSenderName", async () => {
@@ -342,6 +351,62 @@ describe("updateRecognitionCardAction", () => {
 			error: "Only admins can log physical cards",
 		});
 		expect(prisma.$transaction).not.toHaveBeenCalled();
+	});
+
+	test("non-admin cannot change recipient on an existing physical card", async () => {
+		const CARD_ID = "card_phys_recip";
+		const NEW_RECIPIENT = "recipient_new";
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(SENDER_ID, "STAFF") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.recognitionCard.findUnique).mockResolvedValue({
+			senderId: SENDER_ID,
+			recipientId: RECIPIENT_ID,
+			externalSenderName: "Jane Doe",
+		} as never);
+
+		const result = await updateRecognitionCardAction(
+			CARD_ID,
+			validInput({ recipientId: NEW_RECIPIENT, externalSenderName: "Jane Doe" }),
+		);
+
+		expect(result).toEqual({
+			success: false,
+			error: "Only admins can change the recipient on a physical card",
+		});
+		expect(prisma.$transaction).not.toHaveBeenCalled();
+	});
+
+	test("admin can change recipient on an existing physical card", async () => {
+		const CARD_ID = "card_phys_admin_recip";
+		const NEW_RECIPIENT = "recipient_new_2";
+		vi.mocked(requireSession).mockResolvedValue(
+			mockSession(SENDER_ID, "ADMIN") as unknown as Awaited<ReturnType<typeof requireSession>>,
+		);
+		vi.mocked(prisma.recognitionCard.findUnique).mockResolvedValue({
+			senderId: SENDER_ID,
+			recipientId: RECIPIENT_ID,
+			externalSenderName: "Jane Doe",
+		} as never);
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: NEW_RECIPIENT } as never);
+
+		const updatedCard = { id: CARD_ID, senderId: SENDER_ID, recipientId: NEW_RECIPIENT };
+		const tx = {
+			recognitionCard: { update: vi.fn().mockResolvedValue(updatedCard) },
+			notification: {
+				create: vi.fn().mockResolvedValue({}),
+				deleteMany: vi.fn().mockResolvedValue({}),
+			},
+		};
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb(tx)) as never);
+
+		const result = await updateRecognitionCardAction(
+			CARD_ID,
+			validInput({ recipientId: NEW_RECIPIENT, externalSenderName: "Jane Doe" }),
+		);
+
+		expect(result.success).toBe(true);
 	});
 
 	test("non-admin cannot newly set externalSenderName on existing regular card", async () => {

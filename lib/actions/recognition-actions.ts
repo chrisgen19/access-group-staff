@@ -101,7 +101,7 @@ export async function createRecognitionCardAction(formData: unknown) {
 			metadata: {
 				recipientId,
 				valuesPicked: pickedValues(rest),
-				...(isPhysicalCard ? { externalSenderName } : {}),
+				...(isPhysicalCard ? { physicalCard: true, externalSenderName } : {}),
 			},
 		});
 
@@ -145,11 +145,21 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 
 		const externalSenderChanged =
 			(externalSenderName ?? null) !== (existingCard.externalSenderName ?? null);
+		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const wasPhysicalCard = !!existingCard.externalSenderName;
+		const recipientChanged = existingCard.recipientId !== recipientId;
 
-		if (externalSenderChanged && !hasMinRole(session.user.role as Role, "ADMIN")) {
+		if (externalSenderChanged && !isAdmin) {
 			return {
 				success: false as const,
 				error: "Only admins can log physical cards",
+			};
+		}
+
+		if (wasPhysicalCard && recipientChanged && !isAdmin) {
+			return {
+				success: false as const,
+				error: "Only admins can change the recipient on a physical card",
 			};
 		}
 
@@ -171,8 +181,6 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 				error: "Recipient not found or deleted",
 			};
 		}
-
-		const recipientChanged = existingCard.recipientId !== recipientId;
 
 		const card = await prisma.$transaction(async (tx) => {
 			const updated = await tx.recognitionCard.update({

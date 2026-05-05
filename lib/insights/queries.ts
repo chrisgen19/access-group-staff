@@ -133,6 +133,7 @@ export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopR
 			action: "CARD_CREATED",
 			createdAt: { gte: since },
 			actorId: { not: null },
+			NOT: { metadata: { path: ["physicalCard"], equals: true } },
 		},
 		_count: { _all: true },
 	});

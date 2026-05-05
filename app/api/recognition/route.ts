@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 		if (filter === "received") {
 			where = { recipientId: session.user.id };
 		} else if (filter === "sent") {
-			where = { senderId: session.user.id };
+			where = { senderId: session.user.id, externalSenderName: null };
 		} else if (filter === "department") {
 			const departmentId = session.user.departmentId as string | null | undefined;
 			if (departmentId) {

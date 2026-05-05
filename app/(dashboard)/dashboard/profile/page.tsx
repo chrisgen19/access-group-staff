@@ -23,7 +23,9 @@ export default async function ProfilePage() {
 				image: true,
 			},
 		}),
-		prisma.recognitionCard.count({ where: { senderId: session.user.id } }),
+		prisma.recognitionCard.count({
+			where: { senderId: session.user.id, externalSenderName: null },
+		}),
 		prisma.recognitionCard.count({ where: { recipientId: session.user.id } }),
 	]);
 
