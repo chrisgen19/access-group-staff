@@ -143,7 +143,10 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			};
 		}
 
-		if (isPhysicalCard && !hasMinRole(session.user.role as Role, "ADMIN")) {
+		const externalSenderChanged =
+			(externalSenderName ?? null) !== (existingCard.externalSenderName ?? null);
+
+		if (externalSenderChanged && !hasMinRole(session.user.role as Role, "ADMIN")) {
 			return {
 				success: false as const,
 				error: "Only admins can log physical cards",
