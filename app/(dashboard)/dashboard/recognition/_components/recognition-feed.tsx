@@ -412,7 +412,7 @@ function FeedLayout({
 							)}
 						>
 							{isPhysicalCard && (
-								<div className="px-5 pt-4">
+								<div className="px-5 pt-4 pb-3">
 									<span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
 										<Mail size={11} className="opacity-70" aria-hidden="true" />
 										Physical card · logged by {adminName}
