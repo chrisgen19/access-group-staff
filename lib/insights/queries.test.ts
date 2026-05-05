@@ -242,6 +242,13 @@ describe("getTopRecognisers", () => {
 		const arg = vi.mocked(prisma.activityLog.groupBy).mock.calls[0]?.[0];
 		expect(arg?.where?.action).toBe("CARD_CREATED");
 		expect(arg?.where?.actorId).toEqual({ not: null });
+		// Physical cards are logged by an admin on behalf of an external sender.
+		// The CARD_CREATED audit row stays for accountability, but the recogniser
+		// leaderboard must exclude them so admins aren't inflated for paper-card
+		// data entry. See `metadata.physicalCard` set in recognition-actions.ts.
+		expect(arg?.where?.NOT).toEqual({
+			metadata: { path: ["physicalCard"], equals: true },
+		});
 	});
 
 	test("returns empty array when daysBack <= 0", async () => {
