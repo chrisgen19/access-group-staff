@@ -53,6 +53,7 @@ export interface RecognitionCard {
 	createdAt: string;
 	sender: RecognitionUser;
 	recipient: RecognitionUser;
+	externalSenderName: string | null;
 	valuesPeople: boolean;
 	valuesSafety: boolean;
 	valuesRespect: boolean;
@@ -120,6 +121,7 @@ export interface ExportRecognitionCard {
 	date: string;
 	sender: ExportRecognitionUser;
 	recipient: ExportRecognitionUser;
+	externalSenderName: string | null;
 	valuesPeople: boolean;
 	valuesSafety: boolean;
 	valuesRespect: boolean;
@@ -178,7 +180,7 @@ export function generateRecognitionCsv(cards: ExportRecognitionCard[]): string {
 		formatDateForExport(card.date),
 		card.recipient.branch ?? "",
 		card.sender.branch ?? "",
-		`${card.sender.firstName} ${card.sender.lastName}`,
+		card.externalSenderName ?? `${card.sender.firstName} ${card.sender.lastName}`,
 		card.message,
 		card.valuesSafety ? "x" : "",
 		card.valuesPeople ? "x" : "",

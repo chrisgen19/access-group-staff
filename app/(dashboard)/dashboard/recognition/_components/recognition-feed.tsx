@@ -394,6 +394,8 @@ function FeedLayout({
 			)}
 			{cards.map((card) => {
 				const isSender = currentUserId === card.sender.id;
+				const isPhysicalCard = !!card.externalSenderName;
+				const adminName = `${card.sender.firstName} ${card.sender.lastName}`;
 				const actions =
 					showActions && onShare ? (
 						<CardActions cardId={card.id} isSender={isSender} onShare={handleShare} />
@@ -409,6 +411,13 @@ function FeedLayout({
 								cardMaxWidth,
 							)}
 						>
+							{isPhysicalCard && (
+								<div className="px-5 pt-4">
+									<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-medium text-amber-900 ring-1 ring-amber-200">
+										Physical card · logged by {adminName}
+									</span>
+								</div>
+							)}
 							<div className="relative overflow-hidden rounded-t-[2rem]">
 								<RecognitionCardMini card={card} size={cardSize} isNew={isNew} />
 								{actions && <div className="absolute top-3 right-3 z-10">{actions}</div>}
@@ -440,19 +449,37 @@ function FeedLayout({
 						)}
 					>
 						<div className="flex items-center gap-3 mb-3">
-							<UserAvatar
-								firstName={card.sender.firstName}
-								lastName={card.sender.lastName}
-								avatar={card.sender.avatar}
-								size="lg"
-								className="bg-primary/10 text-primary"
-							/>
+							{isPhysicalCard ? (
+								<UserAvatar
+									firstName={card.externalSenderName ?? ""}
+									lastName=""
+									avatar={null}
+									size="lg"
+									className="bg-amber-100 text-amber-900"
+								/>
+							) : (
+								<UserAvatar
+									firstName={card.sender.firstName}
+									lastName={card.sender.lastName}
+									avatar={card.sender.avatar}
+									size="lg"
+									className="bg-primary/10 text-primary"
+								/>
+							)}
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
-									{card.sender.firstName} {card.sender.lastName}
+									{isPhysicalCard
+										? card.externalSenderName
+										: `${card.sender.firstName} ${card.sender.lastName}`}
 								</span>
-								{card.sender.position && (
-									<p className="text-muted-foreground text-xs">{card.sender.position}</p>
+								{isPhysicalCard ? (
+									<p className="text-muted-foreground text-xs">
+										Physical card · logged by {adminName}
+									</p>
+								) : (
+									card.sender.position && (
+										<p className="text-muted-foreground text-xs">{card.sender.position}</p>
+									)
 								)}
 							</div>
 							<ArrowRight size={16} className="text-muted-foreground mx-1" />

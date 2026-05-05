@@ -35,6 +35,7 @@ export async function GET() {
 			prisma.recognitionCard.count({
 				where: {
 					senderId: userId,
+					externalSenderName: null,
 					createdAt: { gte: startOfMonth, lt: endOfMonth },
 				},
 			}),

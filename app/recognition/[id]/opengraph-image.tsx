@@ -42,7 +42,7 @@ export default async function OGImage({ params }: { params: Promise<{ id: string
 	}
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
-	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
+	const senderName = card.externalSenderName ?? `${card.sender.firstName} ${card.sender.lastName}`;
 	const message = card.message.length > 150 ? `${card.message.slice(0, 150)}...` : card.message;
 	const [year, month, day] = card.date.toISOString().split("T")[0].split("-");
 	const dateStr = new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString(

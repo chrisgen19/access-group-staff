@@ -48,6 +48,7 @@ export default async function EditRecognitionPage({ params }: { params: Promise<
 						valuesRespect: card.valuesRespect,
 						valuesCommunication: card.valuesCommunication,
 						valuesContinuousImprovement: card.valuesContinuousImprovement,
+						externalSenderName: card.externalSenderName ?? undefined,
 					}}
 					defaultRecipient={{
 						id: card.recipient.id,

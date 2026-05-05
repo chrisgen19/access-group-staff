@@ -18,6 +18,11 @@ export const createRecognitionCardSchema = z
 		valuesRespect: z.boolean(),
 		valuesCommunication: z.boolean(),
 		valuesContinuousImprovement: z.boolean(),
+		externalSenderName: z
+			.string()
+			.trim()
+			.max(100, "Sender name must be 100 characters or less")
+			.optional(),
 	})
 	.refine(
 		(data) =>

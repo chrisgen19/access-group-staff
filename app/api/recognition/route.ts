@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
 						{ sender: { lastName: { contains: search, mode: "insensitive" } } },
 						{ recipient: { firstName: { contains: search, mode: "insensitive" } } },
 						{ recipient: { lastName: { contains: search, mode: "insensitive" } } },
+						{ externalSenderName: { contains: search, mode: "insensitive" } },
 					],
 				});
 			}

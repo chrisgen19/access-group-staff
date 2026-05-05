@@ -217,10 +217,11 @@ model RecognitionCard {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  senderId    String @map("sender_id")
-  sender      User   @relation("sender", fields: [senderId], references: [id])
-  recipientId String @map("recipient_id")
-  recipient   User   @relation("recipient", fields: [recipientId], references: [id])
+  senderId           String  @map("sender_id")
+  sender             User    @relation("sender", fields: [senderId], references: [id])
+  recipientId        String  @map("recipient_id")
+  recipient          User    @relation("recipient", fields: [recipientId], references: [id])
+  externalSenderName String? @map("external_sender_name")
 
   valuesPeople                Boolean @default(false) @map("values_people")
   valuesSafety                Boolean @default(false) @map("values_safety")

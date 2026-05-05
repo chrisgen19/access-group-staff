@@ -248,7 +248,7 @@ export function RecognitionCardMini({
 					>
 						<span className={cn("font-black text-black mb-0.5", s.labelText)}>FROM</span>
 						<FitText className={cn("text-[#222]", s.valueText)}>
-							{`${card.sender.firstName} ${card.sender.lastName}`}
+							{card.externalSenderName ?? `${card.sender.firstName} ${card.sender.lastName}`}
 						</FitText>
 					</div>
 					<div

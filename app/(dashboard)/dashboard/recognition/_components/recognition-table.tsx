@@ -367,21 +367,39 @@ export function RecognitionTable() {
 										<TableRow key={card.id}>
 											<TableCell>
 												<div className="flex items-center gap-2">
-													<UserAvatar
-														firstName={card.sender.firstName}
-														lastName={card.sender.lastName}
-														avatar={card.sender.avatar}
-														size="sm"
-														className="bg-primary/10 text-primary"
-													/>
+													{card.externalSenderName ? (
+														<UserAvatar
+															firstName={card.externalSenderName}
+															lastName=""
+															avatar={null}
+															size="sm"
+															className="bg-amber-100 text-amber-900"
+														/>
+													) : (
+														<UserAvatar
+															firstName={card.sender.firstName}
+															lastName={card.sender.lastName}
+															avatar={card.sender.avatar}
+															size="sm"
+															className="bg-primary/10 text-primary"
+														/>
+													)}
 													<div className="min-w-0">
 														<p className="text-sm font-medium text-foreground truncate">
-															{card.sender.firstName} {card.sender.lastName}
+															{card.externalSenderName ??
+																`${card.sender.firstName} ${card.sender.lastName}`}
 														</p>
-														{card.sender.position && (
+														{card.externalSenderName ? (
 															<p className="text-xs text-muted-foreground truncate">
-																{card.sender.position}
+																Physical card · logged by {card.sender.firstName}{" "}
+																{card.sender.lastName}
 															</p>
+														) : (
+															card.sender.position && (
+																<p className="text-xs text-muted-foreground truncate">
+																	{card.sender.position}
+																</p>
+															)
 														)}
 													</div>
 												</div>
