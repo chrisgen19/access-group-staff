@@ -1,7 +1,7 @@
 "use client";
 
 import { type InfiniteData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { ArrowRight, Eye, Heart, Pencil, Share2 } from "lucide-react";
+import { ArrowRight, Eye, Heart, Mail, Pencil, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { SkeletonCard, SkeletonLine } from "@/components/shared/skeleton-primitives";
@@ -394,6 +394,8 @@ function FeedLayout({
 			)}
 			{cards.map((card) => {
 				const isSender = currentUserId === card.sender.id;
+				const isPhysicalCard = !!card.externalSenderName;
+				const adminName = `${card.sender.firstName} ${card.sender.lastName}`;
 				const actions =
 					showActions && onShare ? (
 						<CardActions cardId={card.id} isSender={isSender} onShare={handleShare} />
@@ -409,6 +411,14 @@ function FeedLayout({
 								cardMaxWidth,
 							)}
 						>
+							{isPhysicalCard && (
+								<div className="px-5 pt-4 pb-3">
+									<span className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-border bg-muted/60 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+										<Mail size={11} className="opacity-70" aria-hidden="true" />
+										Physical card · logged by {adminName}
+									</span>
+								</div>
+							)}
 							<div className="relative overflow-hidden rounded-t-[2rem]">
 								<RecognitionCardMini card={card} size={cardSize} isNew={isNew} />
 								{actions && <div className="absolute top-3 right-3 z-10">{actions}</div>}
@@ -440,19 +450,38 @@ function FeedLayout({
 						)}
 					>
 						<div className="flex items-center gap-3 mb-3">
-							<UserAvatar
-								firstName={card.sender.firstName}
-								lastName={card.sender.lastName}
-								avatar={card.sender.avatar}
-								size="lg"
-								className="bg-primary/10 text-primary"
-							/>
+							{isPhysicalCard ? (
+								<UserAvatar
+									firstName={card.externalSenderName ?? ""}
+									lastName=""
+									avatar={null}
+									size="lg"
+									className="border border-dashed border-border bg-muted text-muted-foreground"
+								/>
+							) : (
+								<UserAvatar
+									firstName={card.sender.firstName}
+									lastName={card.sender.lastName}
+									avatar={card.sender.avatar}
+									size="lg"
+									className="bg-primary/10 text-primary"
+								/>
+							)}
 							<div className="text-sm">
 								<span className="font-medium text-foreground">
-									{card.sender.firstName} {card.sender.lastName}
+									{isPhysicalCard
+										? card.externalSenderName
+										: `${card.sender.firstName} ${card.sender.lastName}`}
 								</span>
-								{card.sender.position && (
-									<p className="text-muted-foreground text-xs">{card.sender.position}</p>
+								{isPhysicalCard ? (
+									<p className="text-muted-foreground text-xs flex items-center gap-1">
+										<Mail size={10} className="opacity-70" aria-hidden="true" />
+										Physical card · logged by {adminName}
+									</p>
+								) : (
+									card.sender.position && (
+										<p className="text-muted-foreground text-xs">{card.sender.position}</p>
+									)
 								)}
 							</div>
 							<ArrowRight size={16} className="text-muted-foreground mx-1" />

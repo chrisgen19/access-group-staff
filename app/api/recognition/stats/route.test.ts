@@ -105,7 +105,11 @@ describe("GET /api/recognition/stats", () => {
 
 		const calls = vi.mocked(prisma.recognitionCard.count).mock.calls;
 		expect(calls[0]?.[0]).toEqual({
-			where: { senderId: USER_ID, createdAt: { gte: START, lt: END } },
+			where: {
+				senderId: USER_ID,
+				externalSenderName: null,
+				createdAt: { gte: START, lt: END },
+			},
 		});
 		expect(calls[1]?.[0]).toEqual({
 			where: { recipientId: USER_ID, createdAt: { gte: START, lt: END } },

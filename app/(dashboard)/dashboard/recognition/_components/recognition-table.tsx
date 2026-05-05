@@ -6,6 +6,7 @@ import {
 	ChevronRight,
 	Eye,
 	Heart,
+	Mail,
 	Pencil,
 	Search,
 	Share2,
@@ -367,21 +368,46 @@ export function RecognitionTable() {
 										<TableRow key={card.id}>
 											<TableCell>
 												<div className="flex items-center gap-2">
-													<UserAvatar
-														firstName={card.sender.firstName}
-														lastName={card.sender.lastName}
-														avatar={card.sender.avatar}
-														size="sm"
-														className="bg-primary/10 text-primary"
-													/>
+													{card.externalSenderName ? (
+														<UserAvatar
+															firstName={card.externalSenderName}
+															lastName=""
+															avatar={null}
+															size="sm"
+															className="border border-dashed border-border bg-muted text-muted-foreground"
+														/>
+													) : (
+														<UserAvatar
+															firstName={card.sender.firstName}
+															lastName={card.sender.lastName}
+															avatar={card.sender.avatar}
+															size="sm"
+															className="bg-primary/10 text-primary"
+														/>
+													)}
 													<div className="min-w-0">
 														<p className="text-sm font-medium text-foreground truncate">
-															{card.sender.firstName} {card.sender.lastName}
+															{card.externalSenderName ??
+																`${card.sender.firstName} ${card.sender.lastName}`}
 														</p>
-														{card.sender.position && (
-															<p className="text-xs text-muted-foreground truncate">
-																{card.sender.position}
+														{card.externalSenderName ? (
+															<p className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
+																<Mail
+																	size={10}
+																	className="opacity-70 shrink-0"
+																	aria-hidden="true"
+																/>
+																<span className="truncate">
+																	Physical card · logged by {card.sender.firstName}{" "}
+																	{card.sender.lastName}
+																</span>
 															</p>
+														) : (
+															card.sender.position && (
+																<p className="text-xs text-muted-foreground truncate">
+																	{card.sender.position}
+																</p>
+															)
 														)}
 													</div>
 												</div>

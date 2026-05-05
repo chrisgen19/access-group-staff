@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { Check, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -63,7 +63,7 @@ export async function generateMetadata({
 	}
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
-	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
+	const senderName = card.externalSenderName ?? `${card.sender.firstName} ${card.sender.lastName}`;
 	const title = `Recognition for ${recipientName}`;
 	const description = `${senderName} recognized ${recipientName}: ${card.message.slice(0, 120)}${card.message.length > 120 ? "..." : ""}`;
 
@@ -141,7 +141,9 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 	);
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
-	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
+	const adminName = `${card.sender.firstName} ${card.sender.lastName}`;
+	const senderName = card.externalSenderName ?? adminName;
+	const isPhysicalCard = !!card.externalSenderName;
 	const department = card.recipient.department?.name ?? "";
 
 	const card1Front = (
@@ -318,6 +320,12 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 
 	return (
 		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center py-8 px-4">
+			{isPhysicalCard && (
+				<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-dashed border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+					<Mail size={12} className="opacity-70" aria-hidden="true" />
+					Physical card · logged by {adminName}
+				</div>
+			)}
 			<FlipCard front={card1Front} back={card2Back} />
 
 			{canInteract && userId ? (

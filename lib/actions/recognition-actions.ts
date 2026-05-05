@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Role } from "@/app/generated/prisma/client";
 import { logActivityForRequest } from "@/lib/activity-log";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
+import { hasMinRole } from "@/lib/permissions";
 import { createRecognitionCardSchema } from "@/lib/validations/recognition";
 
 function pickedValues(input: {
@@ -35,9 +37,19 @@ export async function createRecognitionCardAction(formData: unknown) {
 			};
 		}
 
-		const { date, recipientId, ...rest } = parsed.data;
+		const { date, recipientId, externalSenderName: rawExternal, ...rest } = parsed.data;
+		const externalSenderName =
+			rawExternal && rawExternal.trim().length > 0 ? rawExternal.trim() : undefined;
+		const isPhysicalCard = !!externalSenderName;
 
-		if (recipientId === session.user.id) {
+		if (isPhysicalCard && !hasMinRole(session.user.role as Role, "ADMIN")) {
+			return {
+				success: false as const,
+				error: "Only admins can log physical cards",
+			};
+		}
+
+		if (!isPhysicalCard && recipientId === session.user.id) {
 			return {
 				success: false as const,
 				error: "You cannot send a recognition card to yourself",
@@ -62,6 +74,7 @@ export async function createRecognitionCardAction(formData: unknown) {
 					...rest,
 					recipientId,
 					senderId: session.user.id,
+					externalSenderName: externalSenderName ?? null,
 					date: new Date(`${date}T00:00:00`),
 				},
 			});
@@ -70,7 +83,9 @@ export async function createRecognitionCardAction(formData: unknown) {
 				data: {
 					userId: recipientId,
 					type: "CARD_RECEIVED",
-					message: `${session.user.name} sent you a recognition card`,
+					message: isPhysicalCard
+						? `${externalSenderName} sent you a recognition card (logged by ${session.user.name})`
+						: `${session.user.name} sent you a recognition card`,
 					cardId: created.id,
 				},
 			});
@@ -83,7 +98,11 @@ export async function createRecognitionCardAction(formData: unknown) {
 			actorId: session.user.id,
 			targetType: "recognition_card",
 			targetId: card.id,
-			metadata: { recipientId, valuesPicked: pickedValues(rest) },
+			metadata: {
+				recipientId,
+				valuesPicked: pickedValues(rest),
+				...(isPhysicalCard ? { physicalCard: true, externalSenderName } : {}),
+			},
 		});
 
 		revalidatePath("/dashboard/recognition");
@@ -107,11 +126,14 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			};
 		}
 
-		const { date, recipientId, ...rest } = parsed.data;
+		const { date, recipientId, externalSenderName: rawExternal, ...rest } = parsed.data;
+		const externalSenderName =
+			rawExternal && rawExternal.trim().length > 0 ? rawExternal.trim() : undefined;
+		const isPhysicalCard = !!externalSenderName;
 
 		const existingCard = await prisma.recognitionCard.findUnique({
 			where: { id: cardId },
-			select: { senderId: true, recipientId: true },
+			select: { senderId: true, recipientId: true, externalSenderName: true },
 		});
 
 		if (!existingCard || existingCard.senderId !== session.user.id) {
@@ -121,7 +143,27 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			};
 		}
 
-		if (recipientId === session.user.id) {
+		const externalSenderChanged =
+			(externalSenderName ?? null) !== (existingCard.externalSenderName ?? null);
+		const isAdmin = hasMinRole(session.user.role as Role, "ADMIN");
+		const wasPhysicalCard = !!existingCard.externalSenderName;
+		const recipientChanged = existingCard.recipientId !== recipientId;
+
+		if (externalSenderChanged && !isAdmin) {
+			return {
+				success: false as const,
+				error: "Only admins can log physical cards",
+			};
+		}
+
+		if (wasPhysicalCard && recipientChanged && !isAdmin) {
+			return {
+				success: false as const,
+				error: "Only admins can change the recipient on a physical card",
+			};
+		}
+
+		if (!isPhysicalCard && recipientId === session.user.id) {
 			return {
 				success: false as const,
 				error: "You cannot send a recognition card to yourself",
@@ -140,14 +182,13 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 			};
 		}
 
-		const recipientChanged = existingCard.recipientId !== recipientId;
-
 		const card = await prisma.$transaction(async (tx) => {
 			const updated = await tx.recognitionCard.update({
 				where: { id: cardId },
 				data: {
 					...rest,
 					recipientId,
+					externalSenderName: externalSenderName ?? null,
 					date: new Date(`${date}T00:00:00`),
 				},
 			});
@@ -158,13 +199,17 @@ export async function updateRecognitionCardAction(cardId: string, formData: unkn
 				});
 			}
 
+			const senderLabel = isPhysicalCard
+				? `${externalSenderName} (logged by ${session.user.name})`
+				: session.user.name;
+
 			await tx.notification.create({
 				data: {
 					userId: updated.recipientId,
 					type: recipientChanged ? "CARD_RECEIVED" : "CARD_EDITED",
 					message: recipientChanged
-						? `${session.user.name} sent you a recognition card`
-						: `${session.user.name} edited a recognition card sent to you`,
+						? `${senderLabel} sent you a recognition card`
+						: `${senderLabel} edited a recognition card sent to you`,
 					cardId: updated.id,
 				},
 			});

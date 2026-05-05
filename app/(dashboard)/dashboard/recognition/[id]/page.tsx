@@ -99,7 +99,9 @@ export default async function RecognitionDetailPage({
 	const { initialReactions, commentCount } = await getCardReactionSummary(id, session.user.id);
 
 	const recipientName = `${card.recipient.firstName} ${card.recipient.lastName}`;
-	const senderName = `${card.sender.firstName} ${card.sender.lastName}`;
+	const adminName = `${card.sender.firstName} ${card.sender.lastName}`;
+	const senderName = card.externalSenderName ?? adminName;
+	const isPhysicalCard = !!card.externalSenderName;
 	const department = card.recipient.department?.name ?? "";
 
 	const card1Front = (
@@ -272,7 +274,11 @@ export default async function RecognitionDetailPage({
 			<DashboardPageHeader
 				eyebrow="Recognition"
 				title="Recognition Card"
-				description={`From ${senderName} to ${recipientName}`}
+				description={
+					isPhysicalCard
+						? `From ${senderName} to ${recipientName} · Physical card logged by ${adminName}`
+						: `From ${senderName} to ${recipientName}`
+				}
 				actions={<CardDetailActions cardId={id} isSender={isSender} />}
 			/>
 

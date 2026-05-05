@@ -248,6 +248,8 @@ interface RecognitionFormProps {
 	defaultRecipient?: ActiveUser | null;
 }
 
+const ADMIN_ROLES = new Set(["ADMIN", "SUPERADMIN"]);
+
 export function RecognitionForm({
 	mode = "create",
 	cardId,
@@ -267,7 +269,9 @@ export function RecognitionForm({
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 
-	const senderName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : "";
+	const isAdmin = ADMIN_ROLES.has(session?.user?.role ?? "");
+	const [isPhysicalCard, setIsPhysicalCard] = useState<boolean>(!!editDefaults?.externalSenderName);
+	const adminName = session?.user ? `${session.user.firstName} ${session.user.lastName}` : "";
 
 	const [todayLocal, setTodayLocal] = useState(() => formatLocalDate(new Date()));
 
@@ -295,8 +299,12 @@ export function RecognitionForm({
 			valuesRespect: editDefaults?.valuesRespect ?? false,
 			valuesCommunication: editDefaults?.valuesCommunication ?? false,
 			valuesContinuousImprovement: editDefaults?.valuesContinuousImprovement ?? false,
+			externalSenderName: editDefaults?.externalSenderName ?? undefined,
 		},
 	});
+
+	const externalSenderName = watch("externalSenderName");
+	const senderName = isPhysicalCard && externalSenderName ? externalSenderName : adminName;
 
 	const { data: usersData } = useQuery<{
 		success: boolean;
@@ -413,6 +421,32 @@ export function RecognitionForm({
 				{/* Progress Bar */}
 				<ProgressBar currentStep={step} />
 
+				{isAdmin && step === 1 && (
+					<div className="w-full max-w-5xl rounded-2xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground">
+						<label className="flex items-start gap-3 cursor-pointer">
+							<input
+								type="checkbox"
+								checked={isPhysicalCard}
+								onChange={(e) => {
+									const next = e.target.checked;
+									setIsPhysicalCard(next);
+									if (!next) {
+										setValue("externalSenderName", undefined, { shouldValidate: true });
+									}
+								}}
+								className="mt-0.5 h-4 w-4 accent-primary"
+							/>
+							<span>
+								<span className="font-medium">Log a physical card</span>
+								<span className="block text-xs text-muted-foreground">
+									Use this when recording a paper card from someone outside the platform. The
+									recipient will be notified, and the card will be marked as logged by you.
+								</span>
+							</span>
+						</label>
+					</div>
+				)}
+
 				{/* ============================================ */}
 				{/* STEP 1 — Card 2 (Back / Fill Card)          */}
 				{/* ============================================ */}
@@ -488,7 +522,21 @@ export function RecognitionForm({
 								<div className="flex gap-4">
 									<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
 										<span className="text-xs font-black text-black mb-1">FROM</span>
-										<span className="text-lg text-[#222]">{senderName}</span>
+										{isPhysicalCard ? (
+											<input
+												type="text"
+												{...register("externalSenderName")}
+												placeholder="Sender name (e.g. Jane Doe)"
+												className="w-full outline-none text-lg bg-transparent text-[#222] placeholder:text-gray-400"
+												maxLength={100}
+												spellCheck="false"
+											/>
+										) : (
+											<span className="text-lg text-[#222]">{senderName}</span>
+										)}
+										{errors.externalSenderName && (
+											<p className="text-xs text-red-600">{errors.externalSenderName.message}</p>
+										)}
 									</div>
 									<div className="bg-white p-3 md:p-4 rounded-sm flex flex-col flex-1 h-20 shadow-sm">
 										<span className="text-xs font-black text-black mb-1">DATE</span>

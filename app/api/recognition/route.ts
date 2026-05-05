@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 		if (filter === "received") {
 			where = { recipientId: session.user.id };
 		} else if (filter === "sent") {
-			where = { senderId: session.user.id };
+			where = { senderId: session.user.id, externalSenderName: null };
 		} else if (filter === "department") {
 			const departmentId = session.user.departmentId as string | null | undefined;
 			if (departmentId) {
@@ -85,6 +85,7 @@ export async function GET(request: NextRequest) {
 						{ sender: { lastName: { contains: search, mode: "insensitive" } } },
 						{ recipient: { firstName: { contains: search, mode: "insensitive" } } },
 						{ recipient: { lastName: { contains: search, mode: "insensitive" } } },
+						{ externalSenderName: { contains: search, mode: "insensitive" } },
 					],
 				});
 			}
