@@ -21,6 +21,7 @@ export const createRecognitionCardSchema = z
 		externalSenderName: z
 			.string()
 			.trim()
+			.min(1, "Sender name is required")
 			.max(100, "Sender name must be 100 characters or less")
 			.optional(),
 	})
