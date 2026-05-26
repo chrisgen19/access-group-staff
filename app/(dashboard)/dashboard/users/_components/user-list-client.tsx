@@ -55,6 +55,7 @@ interface User {
 	position: string | null;
 	branch: string | null;
 	createdAt: string;
+	hireDate: string | null;
 	department: { id: string; name: string; code: string } | null;
 }
 
@@ -80,16 +81,17 @@ function roleBadgeVariant(role: string) {
 	}
 }
 
-const joinedDateFormatter = new Intl.DateTimeFormat("en-AU", {
+const hireDateFormatter = new Intl.DateTimeFormat("en-AU", {
 	day: "2-digit",
 	month: "short",
 	year: "numeric",
 });
 
-function formatJoinedDate(value: string) {
+function formatHireDate(value: string | null) {
+	if (!value) return "—";
 	const parsed = new Date(value);
 	if (Number.isNaN(parsed.getTime())) return "—";
-	return joinedDateFormatter.format(parsed);
+	return hireDateFormatter.format(parsed);
 }
 
 function TableSkeleton() {
@@ -390,7 +392,7 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 									<TableHead>Employee</TableHead>
 									<TableHead>Position / Dept</TableHead>
 									<TableHead>Branch</TableHead>
-									<TableHead>Joined</TableHead>
+									<TableHead>Hired</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
@@ -431,7 +433,7 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 											</TableCell>
 											<TableCell>
 												<span className="text-sm text-foreground">
-													{formatJoinedDate(user.createdAt)}
+													{formatHireDate(user.hireDate)}
 												</span>
 											</TableCell>
 											<TableCell>
