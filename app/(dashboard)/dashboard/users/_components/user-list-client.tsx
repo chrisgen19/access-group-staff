@@ -94,6 +94,17 @@ function formatHireDate(value: string | null) {
 	return hireDateFormatter.format(parsed);
 }
 
+function getDateDisplay(
+	hireDate: string | null,
+	createdAt: string,
+): { value: string; fallback: boolean } {
+	if (hireDate) {
+		const formatted = formatHireDate(hireDate);
+		if (formatted !== "—") return { value: formatted, fallback: false };
+	}
+	return { value: formatHireDate(createdAt), fallback: true };
+}
+
 function TableSkeleton() {
 	return (
 		<div
@@ -432,9 +443,19 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 												<span className="text-sm text-foreground">{user.branch ?? "—"}</span>
 											</TableCell>
 											<TableCell>
-												<span className="text-sm text-foreground">
-													{formatHireDate(user.hireDate)}
-												</span>
+												{(() => {
+													const { value, fallback } = getDateDisplay(user.hireDate, user.createdAt);
+													return (
+														<div className="flex flex-col">
+															<span className="text-sm text-foreground">{value}</span>
+															{fallback && (
+																<span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+																	joined
+																</span>
+															)}
+														</div>
+													);
+												})()}
 											</TableCell>
 											<TableCell>
 												<div className="flex flex-col gap-1.5">
