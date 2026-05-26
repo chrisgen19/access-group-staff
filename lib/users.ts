@@ -6,6 +6,7 @@ export interface ExportUser {
 	position: string | null;
 	branch: string | null;
 	createdAt: Date | string;
+	hireDate: Date | string | null;
 	deletedAt: Date | string | null;
 	department: { name: string } | null;
 }
@@ -24,18 +25,20 @@ const CSV_HEADERS = [
 	"Role",
 	"Department",
 	"Branch",
+	"Hired",
 	"Joined",
 	"Position",
 	"Status",
 ];
 
-function formatCsvDate(value: Date | string): string {
+function formatCsvDate(value: Date | string, opts?: { utc?: boolean }): string {
 	const parsed = value instanceof Date ? value : new Date(value);
 	if (Number.isNaN(parsed.getTime())) return "";
 	return new Intl.DateTimeFormat("en-AU", {
 		day: "2-digit",
 		month: "short",
 		year: "numeric",
+		...(opts?.utc ? { timeZone: "UTC" } : {}),
 	}).format(parsed);
 }
 
@@ -47,6 +50,7 @@ export function generateUserCsv(users: ExportUser[]): string {
 		user.role,
 		user.department?.name ?? "",
 		user.branch ?? "",
+		user.hireDate ? formatCsvDate(user.hireDate, { utc: true }) : "",
 		formatCsvDate(user.createdAt),
 		user.position ?? "",
 		user.deletedAt ? "Deleted" : "Active",

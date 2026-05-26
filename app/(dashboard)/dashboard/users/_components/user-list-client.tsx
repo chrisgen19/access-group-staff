@@ -55,6 +55,7 @@ interface User {
 	position: string | null;
 	branch: string | null;
 	createdAt: string;
+	hireDate: string | null;
 	department: { id: string; name: string; code: string } | null;
 }
 
@@ -80,16 +81,41 @@ function roleBadgeVariant(role: string) {
 	}
 }
 
+const hireDateFormatter = new Intl.DateTimeFormat("en-AU", {
+	day: "2-digit",
+	month: "short",
+	year: "numeric",
+	timeZone: "UTC",
+});
+
 const joinedDateFormatter = new Intl.DateTimeFormat("en-AU", {
 	day: "2-digit",
 	month: "short",
 	year: "numeric",
 });
 
+function formatHireDate(value: string | null) {
+	if (!value) return "—";
+	const parsed = new Date(value);
+	if (Number.isNaN(parsed.getTime())) return "—";
+	return hireDateFormatter.format(parsed);
+}
+
 function formatJoinedDate(value: string) {
 	const parsed = new Date(value);
 	if (Number.isNaN(parsed.getTime())) return "—";
 	return joinedDateFormatter.format(parsed);
+}
+
+function getDateDisplay(
+	hireDate: string | null,
+	createdAt: string,
+): { value: string; fallback: boolean } {
+	if (hireDate) {
+		const formatted = formatHireDate(hireDate);
+		if (formatted !== "—") return { value: formatted, fallback: false };
+	}
+	return { value: formatJoinedDate(createdAt), fallback: true };
 }
 
 function TableSkeleton() {
@@ -390,7 +416,7 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 									<TableHead>Employee</TableHead>
 									<TableHead>Position / Dept</TableHead>
 									<TableHead>Branch</TableHead>
-									<TableHead>Joined</TableHead>
+									<TableHead>Hired</TableHead>
 									<TableHead>Status</TableHead>
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
@@ -430,9 +456,17 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 												<span className="text-sm text-foreground">{user.branch ?? "—"}</span>
 											</TableCell>
 											<TableCell>
-												<span className="text-sm text-foreground">
-													{formatJoinedDate(user.createdAt)}
-												</span>
+												{(() => {
+													const { value, fallback } = getDateDisplay(user.hireDate, user.createdAt);
+													return (
+														<div className="flex flex-col">
+															<span className="text-sm text-foreground">{value}</span>
+															<span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+																{fallback ? "joined" : "hired"}
+															</span>
+														</div>
+													);
+												})()}
 											</TableCell>
 											<TableCell>
 												<div className="flex flex-col gap-1.5">
