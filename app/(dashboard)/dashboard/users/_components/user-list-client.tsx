@@ -88,11 +88,23 @@ const hireDateFormatter = new Intl.DateTimeFormat("en-AU", {
 	timeZone: "UTC",
 });
 
+const joinedDateFormatter = new Intl.DateTimeFormat("en-AU", {
+	day: "2-digit",
+	month: "short",
+	year: "numeric",
+});
+
 function formatHireDate(value: string | null) {
 	if (!value) return "—";
 	const parsed = new Date(value);
 	if (Number.isNaN(parsed.getTime())) return "—";
 	return hireDateFormatter.format(parsed);
+}
+
+function formatJoinedDate(value: string) {
+	const parsed = new Date(value);
+	if (Number.isNaN(parsed.getTime())) return "—";
+	return joinedDateFormatter.format(parsed);
 }
 
 function getDateDisplay(
@@ -103,7 +115,7 @@ function getDateDisplay(
 		const formatted = formatHireDate(hireDate);
 		if (formatted !== "—") return { value: formatted, fallback: false };
 	}
-	return { value: formatHireDate(createdAt), fallback: true };
+	return { value: formatJoinedDate(createdAt), fallback: true };
 }
 
 function TableSkeleton() {
