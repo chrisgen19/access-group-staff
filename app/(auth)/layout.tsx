@@ -1,4 +1,4 @@
-import { ForceLight } from "./_components/force-light";
+import { ForceLight } from "@/components/shared/force-light";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
 	return (

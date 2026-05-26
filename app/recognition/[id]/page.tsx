@@ -11,6 +11,7 @@ import {
 	BackgroundGraphic,
 } from "@/components/shared/access-logos";
 import { FitText } from "@/components/shared/fit-text";
+import { ForceLight } from "@/components/shared/force-light";
 import { PhysicalCardPerson } from "@/components/shared/physical-card-person";
 import { getServerSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
@@ -320,6 +321,7 @@ export default async function SharePage({ params }: { params: Promise<{ id: stri
 
 	return (
 		<div className="min-h-screen bg-[#f5f5f5] flex flex-col items-center justify-center py-8 px-4">
+			<ForceLight />
 			{isPhysicalCard && (
 				<div className="mb-4 inline-flex items-center gap-2 rounded-full border border-dashed border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground">
 					<Mail size={12} className="opacity-70" aria-hidden="true" />
