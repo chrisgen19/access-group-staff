@@ -448,11 +448,9 @@ export function UserListClient({ mode, currentUserRole, departments }: UserListC
 													return (
 														<div className="flex flex-col">
 															<span className="text-sm text-foreground">{value}</span>
-															{fallback && (
-																<span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-																	joined
-																</span>
-															)}
+															<span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+																{fallback ? "joined" : "hired"}
+															</span>
 														</div>
 													);
 												})()}
