@@ -85,6 +85,7 @@ const hireDateFormatter = new Intl.DateTimeFormat("en-AU", {
 	day: "2-digit",
 	month: "short",
 	year: "numeric",
+	timeZone: "UTC",
 });
 
 function formatHireDate(value: string | null) {
