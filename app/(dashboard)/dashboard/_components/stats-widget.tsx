@@ -270,9 +270,7 @@ function LockedLeaderboard({
 					<Lock size={18} className="text-primary" />
 				</div>
 				<p className="text-sm font-medium text-foreground">This month's winners</p>
-				{revealDate && (
-					<p className="text-sm text-muted-foreground mt-0.5">Revealed {revealDate}</p>
-				)}
+				{revealDate && <p className="text-sm text-muted-foreground mt-0.5">Reveals {revealDate}</p>}
 				{showCountdown && (
 					<p className="mt-3 text-sm font-semibold tabular-nums text-primary" aria-live="polite">
 						in {formatCountdown(msRemaining)}
