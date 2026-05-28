@@ -27,22 +27,10 @@ const PODIUM_STYLES = [
 	},
 ] as const;
 
-const REVEAL_DATE_FORMATTER = new Intl.DateTimeFormat("en-AU", {
-	timeZone: "Asia/Manila",
-	month: "short",
-	day: "numeric",
-});
-
 const SNAPSHOT_DATE_FORMATTER = new Intl.DateTimeFormat("en-AU", {
 	timeZone: "Asia/Manila",
 	dateStyle: "medium",
 });
-
-function formatRevealRange(start: Date, end: Date): string {
-	// revealEnd is exclusive — subtract 1ms to display the inclusive last day.
-	const lastDay = new Date(end.getTime() - 1);
-	return `${REVEAL_DATE_FORMATTER.format(start)} – ${REVEAL_DATE_FORMATTER.format(lastDay)}`;
-}
 
 function PanelShell({ children }: { children: React.ReactNode }) {
 	return (
@@ -77,20 +65,15 @@ export function LeaderboardList({ data }: { data: MonthLeaderboard }) {
 	}
 
 	if (data.kind === "locked") {
-		const { revealStart, revealEnd } = data.visibility;
-		const rangeLabel = revealStart && revealEnd ? formatRevealRange(revealStart, revealEnd) : null;
 		return (
 			<PanelShell>
 				<div className="flex flex-col items-center justify-center px-8 py-16 text-center">
 					<div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
 						<Lock size={22} className="text-primary" />
 					</div>
-					<p className="text-base font-medium text-foreground">
-						{rangeLabel ? "Rankings revealed" : "Rankings hidden"}
-					</p>
-					{rangeLabel && <p className="mt-1 text-sm text-muted-foreground">{rangeLabel}</p>}
-					<p className="mt-4 text-xs text-muted-foreground">
-						This month's leaderboard is not yet visible.
+					<p className="text-base font-medium text-foreground">Still being counted</p>
+					<p className="mt-1 text-sm text-muted-foreground">
+						{formatMonthLabel(data.monthKey)} rankings publish after the month ends.
 					</p>
 				</div>
 			</PanelShell>
@@ -98,16 +81,10 @@ export function LeaderboardList({ data }: { data: MonthLeaderboard }) {
 	}
 
 	const { recipients } = data;
-	const isLive = data.kind === "live";
-	const badge = isLive ? "Live" : `Archived ${SNAPSHOT_DATE_FORMATTER.format(data.snapshotAt)}`;
+	const badge = `Archived ${SNAPSHOT_DATE_FORMATTER.format(data.snapshotAt)}`;
 
 	if (recipients.length === 0) {
-		return (
-			<EmptyMessage
-				title={`No recognitions in ${formatMonthLabel(data.monthKey)}`}
-				body={isLive ? "Be the first to recognize a colleague this month!" : undefined}
-			/>
-		);
+		return <EmptyMessage title={`No recognitions in ${formatMonthLabel(data.monthKey)}`} />;
 	}
 
 	return (
@@ -118,12 +95,7 @@ export function LeaderboardList({ data }: { data: MonthLeaderboard }) {
 					<h2 className="text-[1.25rem] font-medium text-foreground tracking-tight">
 						Most Recognized — {formatMonthLabel(data.monthKey)}
 					</h2>
-					<span
-						className={cn(
-							"inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-							isLive ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-						)}
-					>
+					<span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
 						{badge}
 					</span>
 				</div>

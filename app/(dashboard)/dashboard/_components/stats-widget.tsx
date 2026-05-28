@@ -35,13 +35,13 @@ const PODIUM_STYLES = [
 const STATS_STICKY_OFFSET = 32;
 const STATS_STICKY_BREAKPOINT_QUERY = "(min-width: 1024px)";
 
-type LeaderboardVisibilityMode = "always" | "last_n_days_of_month" | "custom_range";
-
 interface LeaderboardVisibility {
 	visible: boolean;
-	mode: LeaderboardVisibilityMode;
-	revealStart: string | null;
-	revealEnd: string | null;
+	sourceMonthKey: string;
+	sourceMonthLabel: string;
+	revealStart: string;
+	revealEnd: string;
+	nextRevealStart: string;
 }
 
 interface StatsData {
@@ -59,16 +59,9 @@ interface StatsData {
 
 const REVEAL_DATE_FORMATTER = new Intl.DateTimeFormat("en-AU", {
 	timeZone: "Asia/Manila",
-	month: "short",
+	month: "long",
 	day: "numeric",
 });
-
-function formatRevealRange(startIso: string, endIso: string): string {
-	const start = new Date(startIso);
-	// revealEnd is exclusive — subtract 1ms to display the inclusive last day
-	const lastDay = new Date(new Date(endIso).getTime() - 1);
-	return `${REVEAL_DATE_FORMATTER.format(start)} – ${REVEAL_DATE_FORMATTER.format(lastDay)}`;
-}
 
 function formatCountdown(msRemaining: number): string {
 	if (msRemaining <= 0) return "any moment";
@@ -257,16 +250,13 @@ function StatsWidgetSkeleton() {
 }
 
 function LockedLeaderboard({
-	visibility,
+	nextRevealIso,
 	msRemaining,
 }: {
-	visibility: LeaderboardVisibility;
+	nextRevealIso: string | null;
 	msRemaining: number | null;
 }) {
-	const hasRange = visibility.revealStart && visibility.revealEnd;
-	const rangeLabel = hasRange
-		? formatRevealRange(visibility.revealStart as string, visibility.revealEnd as string)
-		: null;
+	const revealDate = nextRevealIso ? REVEAL_DATE_FORMATTER.format(new Date(nextRevealIso)) : null;
 	const showCountdown = msRemaining !== null && msRemaining > 0;
 
 	return (
@@ -279,14 +269,8 @@ function LockedLeaderboard({
 				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 mb-3">
 					<Lock size={18} className="text-primary" />
 				</div>
-				{rangeLabel ? (
-					<>
-						<p className="text-sm font-medium text-foreground">Rankings revealed</p>
-						<p className="text-sm text-muted-foreground mt-0.5">{rangeLabel}</p>
-					</>
-				) : (
-					<p className="text-sm font-medium text-foreground">Rankings hidden</p>
-				)}
+				<p className="text-sm font-medium text-foreground">This month's winners</p>
+				{revealDate && <p className="text-sm text-muted-foreground mt-0.5">Reveals {revealDate}</p>}
 				{showCountdown && (
 					<p className="mt-3 text-sm font-semibold tabular-nums text-primary" aria-live="polite">
 						in {formatCountdown(msRemaining)}
@@ -302,13 +286,24 @@ function LockedLeaderboard({
 }
 
 export function StatsWidget() {
+	// Date preview: visit /dashboard?previewNow=2026-06-01 to see the reveal
+	// window. The server honors this only for SUPERADMIN and ignores it for
+	// every other role.
+	const previewNow =
+		typeof window !== "undefined"
+			? new URLSearchParams(window.location.search).get("previewNow")
+			: null;
+
 	const { data, isPending, isError } = useQuery<{
 		success: boolean;
 		data: StatsData;
 	}>({
-		queryKey: ["recognition-stats"],
+		queryKey: ["recognition-stats", previewNow],
 		queryFn: async () => {
-			const res = await fetch("/api/recognition/stats");
+			const url = previewNow
+				? `/api/recognition/stats?previewNow=${encodeURIComponent(previewNow)}`
+				: "/api/recognition/stats";
+			const res = await fetch(url);
 			if (!res.ok) throw new Error("Failed to fetch stats");
 			return res.json();
 		},
@@ -317,11 +312,11 @@ export function StatsWidget() {
 
 	const visibility = data?.data?.leaderboardVisibility ?? null;
 	// Always watch the next boundary: revealEnd if the leaderboard is currently
-	// visible (so we hide it at month-end / range-end), otherwise revealStart.
+	// visible (so we lock it at window-end), otherwise the next window opening.
 	const nextBoundaryIso = visibility
 		? visibility.visible
 			? visibility.revealEnd
-			: visibility.revealStart
+			: visibility.nextRevealStart
 		: null;
 	const msRemaining = useCountdown(nextBoundaryIso);
 
@@ -398,9 +393,14 @@ export function StatsWidget() {
 
 			{showList ? (
 				<div>
-					<div className="flex items-center gap-2 mb-3">
+					<div className="flex flex-wrap items-center gap-2 mb-3">
 						<Trophy size={16} className="text-primary" />
-						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
+						<h4 className="text-sm font-medium text-foreground/70">
+							Most Recognized — {resolvedVisibility.sourceMonthLabel}
+						</h4>
+						<span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+							Final results
+						</span>
 					</div>
 					<ol className="space-y-2">
 						{stats.topRecipients.map((person, index) => {
@@ -459,16 +459,21 @@ export function StatsWidget() {
 					</ol>
 				</div>
 			) : showLocked ? (
-				<LockedLeaderboard visibility={resolvedVisibility} msRemaining={msRemaining} />
+				<LockedLeaderboard
+					nextRevealIso={resolvedVisibility.nextRevealStart}
+					msRemaining={msRemaining}
+				/>
 			) : showEmpty ? (
 				<div>
 					<div className="flex items-center gap-2 mb-3">
 						<Trophy size={16} className="text-primary" />
-						<h4 className="text-sm font-medium text-foreground/70">Most Recognized</h4>
+						<h4 className="text-sm font-medium text-foreground/70">
+							Most Recognized — {resolvedVisibility.sourceMonthLabel}
+						</h4>
 					</div>
 					<div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 						<p className="text-sm text-muted-foreground">
-							No recognitions yet this month — be the first!
+							No recognitions were recorded last month.
 						</p>
 					</div>
 				</div>

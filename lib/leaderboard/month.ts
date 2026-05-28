@@ -36,6 +36,22 @@ function manilaMidnightToUtc(year: number, monthIndex: number, day: number): Dat
 	return new Date(Date.UTC(year, monthIndex, day, 0, 0, 0, 0) - TZ_OFFSET_MS);
 }
 
+// Parses a "YYYY-MM-DD" string as Asia/Manila midnight, returned as the
+// equivalent UTC instant. Returns null for malformed or impossible dates.
+export function manilaDateStringToUtc(dateStr: string): Date | null {
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+	if (!match) return null;
+	const year = Number.parseInt(match[1] ?? "", 10);
+	const monthIndex = Number.parseInt(match[2] ?? "", 10) - 1;
+	const day = Number.parseInt(match[3] ?? "", 10);
+	if (Number.isNaN(year) || Number.isNaN(monthIndex) || Number.isNaN(day)) return null;
+	const utc = manilaMidnightToUtc(year, monthIndex, day);
+	// Reject impossible calendar dates (e.g. 2026-02-31 would roll over).
+	const shifted = new Date(utc.getTime() + TZ_OFFSET_MS);
+	if (shifted.getUTCMonth() !== monthIndex || shifted.getUTCDate() !== day) return null;
+	return utc;
+}
+
 export function getMonthBoundariesForKey(monthKey: string): MonthBoundaries {
 	const { year, month } = parseMonthKey(monthKey);
 	const start = manilaMidnightToUtc(year, month, 1);

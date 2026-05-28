@@ -1,95 +1,64 @@
-import { getCurrentMonthBoundaries } from "./month";
+import { getCurrentMonthBoundaries, getPreviousMonthKey } from "./month";
 
-export type LeaderboardVisibilityMode = "always" | "last_n_days_of_month" | "custom_range";
-
-export const LEADERBOARD_VISIBILITY_MODES: LeaderboardVisibilityMode[] = [
-	"always",
-	"last_n_days_of_month",
-	"custom_range",
-];
-
-export const REVEAL_DAYS_MIN = 1;
-export const REVEAL_DAYS_MAX = 14;
-export const REVEAL_DAYS_DEFAULT = 7;
+export const REVEAL_DAY_MIN = 1;
+// Cap at 28 so the reveal window always exists in every month (February-safe).
+export const REVEAL_DAY_MAX = 28;
+export const REVEAL_START_DAY_DEFAULT = 1;
+export const REVEAL_END_DAY_DEFAULT = 20;
 
 export interface LeaderboardVisibilitySettings {
-	mode: LeaderboardVisibilityMode;
-	revealDays: number;
-	customStart: string | null;
-	customEnd: string | null;
+	revealStartDay: number;
+	revealEndDay: number;
 }
 
 export interface LeaderboardVisibilityState {
 	visible: boolean;
-	revealStart: Date | null;
-	revealEnd: Date | null;
-	mode: LeaderboardVisibilityMode;
+	revealStart: Date;
+	revealEnd: Date;
+	// The next window opening — this month's if we haven't reached it yet,
+	// otherwise next month's. Used for the "reveals in…" countdown when locked.
+	nextRevealStart: Date;
+	// The completed month whose winners the window reveals (previous calendar month).
+	sourceMonthKey: string;
 }
 
 const TZ_OFFSET_MS = 8 * 60 * 60 * 1000;
 
-function manilaIsoDateToUtcStart(dateStr: string): Date | null {
-	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
-	if (!match) return null;
-	const year = Number.parseInt(match[1] ?? "", 10);
-	const month = Number.parseInt(match[2] ?? "", 10) - 1;
-	const day = Number.parseInt(match[3] ?? "", 10);
-	if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
-		return null;
-	}
-	return new Date(Date.UTC(year, month, day, 0, 0, 0, 0) - TZ_OFFSET_MS);
+function manilaMidnightToUtc(year: number, monthIndex: number, day: number): Date {
+	return new Date(Date.UTC(year, monthIndex, day, 0, 0, 0, 0) - TZ_OFFSET_MS);
 }
 
-function manilaIsoDateToUtcEndExclusive(dateStr: string): Date | null {
-	const start = manilaIsoDateToUtcStart(dateStr);
-	if (!start) return null;
-	return new Date(start.getTime() + 24 * 60 * 60 * 1000);
+export function clampDay(value: number): number {
+	if (!Number.isFinite(value)) return REVEAL_DAY_MIN;
+	return Math.min(Math.max(Math.trunc(value), REVEAL_DAY_MIN), REVEAL_DAY_MAX);
 }
 
 export function computeLeaderboardVisibility(
 	settings: LeaderboardVisibilitySettings,
 	now: Date = new Date(),
 ): LeaderboardVisibilityState {
-	if (settings.mode === "always") {
-		return {
-			visible: true,
-			revealStart: null,
-			revealEnd: null,
-			mode: "always",
-		};
-	}
+	const { year, month } = getCurrentMonthBoundaries(now);
 
-	if (settings.mode === "last_n_days_of_month") {
-		const { end: monthEnd, year, month, daysInMonth } = getCurrentMonthBoundaries(now);
-		const clampedDays = Math.min(Math.max(settings.revealDays, REVEAL_DAYS_MIN), REVEAL_DAYS_MAX);
-		const firstRevealDay = Math.max(1, daysInMonth - clampedDays + 1);
-		const revealStart = new Date(Date.UTC(year, month, firstRevealDay, 0, 0, 0, 0) - TZ_OFFSET_MS);
-		const visible = now.getTime() >= revealStart.getTime() && now.getTime() < monthEnd.getTime();
-		return {
-			visible,
-			revealStart,
-			revealEnd: monthEnd,
-			mode: "last_n_days_of_month",
-		};
-	}
+	const startDay = clampDay(settings.revealStartDay);
+	const endDay = Math.max(startDay, clampDay(settings.revealEndDay));
 
-	const start = settings.customStart ? manilaIsoDateToUtcStart(settings.customStart) : null;
-	const end = settings.customEnd ? manilaIsoDateToUtcEndExclusive(settings.customEnd) : null;
+	const revealStart = manilaMidnightToUtc(year, month, startDay);
+	// Exclusive upper bound: midnight after the inclusive end day.
+	const revealEnd = manilaMidnightToUtc(year, month, endDay + 1);
 
-	if (!start || !end || end.getTime() <= start.getTime()) {
-		return {
-			visible: false,
-			revealStart: null,
-			revealEnd: null,
-			mode: "custom_range",
-		};
-	}
+	const t = now.getTime();
+	const visible = t >= revealStart.getTime() && t < revealEnd.getTime();
 
-	const visible = now.getTime() >= start.getTime() && now.getTime() < end.getTime();
+	// Before this month's window → it's still the next opening. At or after it
+	// → the next opening is next month (Date.UTC rolls the year over).
+	const nextRevealStart =
+		t < revealStart.getTime() ? revealStart : manilaMidnightToUtc(year, month + 1, startDay);
+
 	return {
 		visible,
-		revealStart: start,
-		revealEnd: end,
-		mode: "custom_range",
+		revealStart,
+		revealEnd,
+		nextRevealStart,
+		sourceMonthKey: getPreviousMonthKey(now),
 	};
 }

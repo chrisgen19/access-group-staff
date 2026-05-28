@@ -6,6 +6,7 @@ import {
 } from "@/lib/actions/settings-actions";
 import { requireRoleOrRedirect } from "@/lib/auth-utils";
 import { ActivityLogRetentionPanel } from "./_components/activity-log-retention";
+import { LeaderboardPreviewPanel } from "./_components/leaderboard-preview";
 import { OAuthSettingsPanel } from "./_components/oauth-settings";
 
 export default async function SuperAdminPage() {
@@ -31,6 +32,8 @@ export default async function SuperAdminPage() {
 			/>
 
 			<ActivityLogRetentionPanel initialDays={retentionDays} />
+
+			<LeaderboardPreviewPanel />
 		</div>
 	);
 }
