@@ -29,10 +29,8 @@ export default async function AdminSettingsPage() {
 			<RecognitionSettingsPanel initialLimit={topLimit} />
 
 			<LeaderboardVisibilityPanel
-				initialMode={visibility.mode}
-				initialDays={visibility.revealDays}
-				initialCustomStart={visibility.customStart}
-				initialCustomEnd={visibility.customEnd}
+				initialStartDay={visibility.revealStartDay}
+				initialEndDay={visibility.revealEndDay}
 			/>
 
 			<HelpMeVisibilityPanel initialEnabled={helpMeEnabled} />

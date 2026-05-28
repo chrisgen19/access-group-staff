@@ -20,12 +20,11 @@ import {
 	TOP_RECOGNIZED_MIN,
 } from "@/lib/leaderboard/constants";
 import {
-	LEADERBOARD_VISIBILITY_MODES,
-	type LeaderboardVisibilityMode,
 	type LeaderboardVisibilitySettings,
-	REVEAL_DAYS_DEFAULT,
-	REVEAL_DAYS_MAX,
-	REVEAL_DAYS_MIN,
+	REVEAL_DAY_MAX,
+	REVEAL_DAY_MIN,
+	REVEAL_END_DAY_DEFAULT,
+	REVEAL_START_DAY_DEFAULT,
 } from "@/lib/leaderboard/visibility";
 
 const OAUTH_KEYS = ["oauth_google_enabled", "oauth_microsoft_enabled"] as const;
@@ -222,30 +221,19 @@ export async function updateHelpMeEnabled(
 
 /* ── Leaderboard Visibility ──────────────────────────── */
 
-const LEADERBOARD_MODE_KEY = "leaderboard_visibility_mode";
-const LEADERBOARD_DAYS_KEY = "leaderboard_reveal_days";
-const LEADERBOARD_CUSTOM_START_KEY = "leaderboard_custom_start";
-const LEADERBOARD_CUSTOM_END_KEY = "leaderboard_custom_end";
-const LEADERBOARD_KEYS = [
-	LEADERBOARD_MODE_KEY,
-	LEADERBOARD_DAYS_KEY,
-	LEADERBOARD_CUSTOM_START_KEY,
-	LEADERBOARD_CUSTOM_END_KEY,
-];
+const LEADERBOARD_START_DAY_KEY = "leaderboard_reveal_start_day";
+const LEADERBOARD_END_DAY_KEY = "leaderboard_reveal_end_day";
+const LEADERBOARD_KEYS = [LEADERBOARD_START_DAY_KEY, LEADERBOARD_END_DAY_KEY];
 
 function invalidateLeaderboardCache() {
 	invalidateEntry(leaderboardCache);
 }
 
-function isValidIsoDate(value: string): boolean {
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-	// Round-trip to reject impossible calendar dates like 2026-02-31.
-	const parsed = new Date(`${value}T00:00:00Z`);
-	return !Number.isNaN(parsed.getTime()) && parsed.toISOString().startsWith(value);
-}
-
-function isLeaderboardMode(value: string): value is LeaderboardVisibilityMode {
-	return (LEADERBOARD_VISIBILITY_MODES as string[]).includes(value);
+function parseDay(raw: string | undefined, fallback: number): number {
+	const parsed = Number.parseInt(raw ?? "", 10);
+	return Number.isInteger(parsed) && parsed >= REVEAL_DAY_MIN && parsed <= REVEAL_DAY_MAX
+		? parsed
+		: fallback;
 }
 
 export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVisibilitySettings> {
@@ -255,32 +243,19 @@ export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVis
 		});
 		const map = new Map(rows.map((r) => [r.key, r.value]));
 
-		const rawMode = map.get(LEADERBOARD_MODE_KEY) ?? "always";
-		const mode: LeaderboardVisibilityMode = isLeaderboardMode(rawMode) ? rawMode : "always";
+		const revealStartDay = parseDay(map.get(LEADERBOARD_START_DAY_KEY), REVEAL_START_DAY_DEFAULT);
+		const revealEndDay = Math.max(
+			revealStartDay,
+			parseDay(map.get(LEADERBOARD_END_DAY_KEY), REVEAL_END_DAY_DEFAULT),
+		);
 
-		const parsedDays = Number.parseInt(map.get(LEADERBOARD_DAYS_KEY) ?? "", 10);
-		const revealDays =
-			Number.isFinite(parsedDays) && parsedDays >= REVEAL_DAYS_MIN && parsedDays <= REVEAL_DAYS_MAX
-				? parsedDays
-				: REVEAL_DAYS_DEFAULT;
-
-		const rawStart = map.get(LEADERBOARD_CUSTOM_START_KEY) ?? null;
-		const rawEnd = map.get(LEADERBOARD_CUSTOM_END_KEY) ?? null;
-
-		return {
-			mode,
-			revealDays,
-			customStart: rawStart && isValidIsoDate(rawStart) ? rawStart : null,
-			customEnd: rawEnd && isValidIsoDate(rawEnd) ? rawEnd : null,
-		};
+		return { revealStartDay, revealEndDay };
 	});
 }
 
 export interface UpdateLeaderboardVisibilityInput {
-	mode: LeaderboardVisibilityMode;
-	revealDays: number;
-	customStart: string | null;
-	customEnd: string | null;
+	revealStartDay: number;
+	revealEndDay: number;
 }
 
 export async function updateLeaderboardVisibilitySettings(
@@ -292,70 +267,33 @@ export async function updateLeaderboardVisibilitySettings(
 		return { success: false, error: "Unauthorized" };
 	}
 
-	if (!isLeaderboardMode(input.mode)) {
-		return { success: false, error: "Invalid visibility mode" };
-	}
+	const dayIsValid = (day: number) =>
+		Number.isInteger(day) && day >= REVEAL_DAY_MIN && day <= REVEAL_DAY_MAX;
 
-	const revealDaysIsValid =
-		Number.isInteger(input.revealDays) &&
-		input.revealDays >= REVEAL_DAYS_MIN &&
-		input.revealDays <= REVEAL_DAYS_MAX;
-
-	// Only block the save on revealDays errors when the chosen mode actually
-	// consumes that field. Otherwise an admin switching to `always` / `custom_range`
-	// with a still-editing Reveal days input would be blocked on a now-hidden field.
-	if (input.mode === "last_n_days_of_month" && !revealDaysIsValid) {
+	if (!dayIsValid(input.revealStartDay) || !dayIsValid(input.revealEndDay)) {
 		return {
 			success: false,
-			error: `Reveal days must be between ${REVEAL_DAYS_MIN} and ${REVEAL_DAYS_MAX}`,
+			error: `Reveal days must be between ${REVEAL_DAY_MIN} and ${REVEAL_DAY_MAX}`,
 		};
 	}
 
-	if (input.mode === "custom_range") {
-		if (
-			!input.customStart ||
-			!input.customEnd ||
-			!isValidIsoDate(input.customStart) ||
-			!isValidIsoDate(input.customEnd)
-		) {
-			return {
-				success: false,
-				error: "Custom range requires valid start and end dates",
-			};
-		}
-		if (input.customStart > input.customEnd) {
-			return {
-				success: false,
-				error: "Start date must be on or before end date",
-			};
-		}
+	if (input.revealStartDay > input.revealEndDay) {
+		return {
+			success: false,
+			error: "Reveal start day must be on or before the end day",
+		};
 	}
-
-	const normalizedDays = revealDaysIsValid ? input.revealDays : REVEAL_DAYS_DEFAULT;
-	const normalizedStart =
-		input.customStart && isValidIsoDate(input.customStart) ? input.customStart : "";
-	const normalizedEnd = input.customEnd && isValidIsoDate(input.customEnd) ? input.customEnd : "";
 
 	await prisma.$transaction([
 		prisma.appSetting.upsert({
-			where: { key: LEADERBOARD_MODE_KEY },
-			update: { value: input.mode },
-			create: { key: LEADERBOARD_MODE_KEY, value: input.mode },
+			where: { key: LEADERBOARD_START_DAY_KEY },
+			update: { value: String(input.revealStartDay) },
+			create: { key: LEADERBOARD_START_DAY_KEY, value: String(input.revealStartDay) },
 		}),
 		prisma.appSetting.upsert({
-			where: { key: LEADERBOARD_DAYS_KEY },
-			update: { value: String(normalizedDays) },
-			create: { key: LEADERBOARD_DAYS_KEY, value: String(normalizedDays) },
-		}),
-		prisma.appSetting.upsert({
-			where: { key: LEADERBOARD_CUSTOM_START_KEY },
-			update: { value: normalizedStart },
-			create: { key: LEADERBOARD_CUSTOM_START_KEY, value: normalizedStart },
-		}),
-		prisma.appSetting.upsert({
-			where: { key: LEADERBOARD_CUSTOM_END_KEY },
-			update: { value: normalizedEnd },
-			create: { key: LEADERBOARD_CUSTOM_END_KEY, value: normalizedEnd },
+			where: { key: LEADERBOARD_END_DAY_KEY },
+			update: { value: String(input.revealEndDay) },
+			create: { key: LEADERBOARD_END_DAY_KEY, value: String(input.revealEndDay) },
 		}),
 	]);
 

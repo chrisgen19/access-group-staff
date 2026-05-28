@@ -1,9 +1,7 @@
 import { z } from "zod";
-import { getLeaderboardVisibilitySettings } from "@/lib/actions/settings-actions";
 import { prisma } from "@/lib/db";
 import { getCurrentMonthBoundaries, parseMonthKey } from "./month";
-import { computeMonthRecipients, type SnapshotRecipient } from "./snapshot";
-import { computeLeaderboardVisibility, type LeaderboardVisibilityState } from "./visibility";
+import type { SnapshotRecipient } from "./snapshot";
 
 const MONTH_KEY_REGEX = /^\d{4}-(0[1-9]|1[0-2])$/;
 
@@ -29,22 +27,12 @@ const SnapshotPayloadSchema = z.array(SnapshotRecipientSchema);
 
 export type MonthLeaderboard =
 	| {
-			kind: "live";
-			monthKey: string;
-			recipients: SnapshotRecipient[];
-			visibility: LeaderboardVisibilityState;
-	  }
-	| {
-			kind: "locked";
-			monthKey: string;
-			visibility: LeaderboardVisibilityState;
-	  }
-	| {
 			kind: "archived";
 			monthKey: string;
 			recipients: SnapshotRecipient[];
 			snapshotAt: Date;
 	  }
+	| { kind: "locked"; monthKey: string }
 	| { kind: "missing"; monthKey: string };
 
 export async function getArchivedMonthKeys(): Promise<string[]> {
@@ -55,6 +43,26 @@ export async function getArchivedMonthKeys(): Promise<string[]> {
 	return rows.map((r) => r.month);
 }
 
+function parseSnapshotRecipients(value: unknown): SnapshotRecipient[] | null {
+	const parsed = SnapshotPayloadSchema.safeParse(value);
+	return parsed.success ? parsed.data : null;
+}
+
+// Reads a completed month's archived winners, trimmed to `limit`. Returns null
+// when no valid snapshot exists for the month.
+export async function getArchivedRecipients(
+	monthKey: string,
+	limit: number,
+): Promise<SnapshotRecipient[] | null> {
+	const snapshot = await prisma.monthlyLeaderboardSnapshot.findUnique({
+		where: { month: monthKey },
+		select: { recipients: true },
+	});
+	if (!snapshot) return null;
+	const recipients = parseSnapshotRecipients(snapshot.recipients);
+	return recipients ? recipients.slice(0, limit) : null;
+}
+
 export async function getMonthLeaderboard(
 	monthKey: string,
 	now: Date = new Date(),
@@ -62,14 +70,9 @@ export async function getMonthLeaderboard(
 ): Promise<MonthLeaderboard> {
 	const currentKey = getCurrentMonthBoundaries(now).monthKey;
 
+	// The in-progress month is never shown — its data is still being counted.
 	if (monthKey === currentKey) {
-		const settings = await getLeaderboardVisibilitySettings();
-		const visibility = computeLeaderboardVisibility(settings, now);
-		if (!visibility.visible) {
-			return { kind: "locked", monthKey, visibility };
-		}
-		const recipients = await computeMonthRecipients(monthKey, limit);
-		return { kind: "live", monthKey, recipients, visibility };
+		return { kind: "locked", monthKey };
 	}
 
 	const snapshot = await prisma.monthlyLeaderboardSnapshot.findUnique({
@@ -79,8 +82,8 @@ export async function getMonthLeaderboard(
 		return { kind: "missing", monthKey };
 	}
 
-	const parsed = SnapshotPayloadSchema.safeParse(snapshot.recipients);
-	if (!parsed.success) {
+	const recipients = parseSnapshotRecipients(snapshot.recipients);
+	if (!recipients) {
 		return { kind: "missing", monthKey };
 	}
 
@@ -89,7 +92,7 @@ export async function getMonthLeaderboard(
 	return {
 		kind: "archived",
 		monthKey,
-		recipients: parsed.data.slice(0, limit),
+		recipients: recipients.slice(0, limit),
 		snapshotAt: snapshot.snapshotAt,
 	};
 }

@@ -1,14 +1,28 @@
+import type { Role } from "@/app/generated/prisma/client";
 import {
 	getLeaderboardVisibilitySettings,
 	getTopRecognizedLimit,
 } from "@/lib/actions/settings-actions";
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
+import { formatMonthLabel, getArchivedRecipients } from "@/lib/leaderboard/history";
 import { getCurrentMonthBoundaries } from "@/lib/leaderboard/month";
 import { maybeSnapshotPreviousMonth } from "@/lib/leaderboard/snapshot";
 import { computeLeaderboardVisibility } from "@/lib/leaderboard/visibility";
+import { hasMinRole } from "@/lib/permissions";
 
-export async function GET() {
+// Super-admin only: lets them preview a future/past date
+// (e.g. ?previewNow=2026-06-01) to see the reveal window without waiting for
+// the real calendar. The param is ignored for everyone else.
+function resolveNow(request: Request, allowPreview: boolean): Date {
+	if (!allowPreview) return new Date();
+	const preview = new URL(request.url).searchParams.get("previewNow");
+	if (!preview) return new Date();
+	const parsed = new Date(preview);
+	return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+}
+
+export async function GET(request: Request) {
 	let session: Awaited<ReturnType<typeof requireSession>>;
 	try {
 		session = await requireSession();
@@ -18,7 +32,8 @@ export async function GET() {
 
 	try {
 		const userId = session.user.id;
-		const now = new Date();
+		const isSuperAdmin = hasMinRole(session.user.role as Role, "SUPERADMIN");
+		const now = resolveNow(request, isSuperAdmin);
 		const { start: startOfMonth, end: endOfMonth } = getCurrentMonthBoundaries(now);
 
 		await maybeSnapshotPreviousMonth(now).catch(() => {
@@ -57,30 +72,16 @@ export async function GET() {
 			count: number;
 		}> = [];
 
+		// During the reveal window we show the previous (completed) month's
+		// finalized winners, read from its archived snapshot — never a live tally.
 		if (visibility.visible) {
-			const grouped = await prisma.recognitionCard.groupBy({
-				by: ["recipientId"],
-				where: { createdAt: { gte: startOfMonth, lt: endOfMonth } },
-				_count: { recipientId: true },
-				orderBy: { _count: { recipientId: "desc" } },
-				take: topLimit,
-			});
-
-			if (grouped.length > 0) {
-				const recipients = await prisma.user.findMany({
-					where: { id: { in: grouped.map((g) => g.recipientId) } },
-					select: { id: true, firstName: true, lastName: true, avatar: true },
-				});
-				topRecipients = grouped.map((g) => {
-					const user = recipients.find((u) => u.id === g.recipientId);
-					return {
-						firstName: user?.firstName ?? "",
-						lastName: user?.lastName ?? "",
-						avatar: user?.avatar ?? null,
-						count: g._count.recipientId,
-					};
-				});
-			}
+			const recipients = await getArchivedRecipients(visibility.sourceMonthKey, topLimit);
+			topRecipients = (recipients ?? []).map((r) => ({
+				firstName: r.firstName,
+				lastName: r.lastName,
+				avatar: r.avatar,
+				count: r.count,
+			}));
 		}
 
 		return Response.json({
@@ -92,9 +93,11 @@ export async function GET() {
 				topRecipients,
 				leaderboardVisibility: {
 					visible: visibility.visible,
-					mode: visibility.mode,
-					revealStart: visibility.revealStart?.toISOString() ?? null,
-					revealEnd: visibility.revealEnd?.toISOString() ?? null,
+					sourceMonthKey: visibility.sourceMonthKey,
+					sourceMonthLabel: formatMonthLabel(visibility.sourceMonthKey),
+					revealStart: visibility.revealStart.toISOString(),
+					revealEnd: visibility.revealEnd.toISOString(),
+					nextRevealStart: visibility.nextRevealStart.toISOString(),
 				},
 			},
 		});
