@@ -17,6 +17,7 @@ vi.mock("@/lib/actions/settings-actions", () => ({
 
 vi.mock("@/lib/leaderboard/snapshot", () => ({
 	maybeSnapshotPreviousMonth: vi.fn().mockResolvedValue(undefined),
+	computeMonthRecipients: vi.fn(),
 }));
 
 vi.mock("@/lib/leaderboard/history", () => ({
@@ -40,6 +41,7 @@ import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { getArchivedRecipients } from "@/lib/leaderboard/history";
 import { getCurrentMonthBoundaries } from "@/lib/leaderboard/month";
+import { computeMonthRecipients, maybeSnapshotPreviousMonth } from "@/lib/leaderboard/snapshot";
 import { computeLeaderboardVisibility } from "@/lib/leaderboard/visibility";
 import { GET } from "./route";
 
@@ -83,6 +85,7 @@ beforeEach(() => {
 	vi.mocked(getTopRecognizedLimit).mockResolvedValue(5);
 	vi.mocked(prisma.recognitionCard.count).mockResolvedValue(0);
 	vi.mocked(getArchivedRecipients).mockResolvedValue([]);
+	vi.mocked(computeMonthRecipients).mockResolvedValue([]);
 });
 
 describe("GET /api/recognition/stats", () => {
@@ -165,17 +168,47 @@ describe("GET /api/recognition/stats", () => {
 		expect(getArchivedRecipients).not.toHaveBeenCalled();
 	});
 
-	test("honors ?previewNow for a super admin", async () => {
+	test("honors ?previewNow for a super admin but still snapshots with the real clock", async () => {
 		mockVisible(true);
 		vi.mocked(requireSession).mockResolvedValue({
 			user: { id: USER_ID, role: "SUPERADMIN" },
 			session: { id: "sess_1" },
 		} as unknown as Awaited<ReturnType<typeof requireSession>>);
 
+		const before = Date.now();
 		await GET(new Request("http://localhost/api/recognition/stats?previewNow=2026-06-01"));
 
+		// Display/visibility use the preview clock…
 		const passedNow = vi.mocked(computeLeaderboardVisibility).mock.calls[0]?.[1];
 		expect(passedNow?.toISOString()).toBe(new Date("2026-06-01").toISOString());
+
+		// …but snapshotting must use the real clock, never the simulated date,
+		// or a partial month could be frozen permanently.
+		const snapshotNow = vi.mocked(maybeSnapshotPreviousMonth).mock.calls[0]?.[0];
+		expect(snapshotNow?.getTime()).toBeGreaterThanOrEqual(before);
+		expect(snapshotNow?.toISOString()).not.toBe(new Date("2026-06-01").toISOString());
+	});
+
+	test("falls back to a live computation when previewing an unarchived month", async () => {
+		mockVisible(true);
+		vi.mocked(requireSession).mockResolvedValue({
+			user: { id: USER_ID, role: "SUPERADMIN" },
+			session: { id: "sess_1" },
+		} as unknown as Awaited<ReturnType<typeof requireSession>>);
+		vi.mocked(getArchivedRecipients).mockResolvedValue(null);
+		vi.mocked(computeMonthRecipients).mockResolvedValue([
+			{ userId: "u1", firstName: "Grace", lastName: "Hopper", avatar: null, count: 9, rank: 1 },
+		]);
+
+		const res = await GET(
+			new Request("http://localhost/api/recognition/stats?previewNow=2026-06-01"),
+		);
+		const body = await res.json();
+
+		expect(computeMonthRecipients).toHaveBeenCalledWith(SOURCE_MONTH_KEY, 5);
+		expect(body.data.topRecipients).toEqual([
+			{ firstName: "Grace", lastName: "Hopper", avatar: null, count: 9 },
+		]);
 	});
 
 	test("ignores ?previewNow for a non-super-admin", async () => {
