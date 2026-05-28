@@ -6,9 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 function firstOfNextMonth(): string {
-	const now = new Date();
-	const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-	return next.toISOString().slice(0, 10);
+	// Derive "now" in Asia/Manila so the default lands on the right month even
+	// near UTC boundaries, then return the 1st of the following month.
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: "Asia/Manila",
+		year: "numeric",
+		month: "numeric",
+	}).formatToParts(new Date());
+	const year = Number(parts.find((p) => p.type === "year")?.value);
+	const month = Number(parts.find((p) => p.type === "month")?.value); // 1-12
+	const nextYear = month === 12 ? year + 1 : year;
+	const nextMonth = month === 12 ? 1 : month + 1;
+	return `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
 }
 
 export function LeaderboardPreviewPanel() {

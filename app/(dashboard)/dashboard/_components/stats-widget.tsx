@@ -286,8 +286,9 @@ function LockedLeaderboard({
 }
 
 export function StatsWidget() {
-	// Dev-only date preview: visit /dashboard?previewNow=2026-06-01 to see the
-	// reveal window. The server ignores this param in production.
+	// Date preview: visit /dashboard?previewNow=2026-06-01 to see the reveal
+	// window. The server honors this only for SUPERADMIN and ignores it for
+	// every other role.
 	const previewNow =
 		typeof window !== "undefined"
 			? new URLSearchParams(window.location.search).get("previewNow")

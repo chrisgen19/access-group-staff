@@ -92,7 +92,7 @@ export function LeaderboardVisibilityPanel({
 						type="number"
 						min={REVEAL_DAY_MIN}
 						max={REVEAL_DAY_MAX}
-						value={startDay}
+						value={Number.isFinite(startDay) ? startDay : ""}
 						onChange={(e) => setStartDay(Number.parseInt(e.target.value, 10))}
 						onBlur={handleStartBlur}
 						disabled={isPending}
@@ -111,7 +111,7 @@ export function LeaderboardVisibilityPanel({
 						type="number"
 						min={REVEAL_DAY_MIN}
 						max={REVEAL_DAY_MAX}
-						value={endDay}
+						value={Number.isFinite(endDay) ? endDay : ""}
 						onChange={(e) => setEndDay(Number.parseInt(e.target.value, 10))}
 						onBlur={handleEndBlur}
 						disabled={isPending}

@@ -6,18 +6,22 @@ import {
 import { requireSession } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { formatMonthLabel, getArchivedRecipients } from "@/lib/leaderboard/history";
-import { getCurrentMonthBoundaries } from "@/lib/leaderboard/month";
+import { getCurrentMonthBoundaries, manilaDateStringToUtc } from "@/lib/leaderboard/month";
 import { computeMonthRecipients, maybeSnapshotPreviousMonth } from "@/lib/leaderboard/snapshot";
 import { computeLeaderboardVisibility } from "@/lib/leaderboard/visibility";
 import { hasMinRole } from "@/lib/permissions";
 
 // Super-admin only: lets them preview a future/past date
 // (e.g. ?previewNow=2026-06-01) to see the reveal window without waiting for
-// the real calendar. Returns null (real clock) for everyone else.
+// the real calendar. Returns null (real clock) for everyone else. The date is
+// interpreted as Asia/Manila midnight so it lines up with the visibility math.
 function resolvePreviewNow(request: Request, allowPreview: boolean): Date | null {
 	if (!allowPreview) return null;
 	const preview = new URL(request.url).searchParams.get("previewNow");
 	if (!preview) return null;
+	const manila = manilaDateStringToUtc(preview);
+	if (manila) return manila;
+	// Accept full timestamps too, but never an invalid date.
 	const parsed = new Date(preview);
 	return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
@@ -41,8 +45,10 @@ export async function GET(request: Request) {
 		// Always snapshot against the real clock. Archiving with a simulated
 		// preview date would freeze a partial month — the unique-month upsert's
 		// empty update never corrects it, permanently corrupting the winners.
-		await maybeSnapshotPreviousMonth(realNow).catch(() => {
-			// Snapshot failures must not break the stats response.
+		await maybeSnapshotPreviousMonth(realNow).catch((err) => {
+			// A snapshot failure must not break the stats response, but it must
+			// not be silent either — the live fallback below covers the read.
+			console.error("maybeSnapshotPreviousMonth failed", { error: err });
 		});
 
 		const [visibilitySettings, topLimit] = await Promise.all([
@@ -81,10 +87,11 @@ export async function GET(request: Request) {
 		// finalized winners, read from its archived snapshot — never a live tally.
 		if (visibility.visible) {
 			let recipients = await getArchivedRecipients(visibility.sourceMonthKey, topLimit);
-			// When previewing a future date the source month may not be archived
-			// yet (it hasn't ended in real time). Compute it live so the preview is
-			// populated — this never persists a snapshot.
-			if (!recipients && previewNow) {
+			// Fall back to a live computation when the archive is missing or invalid
+			// (snapshot not yet written, swallowed failure, or corrupt JSON), so the
+			// reveal window never shows a false "no winners" state. Safe for everyone:
+			// the source month is closed, so counts are stable, and this never writes.
+			if (!recipients) {
 				recipients = await computeMonthRecipients(visibility.sourceMonthKey, topLimit);
 			}
 			topRecipients = (recipients ?? []).map((r) => ({

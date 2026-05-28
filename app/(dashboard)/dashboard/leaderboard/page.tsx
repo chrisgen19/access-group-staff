@@ -38,9 +38,11 @@ export default async function LeaderboardHistoryPage({ searchParams }: PageProps
 	const now = new Date();
 
 	// Self-heal the archive when a user lands here before anyone hits
-	// /dashboard post-rollover. Swallow errors so snapshot failures don't
-	// break the page render.
-	await maybeSnapshotPreviousMonth(now).catch(() => {});
+	// /dashboard post-rollover. A failure must not break the page render, but
+	// log it rather than swallowing silently.
+	await maybeSnapshotPreviousMonth(now).catch((err) => {
+		console.error("maybeSnapshotPreviousMonth failed", { error: err });
+	});
 
 	const [archivedKeys, topLimit] = await Promise.all([
 		getArchivedMonthKeys(),
