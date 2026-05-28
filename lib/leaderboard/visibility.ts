@@ -28,7 +28,7 @@ function manilaMidnightToUtc(year: number, monthIndex: number, day: number): Dat
 	return new Date(Date.UTC(year, monthIndex, day, 0, 0, 0, 0) - TZ_OFFSET_MS);
 }
 
-function clampDay(value: number): number {
+export function clampDay(value: number): number {
 	if (!Number.isFinite(value)) return REVEAL_DAY_MIN;
 	return Math.min(Math.max(Math.trunc(value), REVEAL_DAY_MIN), REVEAL_DAY_MAX);
 }

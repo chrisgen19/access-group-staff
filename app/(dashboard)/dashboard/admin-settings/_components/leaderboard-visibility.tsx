@@ -5,16 +5,11 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { updateLeaderboardVisibilitySettings } from "@/lib/actions/settings-actions";
-import { REVEAL_DAY_MAX, REVEAL_DAY_MIN } from "@/lib/leaderboard/visibility";
+import { clampDay, REVEAL_DAY_MAX, REVEAL_DAY_MIN } from "@/lib/leaderboard/visibility";
 
 export interface LeaderboardVisibilityPanelProps {
 	initialStartDay: number;
 	initialEndDay: number;
-}
-
-function clampDay(value: number): number {
-	const n = Number.isFinite(value) ? value : REVEAL_DAY_MIN;
-	return Math.min(Math.max(Math.trunc(n), REVEAL_DAY_MIN), REVEAL_DAY_MAX);
 }
 
 export function LeaderboardVisibilityPanel({
@@ -49,7 +44,9 @@ export function LeaderboardVisibilityPanel({
 
 	function handleStartBlur() {
 		const clamped = clampDay(startDay);
-		const nextEnd = Math.max(clamped, endDay);
+		// Clamp endDay too — it may be NaN if the user cleared it without blurring,
+		// which would otherwise send NaN to save() and trigger a generic error.
+		const nextEnd = Math.max(clamped, clampDay(endDay));
 		if (clamped !== startDay) setStartDay(clamped);
 		if (nextEnd !== endDay) setEndDay(nextEnd);
 		save(clamped, nextEnd);
