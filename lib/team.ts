@@ -7,6 +7,7 @@ export interface TeamMember {
 	avatar: string | null;
 	image: string | null;
 	email: string;
+	branch: string | null;
 	subDepartmentId: string | null;
 	subDepartment: { id: string; name: string } | null;
 }

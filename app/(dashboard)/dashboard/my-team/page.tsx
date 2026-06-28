@@ -52,6 +52,7 @@ export default async function MyTeamPage() {
 			avatar: true,
 			image: true,
 			email: true,
+			branch: true,
 			subDepartmentId: true,
 			subDepartment: { select: { id: true, name: true } },
 		},
