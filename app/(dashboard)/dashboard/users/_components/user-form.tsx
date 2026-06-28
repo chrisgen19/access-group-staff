@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { ShiftScheduleEditor } from "@/components/shared/shift-schedule-editor";
 import { createUserAction, updateUserAction } from "@/lib/actions/user-actions";
 import { parseDateInputValue, toDateInputValue } from "@/lib/date-input";
 import {
@@ -18,7 +19,6 @@ import {
 	type UpdateUserInput,
 	updateUserSchema,
 } from "@/lib/validations/user";
-import { ShiftScheduleEditor } from "./shift-schedule-editor";
 
 const inputClass =
 	"block w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-4 focus:ring-primary/30 focus:border-primary transition-all duration-200";

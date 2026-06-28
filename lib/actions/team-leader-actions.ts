@@ -1,0 +1,221 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import type { Prisma } from "@/app/generated/prisma/client";
+import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { upsertShiftSchedule } from "@/lib/shift-schedule";
+import {
+	canAssignTeamMember,
+	canEditTeamMember,
+	type LeaderContext,
+	type TeamMemberRef,
+} from "@/lib/team-leader";
+import { teamMemberUpdateSchema } from "@/lib/validations/user";
+
+type Db = typeof prisma | Prisma.TransactionClient;
+
+class TeamLeaderActionError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "TeamLeaderActionError";
+	}
+}
+
+async function loadLeaderContext(db: Db, userId: string): Promise<LeaderContext> {
+	const [user, led] = await Promise.all([
+		db.user.findUnique({ where: { id: userId }, select: { departmentId: true } }),
+		db.subDepartment.findMany({ where: { teamLeaderId: userId }, select: { id: true } }),
+	]);
+	return {
+		userId,
+		departmentId: user?.departmentId ?? null,
+		ledSubDepartmentIds: led.map((s) => s.id),
+	};
+}
+
+async function loadTargetRef(db: Db, userId: string): Promise<TeamMemberRef | null> {
+	const user = await db.user.findUnique({
+		where: { id: userId },
+		select: {
+			id: true,
+			role: true,
+			departmentId: true,
+			subDepartmentId: true,
+			deletedAt: true,
+			ledSubDepartments: { select: { id: true }, take: 1 },
+		},
+	});
+	if (!user) return null;
+	return {
+		id: user.id,
+		role: user.role,
+		departmentId: user.departmentId,
+		subDepartmentId: user.subDepartmentId,
+		deletedAt: user.deletedAt,
+		isLeader: user.ledSubDepartments.length > 0,
+	};
+}
+
+export async function getTeamMemberDetailAction(targetId: string) {
+	try {
+		const session = await requireSession();
+		const ctx = await loadLeaderContext(prisma, session.user.id);
+		const target = await loadTargetRef(prisma, targetId);
+		if (!target || !canEditTeamMember(ctx, target)) {
+			return { success: false as const, error: "You can't view this member" };
+		}
+
+		const detail = await prisma.user.findUnique({
+			where: { id: targetId },
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				displayName: true,
+				email: true,
+				phone: true,
+				position: true,
+				branch: true,
+				avatar: true,
+				image: true,
+				shiftSchedule: { include: { days: { orderBy: { dayOfWeek: "asc" } } } },
+			},
+		});
+		if (!detail) {
+			return { success: false as const, error: "Member not found" };
+		}
+		return { success: true as const, data: detail };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to load member";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function updateTeamMemberAction(targetId: string, formData: unknown) {
+	try {
+		const session = await requireSession();
+		const parsed = teamMemberUpdateSchema.safeParse(formData);
+		if (!parsed.success) {
+			return { success: false as const, error: parsed.error.flatten().fieldErrors };
+		}
+		const { position, shiftSchedule } = parsed.data;
+
+		await prisma.$transaction(
+			async (tx) => {
+				const ctx = await loadLeaderContext(tx, session.user.id);
+				const target = await loadTargetRef(tx, targetId);
+				if (!target || !canEditTeamMember(ctx, target)) {
+					throw new TeamLeaderActionError("You can't edit this member");
+				}
+				await tx.user.update({
+					where: { id: targetId },
+					data: { position: position ?? null },
+				});
+				if (shiftSchedule !== undefined) {
+					await upsertShiftSchedule(tx, targetId, shiftSchedule ?? null);
+				}
+			},
+			{ isolationLevel: "Serializable" },
+		);
+
+		revalidatePath("/dashboard/my-team");
+		return { success: true as const, data: null };
+	} catch (error) {
+		if (error instanceof TeamLeaderActionError) {
+			return { success: false as const, error: error.message };
+		}
+		const message = error instanceof Error ? error.message : "Failed to update member";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function setTeamMemberSubDepartmentAction(
+	targetId: string,
+	destSubDepartmentId: string | null,
+) {
+	try {
+		const session = await requireSession();
+
+		await prisma.$transaction(
+			async (tx) => {
+				const ctx = await loadLeaderContext(tx, session.user.id);
+				const target = await loadTargetRef(tx, targetId);
+				if (!target || !canAssignTeamMember(ctx, target, destSubDepartmentId)) {
+					throw new TeamLeaderActionError("You can't change this member's team");
+				}
+				await tx.user.update({
+					where: { id: targetId },
+					data: { subDepartmentId: destSubDepartmentId },
+				});
+			},
+			{ isolationLevel: "Serializable" },
+		);
+
+		revalidatePath("/dashboard/my-team");
+		return { success: true as const, data: null };
+	} catch (error) {
+		if (error instanceof TeamLeaderActionError) {
+			return { success: false as const, error: error.message };
+		}
+		const message = error instanceof Error ? error.message : "Failed to update team";
+		return { success: false as const, error: message };
+	}
+}
+
+interface LedTeamPerson {
+	id: string;
+	firstName: string;
+	lastName: string;
+	avatar: string | null;
+	image: string | null;
+	position: string | null;
+	subDepartmentId: string | null;
+}
+
+/**
+ * Data for the leader's "Manage members" dialog for one of their teams:
+ * current members of the team plus the department members they may add
+ * (active STAFF non-leaders who are unassigned or in another team this leader
+ * leads). Verifies the caller actually leads `subDepartmentId`.
+ */
+export async function getLedTeamDataAction(subDepartmentId: string) {
+	try {
+		const session = await requireSession();
+		const ctx = await loadLeaderContext(prisma, session.user.id);
+		if (ctx.departmentId === null || !ctx.ledSubDepartmentIds.includes(subDepartmentId)) {
+			return { success: false as const, error: "You don't lead this team" };
+		}
+
+		const pool = await prisma.user.findMany({
+			where: {
+				departmentId: ctx.departmentId,
+				deletedAt: null,
+				role: "STAFF",
+				id: { not: session.user.id },
+				ledSubDepartments: { none: {} },
+			},
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				avatar: true,
+				image: true,
+				position: true,
+				subDepartmentId: true,
+			},
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+		});
+
+		const members: LedTeamPerson[] = pool.filter((p) => p.subDepartmentId === subDepartmentId);
+		const assignable: LedTeamPerson[] = pool.filter(
+			(p) =>
+				p.subDepartmentId !== subDepartmentId &&
+				(p.subDepartmentId === null || ctx.ledSubDepartmentIds.includes(p.subDepartmentId)),
+		);
+		return { success: true as const, data: { members, assignable } };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to load team";
+		return { success: false as const, error: message };
+	}
+}

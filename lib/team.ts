@@ -16,6 +16,8 @@ export interface TeamGroup {
 	subDepartmentId: string | null;
 	name: string;
 	isViewerTeam: boolean;
+	/** Whether the viewer is the team leader of this sub-department. */
+	isViewerLed: boolean;
 	members: TeamMember[];
 }
 
@@ -32,7 +34,9 @@ export const NO_SUB_DEPARTMENT_LABEL = "No sub-department";
 export function groupUsersBySubDepartment(
 	users: TeamMember[],
 	viewerSubDepartmentId: string | null,
+	ledSubDepartmentIds: readonly string[] = [],
 ): TeamGroup[] {
+	const ledSet = new Set(ledSubDepartmentIds);
 	const groups = new Map<string, TeamGroup>();
 
 	for (const user of users) {
@@ -43,6 +47,7 @@ export function groupUsersBySubDepartment(
 				subDepartmentId: user.subDepartmentId,
 				name: user.subDepartment?.name ?? NO_SUB_DEPARTMENT_LABEL,
 				isViewerTeam: user.subDepartmentId === viewerSubDepartmentId,
+				isViewerLed: user.subDepartmentId !== null && ledSet.has(user.subDepartmentId),
 				members: [],
 			};
 			groups.set(key, group);

@@ -1,3 +1,4 @@
+import { Crown } from "lucide-react";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
 	Table,
@@ -9,6 +10,8 @@ import {
 } from "@/components/ui/table";
 import type { TeamGroup } from "@/lib/team";
 import { cn } from "@/lib/utils";
+import { ManageTeamDialog } from "./manage-team-dialog";
+import { TeamMemberDialog } from "./team-member-dialog";
 
 const BRANCH_LABELS: Record<string, string> = {
 	ISO: "ISO",
@@ -31,7 +34,7 @@ export function TeamGroups({
 		<div className="space-y-8">
 			{groups.map((group) => (
 				<section key={group.subDepartmentId ?? "__none__"} className="space-y-3">
-					<div className="flex items-center justify-between gap-3 px-1">
+					<div className="flex flex-wrap items-center justify-between gap-3 px-1">
 						<div className="flex items-center gap-3">
 							<h2 className="text-[1.15rem] font-medium text-foreground">{group.name}</h2>
 							{group.isViewerTeam && (
@@ -39,10 +42,24 @@ export function TeamGroups({
 									Your team
 								</span>
 							)}
+							{group.isViewerLed && (
+								<span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">
+									<Crown size={12} />
+									You lead
+								</span>
+							)}
 						</div>
-						<span className="text-sm text-muted-foreground">
-							{group.members.length} {group.members.length === 1 ? "member" : "members"}
-						</span>
+						<div className="flex items-center gap-3">
+							<span className="text-sm text-muted-foreground">
+								{group.members.length} {group.members.length === 1 ? "member" : "members"}
+							</span>
+							{group.isViewerLed && group.subDepartmentId && (
+								<ManageTeamDialog
+									subDepartmentId={group.subDepartmentId}
+									subDepartmentName={group.name}
+								/>
+							)}
+						</div>
 					</div>
 
 					<div
@@ -59,6 +76,11 @@ export function TeamGroups({
 									<TableHead>Employee</TableHead>
 									<TableHead>Position</TableHead>
 									<TableHead>Branch</TableHead>
+									{group.isViewerLed && (
+										<TableHead className="text-right">
+											<span className="sr-only">Actions</span>
+										</TableHead>
+									)}
 								</TableRow>
 							</TableHeader>
 							<TableBody>
@@ -97,6 +119,16 @@ export function TeamGroups({
 													{formatBranch(member.branch)}
 												</span>
 											</TableCell>
+											{group.isViewerLed && (
+												<TableCell className="text-right">
+													{!isViewer && (
+														<TeamMemberDialog
+															memberId={member.id}
+															memberName={`${member.firstName} ${member.lastName}`}
+														/>
+													)}
+												</TableCell>
+											)}
 										</TableRow>
 									);
 								})}

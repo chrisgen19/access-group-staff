@@ -32,17 +32,34 @@ export interface CadencePoint {
 }
 
 /**
- * Daily count of recognition cards created over the last `daysBack` Manila
- * days, oldest first, with empty days filled as `count: 0`.
+ * Optional team scope. When `memberIds` is provided, queries are restricted to
+ * activity by those actors (used by the leader-facing team insights view). An
+ * empty array short-circuits to no results. `undefined` means org-wide.
  */
-export async function getCardCadence(daysBack = 30): Promise<CadencePoint[]> {
+export type InsightsScope = { memberIds: string[] } | undefined;
+
+/** Prisma `actorId` filter fragment for an optional team scope. */
+function actorScope(scope: InsightsScope) {
+	return scope ? { actorId: { in: scope.memberIds } } : {};
+}
+
+/**
+ * Daily count of recognition cards created over the last `daysBack` Manila
+ * days, oldest first, with empty days filled as `count: 0`. Optionally scoped
+ * to a team's members.
+ */
+export async function getCardCadence(
+	daysBack = 30,
+	scope?: InsightsScope,
+): Promise<CadencePoint[]> {
+	if (scope && scope.memberIds.length === 0) return [];
 	const days = recentManilaDayKeys(daysBack);
 	const earliest = days[0];
 	if (!earliest) return [];
 	const since = manilaDayStartUtc(earliest);
 
 	const rows = await prisma.activityLog.findMany({
-		where: { action: "CARD_CREATED", createdAt: { gte: since } },
+		where: { action: "CARD_CREATED", createdAt: { gte: since }, ...actorScope(scope) },
 		select: { createdAt: true },
 	});
 
@@ -66,14 +83,15 @@ export interface ValueTally {
  * `daysBack` Manila days. Reads `metadata.valuesPicked` (array of strings)
  * written by `createRecognitionCardAction`. Sorted by count desc.
  */
-export async function getTopValues(daysBack = 30): Promise<ValueTally[]> {
+export async function getTopValues(daysBack = 30, scope?: InsightsScope): Promise<ValueTally[]> {
+	if (scope && scope.memberIds.length === 0) return [];
 	const days = recentManilaDayKeys(daysBack);
 	const earliest = days[0];
 	if (!earliest) return [];
 	const since = manilaDayStartUtc(earliest);
 
 	const rows = await prisma.activityLog.findMany({
-		where: { action: "CARD_CREATED", createdAt: { gte: since } },
+		where: { action: "CARD_CREATED", createdAt: { gte: since }, ...actorScope(scope) },
 		select: { metadata: true },
 	});
 
@@ -116,12 +134,17 @@ export interface TopRecogniser {
  *   only — so this branch is essentially a defensive guard for races and
  *   any future hard-delete path.
  */
-export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopRecogniser[]> {
+export async function getTopRecognisers(
+	daysBack = 30,
+	limit = 10,
+	scope?: InsightsScope,
+): Promise<TopRecogniser[]> {
 	// Guard non-positive limit before any DB work — `slice(0, -n)` returns
 	// all-but-last n items, which would silently produce wrong results
 	// rather than the empty array a caller asking for "0 results" expects.
 	// Mirrors the daysBack <= 0 short-circuit below.
 	if (limit <= 0) return [];
+	if (scope && scope.memberIds.length === 0) return [];
 	const days = recentManilaDayKeys(daysBack);
 	const earliest = days[0];
 	if (!earliest) return [];
@@ -132,7 +155,7 @@ export async function getTopRecognisers(daysBack = 30, limit = 10): Promise<TopR
 		where: {
 			action: "CARD_CREATED",
 			createdAt: { gte: since },
-			actorId: { not: null },
+			...(scope ? { actorId: { in: scope.memberIds } } : { actorId: { not: null } }),
 			NOT: { metadata: { path: ["physicalCard"], equals: true } },
 		},
 		_count: { _all: true },

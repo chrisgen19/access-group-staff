@@ -70,4 +70,17 @@ describe("groupUsersBySubDepartment", () => {
 		expect(groups[0].subDepartmentId).toBeNull();
 		expect(groups[0].isViewerTeam).toBe(true);
 	});
+
+	test("flags groups the viewer leads via isViewerLed", () => {
+		const groups = groupUsersBySubDepartment(
+			[member("a", "bi", "Team Power BI"), member("b", "infra", "Infrastructure")],
+			null,
+			["bi"],
+		);
+
+		const bi = groups.find((g) => g.subDepartmentId === "bi");
+		const infra = groups.find((g) => g.subDepartmentId === "infra");
+		expect(bi?.isViewerLed).toBe(true);
+		expect(infra?.isViewerLed).toBe(false);
+	});
 });
