@@ -187,11 +187,17 @@ export async function updateUserAction(userId: string, formData: unknown) {
 
 		const { shiftSchedule, hireDate, birthday, subDepartmentId, ...userFields } = parsed.data;
 
-		// Resolve when the sub-department is submitted OR the department changes.
-		// The latter guards against keeping a sub-department that belongs to the
-		// user's previous department when only `departmentId` is updated.
+		// `undefined` leaves the column untouched. Only touch it when the caller
+		// explicitly submits a sub-department, or when the department actually
+		// changes (which would otherwise strand a sub-department from the old
+		// department). A partial update that re-sends the unchanged department
+		// must preserve the existing assignment.
+		const departmentChanging =
+			parsed.data.departmentId !== undefined &&
+			parsed.data.departmentId !== targetUser.departmentId;
+
 		let resolvedSubDepartmentId: string | null | undefined;
-		if (subDepartmentId !== undefined || parsed.data.departmentId !== undefined) {
+		if (subDepartmentId !== undefined) {
 			const effectiveDepartmentId =
 				parsed.data.departmentId !== undefined ? parsed.data.departmentId : targetUser.departmentId;
 			const subDept = await resolveSubDepartmentId(
@@ -202,6 +208,8 @@ export async function updateUserAction(userId: string, formData: unknown) {
 				return { success: false as const, error: subDept.error };
 			}
 			resolvedSubDepartmentId = subDept.value;
+		} else if (departmentChanging) {
+			resolvedSubDepartmentId = null;
 		}
 
 		const updated = await prisma.$transaction(async (tx) => {

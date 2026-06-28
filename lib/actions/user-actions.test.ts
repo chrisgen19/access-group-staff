@@ -320,4 +320,23 @@ describe("updateUserAction sub-department guard", () => {
 			}),
 		);
 	});
+
+	test("preserves the sub-department when the department is unchanged and none is submitted", async () => {
+		const txUserUpdate = vi.fn().mockResolvedValue({ id: TARGET_ID });
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb({ user: { update: txUserUpdate } })) as never);
+
+		const result = await updateUserAction(TARGET_ID, {
+			firstName: "Jane",
+			lastName: "Cruz",
+			// Same department as the target; subDepartmentId intentionally omitted.
+			departmentId: "dept_a",
+		});
+
+		expect(result.success).toBe(true);
+		expect(prisma.subDepartment.findUnique).not.toHaveBeenCalled();
+		// `undefined` leaves the column untouched, so the existing team stays.
+		const updateArg = txUserUpdate.mock.calls[0][0] as { data: { subDepartmentId?: unknown } };
+		expect(updateArg.data.subDepartmentId).toBeUndefined();
+	});
 });
