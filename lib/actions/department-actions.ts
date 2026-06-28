@@ -270,3 +270,110 @@ export async function deleteSubDepartmentAction(id: string) {
 		return { success: false as const, error: message };
 	}
 }
+
+export async function getSubDepartmentMembersDataAction(subDepartmentId: string) {
+	try {
+		await requireRole("ADMIN");
+		const subDepartment = await prisma.subDepartment.findUnique({
+			where: { id: subDepartmentId },
+			select: { departmentId: true },
+		});
+		if (!subDepartment) {
+			return { success: false as const, error: "Sub-department not found" };
+		}
+
+		// Eligible pool: active users already in the parent department, plus users
+		// with no department at all. Members of this team and everyone else are
+		// split client-side from this single pool.
+		const eligible = await prisma.user.findMany({
+			where: {
+				deletedAt: null,
+				OR: [{ departmentId: subDepartment.departmentId }, { departmentId: null }],
+			},
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				avatar: true,
+				image: true,
+				position: true,
+				subDepartmentId: true,
+			},
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+		});
+
+		return {
+			success: true as const,
+			data: {
+				members: eligible.filter((u) => u.subDepartmentId === subDepartmentId),
+				assignable: eligible.filter((u) => u.subDepartmentId !== subDepartmentId),
+			},
+		};
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to load members";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function addSubDepartmentMemberAction(subDepartmentId: string, userId: string) {
+	try {
+		await requireRole("ADMIN");
+		const subDepartment = await prisma.subDepartment.findUnique({
+			where: { id: subDepartmentId },
+			select: { departmentId: true },
+		});
+		if (!subDepartment) {
+			return { success: false as const, error: "Sub-department not found" };
+		}
+
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			select: { departmentId: true, deletedAt: true },
+		});
+		if (!user || user.deletedAt !== null) {
+			return { success: false as const, error: "Selected user is not available" };
+		}
+		// Only department members or unassigned users may be added here. Pulling a
+		// user out of another department is a department move — admin-only via the
+		// user edit page, not this team picker.
+		if (user.departmentId !== null && user.departmentId !== subDepartment.departmentId) {
+			return { success: false as const, error: "User belongs to another department" };
+		}
+
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				subDepartmentId,
+				// Previously unassigned users inherit the parent department so the
+				// department/sub-department pairing stays consistent.
+				departmentId: user.departmentId ?? subDepartment.departmentId,
+			},
+		});
+		revalidatePath("/dashboard/departments");
+		return { success: true as const, data: null };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to add member";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function removeSubDepartmentMemberAction(subDepartmentId: string, userId: string) {
+	try {
+		await requireRole("ADMIN");
+		// Scope the clear to this exact team so a stale client can't blank out a
+		// user who has since moved to a different sub-department. Keeps the
+		// department assignment intact.
+		const result = await prisma.user.updateMany({
+			where: { id: userId, subDepartmentId },
+			data: { subDepartmentId: null },
+		});
+		if (result.count === 0) {
+			return { success: false as const, error: "User is not a member of this team" };
+		}
+		revalidatePath("/dashboard/departments");
+		return { success: true as const, data: null };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to remove member";
+		return { success: false as const, error: message };
+	}
+}

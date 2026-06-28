@@ -10,6 +10,7 @@ import {
 	Plus,
 	Trash2,
 	UserCog,
+	Users2,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import {
 } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 import { SubDepartmentFormDialog } from "./sub-department-form";
+import { SubDepartmentMembersDialog } from "./sub-department-members-dialog";
 import { TeamLeaderPicker } from "./team-leader-picker";
 
 interface TeamLeader {
@@ -69,6 +71,7 @@ export function DepartmentTable({
 		dept: Department;
 		sub: SubDepartment;
 	} | null>(null);
+	const [membersTarget, setMembersTarget] = useState<SubDepartment | null>(null);
 
 	function toggleExpanded(id: string) {
 		setExpanded((prev) => {
@@ -243,10 +246,17 @@ export function DepartmentTable({
 																			<p className="truncate text-sm font-medium text-foreground">
 																				{sub.name}
 																			</p>
-																			<p className="text-xs text-muted-foreground">
+																			<button
+																				type="button"
+																				onClick={() => setMembersTarget(sub)}
+																				className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary"
+																				title="Manage members"
+																			>
+																				<Users2 size={12} className="shrink-0" />
 																				{sub._count.users}{" "}
-																				{sub._count.users === 1 ? "user" : "users"}
-																			</p>
+																				{sub._count.users === 1 ? "member" : "members"}
+																				<span className="text-primary">· Manage</span>
+																			</button>
 																			<button
 																				type="button"
 																				onClick={() => setLeaderTarget({ dept, sub })}
@@ -436,6 +446,16 @@ export function DepartmentTable({
 					currentLeaderId={leaderTarget.sub.teamLeader?.id ?? null}
 					open={!!leaderTarget}
 					onClose={() => setLeaderTarget(null)}
+					onSuccess={onMutate}
+				/>
+			)}
+
+			{membersTarget && (
+				<SubDepartmentMembersDialog
+					subDepartmentId={membersTarget.id}
+					subDepartmentName={membersTarget.name}
+					open={!!membersTarget}
+					onClose={() => setMembersTarget(null)}
 					onSuccess={onMutate}
 				/>
 			)}
