@@ -12,8 +12,6 @@ function member(id: string, subId: string | null, subName: string | null): TeamM
 		image: null,
 		email: `${id}@example.com`,
 		branch: null,
-		role: "STAFF",
-		isLeader: false,
 		subDepartmentId: subId,
 		subDepartment: subId && subName ? { id: subId, name: subName } : null,
 	};

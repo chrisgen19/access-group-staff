@@ -121,7 +121,7 @@ export function TeamGroups({
 											</TableCell>
 											{group.isViewerLed && (
 												<TableCell className="text-right">
-													{!isViewer && member.role === "STAFF" && !member.isLeader && (
+													{!isViewer && (
 														<TeamMemberDialog
 															memberId={member.id}
 															memberName={`${member.firstName} ${member.lastName}`}

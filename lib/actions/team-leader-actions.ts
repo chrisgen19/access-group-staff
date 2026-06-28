@@ -39,21 +39,17 @@ async function loadTargetRef(db: Db, userId: string): Promise<TeamMemberRef | nu
 		where: { id: userId },
 		select: {
 			id: true,
-			role: true,
 			departmentId: true,
 			subDepartmentId: true,
 			deletedAt: true,
-			ledSubDepartments: { select: { id: true }, take: 1 },
 		},
 	});
 	if (!user) return null;
 	return {
 		id: user.id,
-		role: user.role,
 		departmentId: user.departmentId,
 		subDepartmentId: user.subDepartmentId,
 		deletedAt: user.deletedAt,
-		isLeader: user.ledSubDepartments.length > 0,
 	};
 }
 
@@ -190,13 +186,13 @@ export async function getLedTeamDataAction(subDepartmentId: string) {
 			return { success: false as const, error: "You don't lead this team" };
 		}
 
+		// Any active department member is manageable, regardless of role — a
+		// leader owns their team's roster. Excludes only the leader themselves.
 		const pool = await prisma.user.findMany({
 			where: {
 				departmentId: ctx.departmentId,
 				deletedAt: null,
-				role: "STAFF",
 				id: { not: session.user.id },
-				ledSubDepartments: { none: {} },
 			},
 			select: {
 				id: true,

@@ -1,5 +1,3 @@
-import type { Role } from "@/app/generated/prisma/client";
-
 export interface LeaderContext {
 	userId: string;
 	departmentId: string | null;
@@ -8,11 +6,8 @@ export interface LeaderContext {
 
 export interface TeamMemberRef {
 	id: string;
-	role: Role;
 	departmentId: string | null;
 	subDepartmentId: string | null;
-	/** Whether the target leads at least one sub-department. */
-	isLeader: boolean;
 	deletedAt: Date | null;
 }
 
@@ -22,15 +17,15 @@ export function isTeamLeader(ctx: LeaderContext): boolean {
 }
 
 /**
- * Shared eligibility rules for a leader acting on a member. A leader may only
- * touch an active STAFF user who is not themselves a leader and not the leader
- * themselves. Specific actions add their own scope (current team / destination).
+ * A leader may act on any active member of a team they lead, regardless of the
+ * member's role. Editable fields are a strict whitelist (position + shift
+ * schedule), so acting on an admin or another leader who is on the team can't
+ * escalate privileges. The leader is excluded from acting on themselves — they
+ * manage their own profile elsewhere.
  */
 function isActionableTarget(ctx: LeaderContext, target: TeamMemberRef): boolean {
 	if (target.deletedAt !== null) return false;
 	if (target.id === ctx.userId) return false;
-	if (target.role !== "STAFF") return false;
-	if (target.isLeader) return false;
 	return true;
 }
 

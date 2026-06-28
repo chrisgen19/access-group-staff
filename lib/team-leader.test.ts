@@ -1,5 +1,4 @@
 import { describe, expect, test } from "vitest";
-import type { Role } from "@/app/generated/prisma/client";
 import {
 	canAssignTeamMember,
 	canEditTeamMember,
@@ -17,10 +16,8 @@ const ctx: LeaderContext = {
 function member(overrides: Partial<TeamMemberRef> = {}): TeamMemberRef {
 	return {
 		id: "user_1",
-		role: "STAFF" as Role,
 		departmentId: "dept_a",
 		subDepartmentId: "sub_led",
-		isLeader: false,
 		deletedAt: null,
 		...overrides,
 	};
@@ -34,7 +31,7 @@ describe("isTeamLeader", () => {
 });
 
 describe("canEditTeamMember", () => {
-	test("allows editing an active STAFF member of a led team", () => {
+	test("allows editing any active member of a led team, regardless of role", () => {
 		expect(canEditTeamMember(ctx, member())).toBe(true);
 	});
 
@@ -43,10 +40,8 @@ describe("canEditTeamMember", () => {
 		expect(canEditTeamMember(ctx, member({ subDepartmentId: null }))).toBe(false);
 	});
 
-	test("rejects non-STAFF, the leader themselves, other leaders, and deleted users", () => {
-		expect(canEditTeamMember(ctx, member({ role: "ADMIN" as Role }))).toBe(false);
+	test("rejects the leader themselves and deleted users", () => {
 		expect(canEditTeamMember(ctx, member({ id: "leader_1" }))).toBe(false);
-		expect(canEditTeamMember(ctx, member({ isLeader: true }))).toBe(false);
 		expect(canEditTeamMember(ctx, member({ deletedAt: new Date() }))).toBe(false);
 	});
 });
@@ -88,9 +83,7 @@ describe("canAssignTeamMember", () => {
 		expect(canAssignTeamMember(ctx, member({ subDepartmentId: "sub_other" }), null)).toBe(false);
 	});
 
-	test("rejects acting on non-STAFF, self, other leaders", () => {
-		expect(canAssignTeamMember(ctx, member({ role: "ADMIN" as Role }), "sub_led")).toBe(false);
+	test("rejects acting on the leader themselves", () => {
 		expect(canAssignTeamMember(ctx, member({ id: "leader_1" }), "sub_led")).toBe(false);
-		expect(canAssignTeamMember(ctx, member({ isLeader: true }), "sub_led")).toBe(false);
 	});
 });
