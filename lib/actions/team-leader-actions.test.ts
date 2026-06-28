@@ -1,0 +1,365 @@
+import { beforeEach, describe, expect, test, vi } from "vitest";
+
+vi.mock("next/cache", () => ({
+	revalidatePath: vi.fn(),
+}));
+
+vi.mock("@/lib/auth-utils", () => ({
+	requireSession: vi.fn(),
+}));
+
+vi.mock("@/lib/shift-schedule", () => ({
+	upsertShiftSchedule: vi.fn(),
+}));
+
+vi.mock("@/lib/db", () => ({
+	prisma: {
+		user: { findUnique: vi.fn(), findMany: vi.fn(), update: vi.fn() },
+		subDepartment: { findMany: vi.fn() },
+		$transaction: vi.fn(),
+	},
+}));
+
+import { requireSession } from "@/lib/auth-utils";
+import { prisma } from "@/lib/db";
+import { upsertShiftSchedule } from "@/lib/shift-schedule";
+import {
+	getLedTeamDataAction,
+	getTeamMemberDetailAction,
+	setTeamMemberSubDepartmentAction,
+	updateTeamMemberAction,
+} from "./team-leader-actions";
+
+const LEADER_ID = "leader_1";
+
+/** Make $transaction run its callback against the mocked prisma client. */
+function passthroughTransaction() {
+	vi.mocked(prisma.$transaction).mockImplementation((async (cb: (client: unknown) => unknown) =>
+		cb(prisma)) as never);
+}
+
+/** Stub loadLeaderContext: user's department + the sub-departments they lead. */
+function mockLeaderContext(departmentId: string | null, ledIds: string[]) {
+	vi.mocked(prisma.user.findUnique).mockImplementation((async (args: {
+		where: { id: string };
+		select?: Record<string, unknown>;
+	}) => {
+		// loadLeaderContext selects only departmentId.
+		if (args.select && "departmentId" in args.select && Object.keys(args.select).length === 1) {
+			return { departmentId };
+		}
+		return null;
+	}) as never);
+	vi.mocked(prisma.subDepartment.findMany).mockResolvedValue(ledIds.map((id) => ({ id })) as never);
+}
+
+/** Stub the target ref lookup (the multi-field user.findUnique). */
+function mockTarget(ref: {
+	id: string;
+	role: string;
+	departmentId: string | null;
+	subDepartmentId: string | null;
+	isLeader: boolean;
+	deletedAt: Date | null;
+}) {
+	vi.mocked(prisma.user.findUnique).mockImplementation((async (args: {
+		where: { id: string };
+		select?: Record<string, unknown>;
+	}) => {
+		if (args.select && "departmentId" in args.select && Object.keys(args.select).length === 1) {
+			return { departmentId: "dept_a" };
+		}
+		return {
+			id: ref.id,
+			role: ref.role,
+			departmentId: ref.departmentId,
+			subDepartmentId: ref.subDepartmentId,
+			deletedAt: ref.deletedAt,
+			ledSubDepartments: ref.isLeader ? [{ id: "x" }] : [],
+		};
+	}) as never);
+	vi.mocked(prisma.subDepartment.findMany).mockResolvedValue([{ id: "sub_led" }] as never);
+}
+
+beforeEach(() => {
+	vi.clearAllMocks();
+	vi.mocked(requireSession).mockResolvedValue({
+		user: { id: LEADER_ID },
+	} as unknown as Awaited<ReturnType<typeof requireSession>>);
+	passthroughTransaction();
+});
+
+describe("updateTeamMemberAction", () => {
+	test("updates position + shift for an editable team member", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led",
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await updateTeamMemberAction("u1", { position: "BI Dev", shiftSchedule: null });
+
+		expect(result.success).toBe(true);
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: "u1" },
+			data: { position: "BI Dev" },
+		});
+		expect(upsertShiftSchedule).toHaveBeenCalledWith(prisma, "u1", null);
+	});
+
+	test("rejects editing a member outside the leader's teams", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_other",
+			isLeader: false,
+			deletedAt: null,
+		});
+
+		const result = await updateTeamMemberAction("u1", { position: "Hacker" });
+
+		expect(result.success).toBe(false);
+		expect(prisma.user.update).not.toHaveBeenCalled();
+	});
+
+	test("does not touch the shift schedule when none is submitted", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led",
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await updateTeamMemberAction("u1", { position: "BI Dev" });
+
+		expect(result.success).toBe(true);
+		expect(upsertShiftSchedule).not.toHaveBeenCalled();
+	});
+
+	test("leaves position untouched when it is omitted", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led",
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await updateTeamMemberAction("u1", { shiftSchedule: null });
+
+		expect(result.success).toBe(true);
+		// `undefined` is a Prisma no-op — position must not be cleared.
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: "u1" },
+			data: { position: undefined },
+		});
+	});
+});
+
+describe("setTeamMemberSubDepartmentAction", () => {
+	test("moves an unassigned member into a led team", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: null,
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await setTeamMemberSubDepartmentAction("u1", "sub_led");
+
+		expect(result.success).toBe(true);
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: "u1" },
+			data: { subDepartmentId: "sub_led" },
+		});
+	});
+
+	test("rejects assigning to a team the leader does not lead", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: null,
+			isLeader: false,
+			deletedAt: null,
+		});
+
+		const result = await setTeamMemberSubDepartmentAction("u1", "sub_other");
+
+		expect(result.success).toBe(false);
+		expect(prisma.user.update).not.toHaveBeenCalled();
+	});
+
+	test("rejects cross-department targets", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_other",
+			subDepartmentId: null,
+			isLeader: false,
+			deletedAt: null,
+		});
+
+		const result = await setTeamMemberSubDepartmentAction("u1", "sub_led");
+
+		expect(result.success).toBe(false);
+		expect(prisma.user.update).not.toHaveBeenCalled();
+	});
+
+	test("rejects a stale source team (member already moved to another led team)", async () => {
+		// Leader leads both sub_led and sub_led2. The stale dialog for sub_led
+		// tries to remove a member who has since moved to sub_led2.
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led2",
+			isLeader: false,
+			deletedAt: null,
+		});
+		// Both teams are led, so the guard passes and the stale-source check is
+		// what rejects the move.
+		vi.mocked(prisma.subDepartment.findMany).mockResolvedValue([
+			{ id: "sub_led" },
+			{ id: "sub_led2" },
+		] as never);
+
+		const result = await setTeamMemberSubDepartmentAction("u1", null, "sub_led");
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/team changed/i);
+		}
+		// Must not clear the member from the team they actually belong to now.
+		expect(prisma.user.update).not.toHaveBeenCalled();
+	});
+
+	test("allows the move when the expected source matches", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led",
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await setTeamMemberSubDepartmentAction("u1", null, "sub_led");
+
+		expect(result.success).toBe(true);
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: "u1" },
+			data: { subDepartmentId: null },
+		});
+	});
+});
+
+describe("getLedTeamDataAction", () => {
+	test("rejects a team the caller does not lead", async () => {
+		mockLeaderContext("dept_a", ["sub_led"]);
+
+		const result = await getLedTeamDataAction("sub_other");
+
+		expect(result.success).toBe(false);
+		expect(prisma.user.findMany).not.toHaveBeenCalled();
+	});
+
+	test("splits the department pool into members and assignable", async () => {
+		mockLeaderContext("dept_a", ["sub_led", "sub_led2"]);
+		vi.mocked(prisma.user.findMany).mockResolvedValue([
+			{ id: "m1", subDepartmentId: "sub_led" },
+			{ id: "m2", subDepartmentId: "sub_led2" },
+			{ id: "m3", subDepartmentId: null },
+		] as never);
+
+		const result = await getLedTeamDataAction("sub_led");
+
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.members.map((m) => m.id)).toEqual(["m1"]);
+			// m2 (another led team) and m3 (unassigned) are assignable; not m1.
+			expect(result.data.assignable.map((m) => m.id)).toEqual(["m2", "m3"]);
+		}
+	});
+});
+
+describe("getTeamMemberDetailAction", () => {
+	/**
+	 * Discriminate the three user.findUnique callers by their select shape:
+	 * leader context (departmentId only), target ref (no shiftSchedule), and the
+	 * detail read (has shiftSchedule).
+	 */
+	function mockDetailQueries(target: {
+		departmentId: string | null;
+		subDepartmentId: string | null;
+		deletedAt: Date | null;
+	}) {
+		vi.mocked(prisma.subDepartment.findMany).mockResolvedValue([{ id: "sub_led" }] as never);
+		vi.mocked(prisma.user.findUnique).mockImplementation((async (args: {
+			where: { id: string };
+			select?: Record<string, unknown>;
+		}) => {
+			const select = args.select ?? {};
+			if ("departmentId" in select && Object.keys(select).length === 1) {
+				return { departmentId: "dept_a" };
+			}
+			if ("shiftSchedule" in select) {
+				return {
+					id: "u1",
+					firstName: "Gel",
+					lastName: "Hilario",
+					displayName: null,
+					email: "gel@example.com",
+					phone: null,
+					position: "Lead",
+					branch: null,
+					avatar: null,
+					image: null,
+					shiftSchedule: null,
+				};
+			}
+			return {
+				id: "u1",
+				departmentId: target.departmentId,
+				subDepartmentId: target.subDepartmentId,
+				deletedAt: target.deletedAt,
+			};
+		}) as never);
+	}
+
+	test("returns detail for a member of a led team (any role)", async () => {
+		mockDetailQueries({ departmentId: "dept_a", subDepartmentId: "sub_led", deletedAt: null });
+
+		const result = await getTeamMemberDetailAction("u1");
+
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.email).toBe("gel@example.com");
+		}
+	});
+
+	test("denies a member outside the leader's teams", async () => {
+		mockDetailQueries({ departmentId: "dept_a", subDepartmentId: "sub_other", deletedAt: null });
+
+		const result = await getTeamMemberDetailAction("u1");
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/can't view/i);
+		}
+	});
+});

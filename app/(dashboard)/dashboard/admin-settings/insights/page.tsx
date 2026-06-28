@@ -1,3 +1,7 @@
+import { CadenceCard } from "@/components/insights/cadence-card";
+import { TopRecognisersCard } from "@/components/insights/top-recognisers-card";
+import { TopValuesCard } from "@/components/insights/top-values-card";
+import { WindowSelector } from "@/components/insights/window-selector";
 import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { requireRoleOrRedirect } from "@/lib/auth-utils";
 import {
@@ -7,12 +11,8 @@ import {
 	getTopRecognisers,
 	getTopValues,
 } from "@/lib/insights/queries";
-import { CadenceCard } from "./_components/cadence-card";
 import { CategoryMixCard } from "./_components/category-mix-card";
 import { EngagedCardsCard } from "./_components/engaged-cards-card";
-import { TopRecognisersCard } from "./_components/top-recognisers-card";
-import { TopValuesCard } from "./_components/top-values-card";
-import { WindowSelector } from "./_components/window-selector";
 
 const ALLOWED_WINDOWS = [30, 90] as const;
 type AllowedWindow = (typeof ALLOWED_WINDOWS)[number];

@@ -151,6 +151,23 @@ export const createUserSchema = z.object({
 
 export const updateUserSchema = createUserSchema.omit({ email: true, password: true }).partial();
 
+/**
+ * Fields a team leader may edit on one of their members. Deliberately a strict
+ * whitelist — never role, email, password, department, or sub-department.
+ */
+export const teamMemberUpdateSchema = z.object({
+	// Trim, and treat a blank string as "clear position" (null) rather than
+	// persisting "". `undefined` (field omitted) leaves the value untouched.
+	position: z
+		.string()
+		.trim()
+		.optional()
+		.transform((v) => (v === undefined ? undefined : v === "" ? null : v)),
+	shiftSchedule: shiftScheduleSchema.nullable().optional(),
+});
+
+export type TeamMemberUpdateInput = z.infer<typeof teamMemberUpdateSchema>;
+
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type ShiftScheduleInput = z.infer<typeof shiftScheduleSchema>;

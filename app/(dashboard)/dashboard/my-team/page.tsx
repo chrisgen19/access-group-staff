@@ -1,4 +1,5 @@
-import { UsersRound } from "lucide-react";
+import { BarChart3, UsersRound } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardPageHeader } from "@/components/shared/dashboard-page-header";
 import { getServerSession } from "@/lib/auth-utils";
@@ -41,26 +42,34 @@ export default async function MyTeamPage() {
 		);
 	}
 
-	const members = await prisma.user.findMany({
-		where: { departmentId: viewer.departmentId, deletedAt: null },
-		select: {
-			id: true,
-			firstName: true,
-			lastName: true,
-			displayName: true,
-			position: true,
-			avatar: true,
-			image: true,
-			email: true,
-			branch: true,
-			subDepartmentId: true,
-			subDepartment: { select: { id: true, name: true } },
-		},
-		orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
-	});
+	const [members, ledSubDepartments] = await Promise.all([
+		prisma.user.findMany({
+			where: { departmentId: viewer.departmentId, deletedAt: null },
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				displayName: true,
+				position: true,
+				avatar: true,
+				image: true,
+				email: true,
+				branch: true,
+				subDepartmentId: true,
+				subDepartment: { select: { id: true, name: true } },
+			},
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+		}),
+		prisma.subDepartment.findMany({
+			where: { teamLeaderId: session.user.id },
+			select: { id: true },
+		}),
+	]);
 
-	const groups = groupUsersBySubDepartment(members, viewer.subDepartmentId);
+	const ledSubDepartmentIds = ledSubDepartments.map((s) => s.id);
+	const groups = groupUsersBySubDepartment(members, viewer.subDepartmentId, ledSubDepartmentIds);
 	const departmentName = viewer.department?.name ?? "Department";
+	const isLeader = ledSubDepartmentIds.length > 0;
 
 	return (
 		<div className="mx-auto max-w-5xl space-y-6 sm:space-y-8">
@@ -68,6 +77,17 @@ export default async function MyTeamPage() {
 				eyebrow={departmentName}
 				title="My Team"
 				description={`Everyone in ${departmentName}, grouped by sub-department.`}
+				actions={
+					isLeader ? (
+						<Link
+							href="/dashboard/my-team/insights"
+							className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-card px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-gray-50 dark:border-white/10 dark:hover:bg-white/5"
+						>
+							<BarChart3 className="h-4 w-4" />
+							Team Insights
+						</Link>
+					) : null
+				}
 			/>
 			<TeamGroups groups={groups} viewerUserId={session.user.id} />
 		</div>

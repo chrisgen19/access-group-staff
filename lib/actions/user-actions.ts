@@ -9,12 +9,9 @@ import { auth } from "@/lib/auth";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { canAssignRole } from "@/lib/permissions";
+import { upsertShiftSchedule } from "@/lib/shift-schedule";
 import { adminResetPasswordSchema } from "@/lib/validations/auth";
-import {
-	createUserSchema,
-	type ShiftScheduleInput,
-	updateUserSchema,
-} from "@/lib/validations/user";
+import { createUserSchema, updateUserSchema } from "@/lib/validations/user";
 
 class LastSuperadminError extends Error {
 	constructor() {
@@ -49,42 +46,6 @@ async function resolveSubDepartmentId(
 		};
 	}
 	return { ok: true, value: subDepartmentId };
-}
-
-async function upsertShiftSchedule(
-	tx: Prisma.TransactionClient,
-	userId: string,
-	schedule: ShiftScheduleInput | null,
-) {
-	if (schedule === null) {
-		await tx.shiftSchedule.deleteMany({ where: { userId } });
-		return;
-	}
-	const existing = await tx.shiftSchedule.findUnique({ where: { userId } });
-	const scheduleId = existing
-		? (
-				await tx.shiftSchedule.update({
-					where: { userId },
-					data: { timezone: schedule.timezone },
-				})
-			).id
-		: (
-				await tx.shiftSchedule.create({
-					data: { userId, timezone: schedule.timezone },
-				})
-			).id;
-
-	await tx.shiftDay.deleteMany({ where: { scheduleId } });
-	await tx.shiftDay.createMany({
-		data: schedule.days.map((day) => ({
-			scheduleId,
-			dayOfWeek: day.dayOfWeek,
-			isWorking: day.isWorking,
-			startTime: day.isWorking ? (day.startTime ?? null) : null,
-			endTime: day.isWorking ? (day.endTime ?? null) : null,
-			breakMins: day.isWorking ? day.breakMins : 0,
-		})),
-	});
 }
 
 export async function createUserAction(formData: unknown) {

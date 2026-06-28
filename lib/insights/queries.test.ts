@@ -581,3 +581,70 @@ describe("getMostEngagedCards", () => {
 		expect(result.map((r) => r.cardId)).toEqual(["alpha", "mike", "zeta"]);
 	});
 });
+
+describe("team scoping", () => {
+	test("getCardCadence scopes activity to member ids", async () => {
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+
+		await getCardCadence(30, { memberIds: ["a", "b"] });
+
+		const call = vi.mocked(prisma.activityLog.findMany).mock.calls[0]?.[0] as {
+			where: { actorId?: unknown };
+		};
+		expect(call.where.actorId).toEqual({ in: ["a", "b"] });
+	});
+
+	test("getCardCadence short-circuits to [] for an empty scope", async () => {
+		const result = await getCardCadence(30, { memberIds: [] });
+
+		expect(result).toEqual([]);
+		expect(prisma.activityLog.findMany).not.toHaveBeenCalled();
+	});
+
+	test("getTopValues scopes activity to member ids", async () => {
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+
+		await getTopValues(30, { memberIds: ["a", "b"] });
+
+		const call = vi.mocked(prisma.activityLog.findMany).mock.calls[0]?.[0] as {
+			where: { actorId?: unknown };
+		};
+		expect(call.where.actorId).toEqual({ in: ["a", "b"] });
+	});
+
+	test("getTopValues short-circuits to [] for an empty scope", async () => {
+		const result = await getTopValues(30, { memberIds: [] });
+
+		expect(result).toEqual([]);
+		expect(prisma.activityLog.findMany).not.toHaveBeenCalled();
+	});
+
+	test("getTopRecognisers scopes the groupBy to member ids", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([] as never);
+
+		await getTopRecognisers(30, 10, { memberIds: ["a"] });
+
+		const call = vi.mocked(prisma.activityLog.groupBy).mock.calls[0]?.[0] as {
+			where: { actorId?: unknown };
+		};
+		expect(call.where.actorId).toEqual({ in: ["a"] });
+	});
+
+	test("getTopRecognisers short-circuits to [] for an empty scope", async () => {
+		const result = await getTopRecognisers(30, 10, { memberIds: [] });
+
+		expect(result).toEqual([]);
+		expect(prisma.activityLog.groupBy).not.toHaveBeenCalled();
+	});
+
+	test("unscoped queries keep the org-wide actor filter", async () => {
+		vi.mocked(prisma.activityLog.groupBy).mockResolvedValue([] as never);
+
+		await getTopRecognisers(30, 10);
+
+		const call = vi.mocked(prisma.activityLog.groupBy).mock.calls[0]?.[0] as {
+			where: { actorId?: unknown };
+		};
+		expect(call.where.actorId).toEqual({ not: null });
+	});
+});
