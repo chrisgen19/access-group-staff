@@ -49,14 +49,21 @@ export function TeamLeaderPicker({
 		let active = true;
 		setIsLoading(true);
 		setSearch("");
+		setMembers([]);
 		getDepartmentMembersAction(departmentId)
 			.then((result) => {
 				if (!active) return;
 				if (result.success) {
 					setMembers(result.data);
 				} else {
+					setMembers([]);
 					toast.error(typeof result.error === "string" ? result.error : "Failed to load members");
 				}
+			})
+			.catch(() => {
+				if (!active) return;
+				setMembers([]);
+				toast.error("Failed to load members");
 			})
 			.finally(() => {
 				if (active) setIsLoading(false);

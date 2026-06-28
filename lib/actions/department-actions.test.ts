@@ -38,6 +38,7 @@ import {
 	assignTeamLeaderAction,
 	createSubDepartmentAction,
 	deleteSubDepartmentAction,
+	getDepartmentMembersAction,
 	getDepartmentsAction,
 	getDepartmentsWithSubDepartmentsAction,
 	getSubDepartmentMembersDataAction,
@@ -50,6 +51,11 @@ beforeEach(() => {
 	vi.mocked(requireRole).mockResolvedValue({
 		user: { id: "admin_1", role: "ADMIN" as const },
 	} as unknown as Awaited<ReturnType<typeof requireRole>>);
+	// Default: run interactive transactions against the same mocked prisma, so
+	// `tx.*` calls hit the existing per-model mocks. Suites that need to assert
+	// on the transaction options (e.g. delete) override this.
+	vi.mocked(prisma.$transaction).mockImplementation((async (cb: (client: unknown) => unknown) =>
+		cb(prisma)) as never);
 });
 
 describe("createSubDepartmentAction", () => {
@@ -206,6 +212,10 @@ describe("assignTeamLeaderAction", () => {
 			where: { id: "sub_1" },
 			data: { teamLeaderId: "user_1" },
 		});
+		// Eligibility check + write run in one Serializable transaction.
+		expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+			isolationLevel: "Serializable",
+		});
 	});
 
 	test("rejects a candidate from a different department", async () => {
@@ -264,6 +274,40 @@ describe("assignTeamLeaderAction", () => {
 
 		expect(result.success).toBe(false);
 		expect(prisma.subDepartment.update).not.toHaveBeenCalled();
+	});
+});
+
+describe("getDepartmentMembersAction", () => {
+	test("returns active department members ordered by name", async () => {
+		const members = [{ id: "u1", firstName: "Ana" }];
+		vi.mocked(prisma.user.findMany).mockResolvedValue(members as never);
+
+		const result = await getDepartmentMembersAction("dept_1");
+
+		expect(result).toEqual({ success: true, data: members });
+		expect(prisma.user.findMany).toHaveBeenCalledWith({
+			where: { departmentId: "dept_1", deletedAt: null },
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				avatar: true,
+				image: true,
+				position: true,
+			},
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+		});
+	});
+
+	test("returns a failure result when the query throws", async () => {
+		vi.mocked(prisma.user.findMany).mockRejectedValue(new Error("db down"));
+
+		const result = await getDepartmentMembersAction("dept_1");
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/db down/i);
+		}
 	});
 });
 
