@@ -156,7 +156,13 @@ export const updateUserSchema = createUserSchema.omit({ email: true, password: t
  * whitelist — never role, email, password, department, or sub-department.
  */
 export const teamMemberUpdateSchema = z.object({
-	position: z.string().optional(),
+	// Trim, and treat a blank string as "clear position" (null) rather than
+	// persisting "". `undefined` (field omitted) leaves the value untouched.
+	position: z
+		.string()
+		.trim()
+		.optional()
+		.transform((v) => (v === undefined ? undefined : v === "" ? null : v)),
 	shiftSchedule: shiftScheduleSchema.nullable().optional(),
 });
 

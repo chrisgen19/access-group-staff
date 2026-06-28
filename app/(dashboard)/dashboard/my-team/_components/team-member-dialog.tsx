@@ -68,6 +68,7 @@ export function TeamMemberDialog({
 		handleSubmit,
 		watch,
 		setValue,
+		setError,
 		reset,
 		formState: { errors },
 	} = useForm<TeamMemberUpdateInput>({
@@ -107,8 +108,16 @@ export function TeamMemberDialog({
 		try {
 			const result = await updateTeamMemberAction(memberId, data);
 			if (!result.success) {
-				const msg = typeof result.error === "string" ? result.error : "Validation failed";
-				toast.error(msg);
+				if (typeof result.error === "string") {
+					toast.error(result.error);
+				} else {
+					for (const [field, messages] of Object.entries(result.error)) {
+						const message = messages?.[0];
+						if (!message) continue;
+						setError(field as keyof TeamMemberUpdateInput, { type: "server", message });
+					}
+					toast.error("Please fix the highlighted fields");
+				}
 				return;
 			}
 			toast.success("Member updated");
@@ -170,6 +179,9 @@ export function TeamMemberDialog({
 										placeholder="e.g. BI Developer"
 										{...register("position")}
 									/>
+									{errors.position && (
+										<p className="mt-1 text-sm text-destructive">{errors.position.message}</p>
+									)}
 								</div>
 
 								<div>

@@ -25,6 +25,7 @@ import { prisma } from "@/lib/db";
 import { upsertShiftSchedule } from "@/lib/shift-schedule";
 import {
 	getLedTeamDataAction,
+	getTeamMemberDetailAction,
 	setTeamMemberSubDepartmentAction,
 	updateTeamMemberAction,
 } from "./team-leader-actions";
@@ -244,6 +245,73 @@ describe("getLedTeamDataAction", () => {
 			expect(result.data.members.map((m) => m.id)).toEqual(["m1"]);
 			// m2 (another led team) and m3 (unassigned) are assignable; not m1.
 			expect(result.data.assignable.map((m) => m.id)).toEqual(["m2", "m3"]);
+		}
+	});
+});
+
+describe("getTeamMemberDetailAction", () => {
+	/**
+	 * Discriminate the three user.findUnique callers by their select shape:
+	 * leader context (departmentId only), target ref (no shiftSchedule), and the
+	 * detail read (has shiftSchedule).
+	 */
+	function mockDetailQueries(target: {
+		departmentId: string | null;
+		subDepartmentId: string | null;
+		deletedAt: Date | null;
+	}) {
+		vi.mocked(prisma.subDepartment.findMany).mockResolvedValue([{ id: "sub_led" }] as never);
+		vi.mocked(prisma.user.findUnique).mockImplementation((async (args: {
+			where: { id: string };
+			select?: Record<string, unknown>;
+		}) => {
+			const select = args.select ?? {};
+			if ("departmentId" in select && Object.keys(select).length === 1) {
+				return { departmentId: "dept_a" };
+			}
+			if ("shiftSchedule" in select) {
+				return {
+					id: "u1",
+					firstName: "Gel",
+					lastName: "Hilario",
+					displayName: null,
+					email: "gel@example.com",
+					phone: null,
+					position: "Lead",
+					branch: null,
+					avatar: null,
+					image: null,
+					shiftSchedule: null,
+				};
+			}
+			return {
+				id: "u1",
+				departmentId: target.departmentId,
+				subDepartmentId: target.subDepartmentId,
+				deletedAt: target.deletedAt,
+			};
+		}) as never);
+	}
+
+	test("returns detail for a member of a led team (any role)", async () => {
+		mockDetailQueries({ departmentId: "dept_a", subDepartmentId: "sub_led", deletedAt: null });
+
+		const result = await getTeamMemberDetailAction("u1");
+
+		expect(result.success).toBe(true);
+		if (result.success) {
+			expect(result.data.email).toBe("gel@example.com");
+		}
+	});
+
+	test("denies a member outside the leader's teams", async () => {
+		mockDetailQueries({ departmentId: "dept_a", subDepartmentId: "sub_other", deletedAt: null });
+
+		const result = await getTeamMemberDetailAction("u1");
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/can't view/i);
 		}
 	});
 });

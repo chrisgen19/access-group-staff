@@ -601,6 +601,17 @@ describe("team scoping", () => {
 		expect(prisma.activityLog.findMany).not.toHaveBeenCalled();
 	});
 
+	test("getTopValues scopes activity to member ids", async () => {
+		vi.mocked(prisma.activityLog.findMany).mockResolvedValue([] as never);
+
+		await getTopValues(30, { memberIds: ["a", "b"] });
+
+		const call = vi.mocked(prisma.activityLog.findMany).mock.calls[0]?.[0] as {
+			where: { actorId?: unknown };
+		};
+		expect(call.where.actorId).toEqual({ in: ["a", "b"] });
+	});
+
 	test("getTopValues short-circuits to [] for an empty scope", async () => {
 		const result = await getTopValues(30, { memberIds: [] });
 

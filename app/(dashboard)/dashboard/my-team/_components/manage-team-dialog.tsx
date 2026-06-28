@@ -79,6 +79,10 @@ export function ManageTeamDialog({
 		try {
 			const result = await setTeamMemberSubDepartmentAction(userId, dest);
 			if (!result.success) {
+				// The action re-checks eligibility in its transaction, so a rejection
+				// can mean this list is stale — reload so the visible add/remove
+				// actions match the server-validated membership.
+				await load();
 				toast.error(typeof result.error === "string" ? result.error : "Failed to update team");
 				return;
 			}
@@ -181,6 +185,7 @@ export function ManageTeamDialog({
 											value={search}
 											onChange={(e) => setSearch(e.target.value)}
 											placeholder="Search your department…"
+											aria-label="Search department members"
 											className="block w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:bg-card focus:outline-none focus:ring-4 focus:ring-primary/30 dark:border-white/10 dark:bg-white/5"
 										/>
 									</div>

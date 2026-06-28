@@ -23,13 +23,25 @@ class TeamLeaderActionError extends Error {
 }
 
 async function loadLeaderContext(db: Db, userId: string): Promise<LeaderContext> {
-	const [user, led] = await Promise.all([
-		db.user.findUnique({ where: { id: userId }, select: { departmentId: true } }),
-		db.subDepartment.findMany({ where: { teamLeaderId: userId }, select: { id: true } }),
-	]);
+	const user = await db.user.findUnique({
+		where: { id: userId },
+		select: { departmentId: true },
+	});
+	const departmentId = user?.departmentId ?? null;
+	// Only count leaderships within the leader's own department. A leader's
+	// teams are always in their department (enforced on assignment, cleared on
+	// department change), so scoping here keeps both edit and move authority
+	// inside the department and prevents ever writing a sub-department from
+	// another department onto a member.
+	const led = departmentId
+		? await db.subDepartment.findMany({
+				where: { teamLeaderId: userId, departmentId },
+				select: { id: true },
+			})
+		: [];
 	return {
 		userId,
-		departmentId: user?.departmentId ?? null,
+		departmentId,
 		ledSubDepartmentIds: led.map((s) => s.id),
 	};
 }
