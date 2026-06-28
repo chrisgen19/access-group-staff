@@ -21,7 +21,10 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 			where: { id },
 			include: { shiftSchedule: { include: { days: { orderBy: { dayOfWeek: "asc" } } } } },
 		}),
-		prisma.department.findMany({ orderBy: { name: "asc" } }),
+		prisma.department.findMany({
+			include: { subDepartments: { select: { id: true, name: true }, orderBy: { name: "asc" } } },
+			orderBy: { name: "asc" },
+		}),
 	]);
 
 	if (!user) notFound();
@@ -75,6 +78,7 @@ export default async function EditUserPage({ params }: { params: Promise<{ id: s
 					branch: user.branch ?? null,
 					role: user.role,
 					departmentId: user.departmentId,
+					subDepartmentId: user.subDepartmentId,
 					hireDate: user.hireDate,
 					birthday: user.birthday,
 					shiftSchedule: scheduleDefault,

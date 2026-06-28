@@ -50,6 +50,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 		where: { id },
 		include: {
 			department: true,
+			subDepartment: true,
 			shiftSchedule: { include: { days: { orderBy: { dayOfWeek: "asc" } } } },
 		},
 	});
@@ -112,6 +113,7 @@ export default async function UserDetailPage({ params }: { params: Promise<{ id:
 					<div className="px-8 py-6 space-y-4">
 						<InfoRow label="Position" value={user.position} />
 						<InfoRow label="Department" value={user.department?.name} />
+						<InfoRow label="Sub-department" value={user.subDepartment?.name} />
 						<InfoRow label="Branch" value={formatBranch(user.branch)} />
 						<div className="flex justify-between items-center py-1">
 							<span className="text-sm text-muted-foreground">Role</span>

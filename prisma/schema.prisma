@@ -65,31 +65,33 @@ enum TicketStatus {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified Boolean   @default(false) @map("email_verified")
-  image         String?
-  firstName     String    @map("first_name")
-  lastName      String    @map("last_name")
-  displayName   String?   @map("display_name")
-  phone         String?
-  position      String?
-  avatar        String?
-  role          Role      @default(STAFF)
-  branch        Branch?   @map("branch")
-  departmentId  String?   @map("department_id")
-  hireDate      DateTime? @map("hire_date") @db.Date
-  birthday      DateTime? @map("birthday") @db.Date
+  id              String    @id @default(cuid())
+  name            String?
+  email           String    @unique
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  image           String?
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
+  displayName     String?   @map("display_name")
+  phone           String?
+  position        String?
+  avatar          String?
+  role            Role      @default(STAFF)
+  branch          Branch?   @map("branch")
+  departmentId    String?   @map("department_id")
+  subDepartmentId String?   @map("sub_department_id")
+  hireDate        DateTime? @map("hire_date") @db.Date
+  birthday        DateTime? @map("birthday") @db.Date
   /// Deprecated: superseded by deletedAt. Retained until a follow-up
   /// migration can drop the column after this release stabilises in prod.
-  isActive      Boolean   @default(true) @map("is_active")
-  deletedAt     DateTime? @map("deleted_at")
-  deletedById   String?   @map("deleted_by_id")
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  isActive        Boolean   @default(true) @map("is_active")
+  deletedAt       DateTime? @map("deleted_at")
+  deletedById     String?   @map("deleted_by_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   department           Department?       @relation(fields: [departmentId], references: [id])
+  subDepartment        SubDepartment?    @relation(fields: [subDepartmentId], references: [id], onDelete: SetNull)
   sessions             Session[]
   accounts             Account[]
   sentRecognitions     RecognitionCard[] @relation("sender")
@@ -102,6 +104,7 @@ model User {
   ticketsCreated       HelpMeTicket[]    @relation("ticketCreator")
   ticketReplies        TicketReply[]     @relation("ticketReplyAuthor")
 
+  @@index([subDepartmentId])
   @@map("users")
 }
 
@@ -187,9 +190,24 @@ model Department {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  users User[]
+  users          User[]
+  subDepartments SubDepartment[]
 
   @@map("departments")
+}
+
+model SubDepartment {
+  id           String   @id @default(uuid())
+  name         String
+  departmentId String   @map("department_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  users      User[]
+
+  @@unique([departmentId, name])
+  @@map("sub_departments")
 }
 
 model AppSetting {

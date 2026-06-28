@@ -12,7 +12,10 @@ export default async function NewUserPage() {
 		redirect("/dashboard");
 	}
 
-	const departments = await prisma.department.findMany({ orderBy: { name: "asc" } });
+	const departments = await prisma.department.findMany({
+		include: { subDepartments: { select: { id: true, name: true }, orderBy: { name: "asc" } } },
+		orderBy: { name: "asc" },
+	});
 
 	return (
 		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
