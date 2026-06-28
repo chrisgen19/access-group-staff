@@ -328,6 +328,11 @@ describe("updateUserAction sub-department guard", () => {
 			where: { teamLeaderId: TARGET_ID },
 			data: { teamLeaderId: null },
 		});
+		// The cleanup races with assignTeamLeaderAction, so the department-change
+		// path must run Serializable to participate in the same SSI discipline.
+		expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+			isolationLevel: "Serializable",
+		});
 	});
 
 	test("preserves the sub-department when the department is unchanged and none is submitted", async () => {
@@ -347,6 +352,9 @@ describe("updateUserAction sub-department guard", () => {
 		// `undefined` leaves the column untouched, so the existing team stays.
 		const updateArg = txUserUpdate.mock.calls[0][0] as { data: { subDepartmentId?: unknown } };
 		expect(updateArg.data.subDepartmentId).toBeUndefined();
+		// No leadership cleanup here, so the edit keeps default isolation rather
+		// than paying for Serializable on every ordinary user update.
+		expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), undefined);
 	});
 });
 
