@@ -108,9 +108,12 @@ export async function updateTeamMemberAction(targetId: string, formData: unknown
 				if (!target || !canEditTeamMember(ctx, target)) {
 					throw new TeamLeaderActionError("You can't edit this member");
 				}
+				// `undefined` leaves position untouched (partial update); only an
+				// explicitly-submitted value is written. Avoids nulling position
+				// when a caller submits only a shift schedule.
 				await tx.user.update({
 					where: { id: targetId },
-					data: { position: position ?? null },
+					data: { position },
 				});
 				if (shiftSchedule !== undefined) {
 					await upsertShiftSchedule(tx, targetId, shiftSchedule ?? null);

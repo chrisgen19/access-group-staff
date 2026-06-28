@@ -142,6 +142,27 @@ describe("updateTeamMemberAction", () => {
 		expect(result.success).toBe(true);
 		expect(upsertShiftSchedule).not.toHaveBeenCalled();
 	});
+
+	test("leaves position untouched when it is omitted", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led",
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await updateTeamMemberAction("u1", { shiftSchedule: null });
+
+		expect(result.success).toBe(true);
+		// `undefined` is a Prisma no-op — position must not be cleared.
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: "u1" },
+			data: { position: undefined },
+		});
+	});
 });
 
 describe("setTeamMemberSubDepartmentAction", () => {

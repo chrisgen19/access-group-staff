@@ -8,6 +8,9 @@ export interface TeamMember {
 	image: string | null;
 	email: string;
 	branch: string | null;
+	role: string;
+	/** Whether this member leads at least one sub-department. */
+	isLeader: boolean;
 	subDepartmentId: string | null;
 	subDepartment: { id: string; name: string } | null;
 }

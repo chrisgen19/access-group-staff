@@ -42,7 +42,7 @@ export default async function MyTeamPage() {
 		);
 	}
 
-	const [members, ledSubDepartments] = await Promise.all([
+	const [rawMembers, ledSubDepartments] = await Promise.all([
 		prisma.user.findMany({
 			where: { departmentId: viewer.departmentId, deletedAt: null },
 			select: {
@@ -55,8 +55,10 @@ export default async function MyTeamPage() {
 				image: true,
 				email: true,
 				branch: true,
+				role: true,
 				subDepartmentId: true,
 				subDepartment: { select: { id: true, name: true } },
+				ledSubDepartments: { select: { id: true }, take: 1 },
 			},
 			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
 		}),
@@ -65,6 +67,11 @@ export default async function MyTeamPage() {
 			select: { id: true },
 		}),
 	]);
+
+	const members = rawMembers.map(({ ledSubDepartments: led, ...m }) => ({
+		...m,
+		isLeader: led.length > 0,
+	}));
 
 	const ledSubDepartmentIds = ledSubDepartments.map((s) => s.id);
 	const groups = groupUsersBySubDepartment(members, viewer.subDepartmentId, ledSubDepartmentIds);
