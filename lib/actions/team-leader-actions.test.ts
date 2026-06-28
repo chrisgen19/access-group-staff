@@ -218,6 +218,54 @@ describe("setTeamMemberSubDepartmentAction", () => {
 		expect(result.success).toBe(false);
 		expect(prisma.user.update).not.toHaveBeenCalled();
 	});
+
+	test("rejects a stale source team (member already moved to another led team)", async () => {
+		// Leader leads both sub_led and sub_led2. The stale dialog for sub_led
+		// tries to remove a member who has since moved to sub_led2.
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led2",
+			isLeader: false,
+			deletedAt: null,
+		});
+		// Both teams are led, so the guard passes and the stale-source check is
+		// what rejects the move.
+		vi.mocked(prisma.subDepartment.findMany).mockResolvedValue([
+			{ id: "sub_led" },
+			{ id: "sub_led2" },
+		] as never);
+
+		const result = await setTeamMemberSubDepartmentAction("u1", null, "sub_led");
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/team changed/i);
+		}
+		// Must not clear the member from the team they actually belong to now.
+		expect(prisma.user.update).not.toHaveBeenCalled();
+	});
+
+	test("allows the move when the expected source matches", async () => {
+		mockTarget({
+			id: "u1",
+			role: "STAFF",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_led",
+			isLeader: false,
+			deletedAt: null,
+		});
+		vi.mocked(prisma.user.update).mockResolvedValue({ id: "u1" } as never);
+
+		const result = await setTeamMemberSubDepartmentAction("u1", null, "sub_led");
+
+		expect(result.success).toBe(true);
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: "u1" },
+			data: { subDepartmentId: null },
+		});
+	});
 });
 
 describe("getLedTeamDataAction", () => {

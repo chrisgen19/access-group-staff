@@ -29,10 +29,19 @@ export default async function TeamInsightsPage({
 	const session = await getServerSession();
 	if (!session) redirect("/login");
 
-	const ledSubDepartments = await prisma.subDepartment.findMany({
-		where: { teamLeaderId: session.user.id },
-		select: { id: true },
+	// Scope to teams within the leader's own department, matching
+	// loadLeaderContext, so team insights can never aggregate another
+	// department's members even if leadership data were inconsistent.
+	const viewer = await prisma.user.findUnique({
+		where: { id: session.user.id },
+		select: { departmentId: true },
 	});
+	const ledSubDepartments = viewer?.departmentId
+		? await prisma.subDepartment.findMany({
+				where: { teamLeaderId: session.user.id, departmentId: viewer.departmentId },
+				select: { id: true },
+			})
+		: [];
 	// Only team leaders can see team insights; everyone else goes back to My Team.
 	if (ledSubDepartments.length === 0) {
 		redirect("/dashboard/my-team");

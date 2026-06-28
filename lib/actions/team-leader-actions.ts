@@ -144,6 +144,7 @@ export async function updateTeamMemberAction(targetId: string, formData: unknown
 export async function setTeamMemberSubDepartmentAction(
 	targetId: string,
 	destSubDepartmentId: string | null,
+	expectedCurrentSubDepartmentId?: string | null,
 ) {
 	try {
 		const session = await requireSession();
@@ -154,6 +155,18 @@ export async function setTeamMemberSubDepartmentAction(
 				const target = await loadTargetRef(tx, targetId);
 				if (!target || !canAssignTeamMember(ctx, target, destSubDepartmentId)) {
 					throw new TeamLeaderActionError("You can't change this member's team");
+				}
+				// Stale-client guard: the caller states which team they think the
+				// member is in (the dialog's team). The Serializable re-read only
+				// protects against concurrent transactions, not a browser that read
+				// minutes ago — so a leader who leads multiple teams could otherwise
+				// remove/move a member from the wrong team via a stale dialog. Reject
+				// when the member has since moved so the dialog reloads.
+				if (
+					expectedCurrentSubDepartmentId !== undefined &&
+					target.subDepartmentId !== expectedCurrentSubDepartmentId
+				) {
+					throw new TeamLeaderActionError("This member's team changed. Reload and try again.");
 				}
 				await tx.user.update({
 					where: { id: targetId },
@@ -186,9 +199,9 @@ interface LedTeamPerson {
 
 /**
  * Data for the leader's "Manage members" dialog for one of their teams:
- * current members of the team plus the department members they may add
- * (active STAFF non-leaders who are unassigned or in another team this leader
- * leads). Verifies the caller actually leads `subDepartmentId`.
+ * current members of the team plus the department members they may add (any
+ * active member who is unassigned or in another team this leader leads).
+ * Verifies the caller actually leads `subDepartmentId`.
  */
 export async function getLedTeamDataAction(subDepartmentId: string) {
 	try {

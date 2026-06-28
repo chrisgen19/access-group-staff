@@ -74,10 +74,10 @@ export function ManageTeamDialog({
 		if (!next && mutated) router.refresh();
 	}
 
-	async function move(userId: string, dest: string | null) {
+	async function move(userId: string, dest: string | null, expectedCurrent: string | null) {
 		setPendingId(userId);
 		try {
-			const result = await setTeamMemberSubDepartmentAction(userId, dest);
+			const result = await setTeamMemberSubDepartmentAction(userId, dest, expectedCurrent);
 			if (!result.success) {
 				// The action re-checks eligibility in its transaction, so a rejection
 				// can mean this list is stale — reload so the visible add/remove
@@ -156,7 +156,7 @@ export function ManageTeamDialog({
 												</div>
 												<button
 													type="button"
-													onClick={() => move(p.id, null)}
+													onClick={() => move(p.id, null, p.subDepartmentId)}
 													disabled={pendingId !== null}
 													aria-label={`Remove ${p.firstName} ${p.lastName}`}
 													className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-[oklch(0.96_0.03_18)] hover:text-primary disabled:opacity-50 dark:hover:bg-primary/10"
@@ -223,7 +223,7 @@ export function ManageTeamDialog({
 												</div>
 												<button
 													type="button"
-													onClick={() => move(p.id, subDepartmentId)}
+													onClick={() => move(p.id, subDepartmentId, p.subDepartmentId)}
 													disabled={pendingId !== null}
 													aria-label={`Add ${p.firstName} ${p.lastName}`}
 													className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-gray-200 bg-card px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:hover:bg-white/5"
