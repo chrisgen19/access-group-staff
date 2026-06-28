@@ -103,6 +103,7 @@ model User {
   activityLogs         ActivityLog[]     @relation("activityActor")
   ticketsCreated       HelpMeTicket[]    @relation("ticketCreator")
   ticketReplies        TicketReply[]     @relation("ticketReplyAuthor")
+  ledSubDepartments    SubDepartment[]   @relation("subDepartmentLeader")
 
   @@index([subDepartmentId])
   @@map("users")
@@ -200,13 +201,16 @@ model SubDepartment {
   id           String   @id @default(uuid())
   name         String
   departmentId String   @map("department_id")
+  teamLeaderId String?  @map("team_leader_id")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  teamLeader User?      @relation("subDepartmentLeader", fields: [teamLeaderId], references: [id], onDelete: SetNull)
   users      User[]
 
   @@unique([departmentId, name])
+  @@index([teamLeaderId])
   @@map("sub_departments")
 }
 

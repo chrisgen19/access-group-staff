@@ -9,9 +9,11 @@ import {
 	Pencil,
 	Plus,
 	Trash2,
+	UserCog,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
 	deleteDepartmentAction,
@@ -19,11 +21,21 @@ import {
 } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 import { SubDepartmentFormDialog } from "./sub-department-form";
+import { TeamLeaderPicker } from "./team-leader-picker";
+
+interface TeamLeader {
+	id: string;
+	firstName: string;
+	lastName: string;
+	avatar: string | null;
+	image: string | null;
+}
 
 interface SubDepartment {
 	id: string;
 	name: string;
 	_count: { users: number };
+	teamLeader: TeamLeader | null;
 }
 
 interface Department {
@@ -53,6 +65,10 @@ export function DepartmentTable({
 	} | null>(null);
 	const [subDeleteTarget, setSubDeleteTarget] = useState<SubDepartment | null>(null);
 	const [isDeletingSub, setIsDeletingSub] = useState(false);
+	const [leaderTarget, setLeaderTarget] = useState<{
+		dept: Department;
+		sub: SubDepartment;
+	} | null>(null);
 
 	function toggleExpanded(id: string) {
 		setExpanded((prev) => {
@@ -231,6 +247,31 @@ export function DepartmentTable({
 																				{sub._count.users}{" "}
 																				{sub._count.users === 1 ? "user" : "users"}
 																			</p>
+																			<button
+																				type="button"
+																				onClick={() => setLeaderTarget({ dept, sub })}
+																				className="mt-1.5 inline-flex items-center gap-1.5 rounded-full text-xs text-muted-foreground transition-colors hover:text-primary"
+																				title="Assign team leader"
+																			>
+																				<UserCog size={13} className="shrink-0" />
+																				{sub.teamLeader ? (
+																					<span className="inline-flex min-w-0 items-center gap-1.5">
+																						<UserAvatar
+																							firstName={sub.teamLeader.firstName}
+																							lastName={sub.teamLeader.lastName}
+																							avatar={sub.teamLeader.avatar}
+																							image={sub.teamLeader.image}
+																							size="xs"
+																							className="border border-gray-100 bg-background text-primary dark:border-white/10"
+																						/>
+																						<span className="truncate font-medium text-foreground">
+																							{sub.teamLeader.firstName} {sub.teamLeader.lastName}
+																						</span>
+																					</span>
+																				) : (
+																					"Assign team leader"
+																				)}
+																			</button>
 																		</div>
 																		<div className="flex shrink-0 gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover/sub:opacity-100 focus-within:opacity-100">
 																			<button
@@ -383,6 +424,18 @@ export function DepartmentTable({
 					subDepartment={subEditTarget.sub}
 					open={!!subEditTarget}
 					onClose={() => setSubEditTarget(null)}
+					onSuccess={onMutate}
+				/>
+			)}
+
+			{leaderTarget && (
+				<TeamLeaderPicker
+					subDepartmentId={leaderTarget.sub.id}
+					subDepartmentName={leaderTarget.sub.name}
+					departmentId={leaderTarget.dept.id}
+					currentLeaderId={leaderTarget.sub.teamLeader?.id ?? null}
+					open={!!leaderTarget}
+					onClose={() => setLeaderTarget(null)}
 					onSuccess={onMutate}
 				/>
 			)}

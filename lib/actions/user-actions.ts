@@ -230,6 +230,15 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			if (shiftSchedule !== undefined) {
 				await upsertShiftSchedule(tx, userId, shiftSchedule ?? null);
 			}
+			// Leaving a department invalidates any team leaderships held there
+			// (eligibility requires membership of the parent department), so clear
+			// them to avoid a leader stranded over a team they no longer belong to.
+			if (departmentChanging) {
+				await tx.subDepartment.updateMany({
+					where: { teamLeaderId: userId },
+					data: { teamLeaderId: null },
+				});
+			}
 			return user;
 		});
 
@@ -288,6 +297,12 @@ export async function softDeleteUserAction(userId: string) {
 					},
 				});
 				await tx.session.deleteMany({ where: { userId } });
+				// A deleted user can no longer lead any team — relinquish leaderships
+				// so teams aren't left pointing at a removed account.
+				await tx.subDepartment.updateMany({
+					where: { teamLeaderId: userId },
+					data: { teamLeaderId: null },
+				});
 				return user;
 			},
 			{ isolationLevel: "Serializable" },

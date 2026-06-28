@@ -20,7 +20,12 @@ export async function getDepartmentsAction() {
 			include: {
 				_count: { select: { users: true } },
 				subDepartments: {
-					include: { _count: { select: { users: true } } },
+					include: {
+						_count: { select: { users: true } },
+						teamLeader: {
+							select: { id: true, firstName: true, lastName: true, avatar: true, image: true },
+						},
+					},
 					orderBy: { name: "asc" },
 				},
 			},
@@ -50,6 +55,71 @@ export async function getDepartmentsWithSubDepartmentsAction() {
 		},
 		orderBy: { name: "asc" },
 	});
+}
+
+export async function getDepartmentMembersAction(departmentId: string) {
+	try {
+		await requireRole("ADMIN");
+		const members = await prisma.user.findMany({
+			where: { departmentId, deletedAt: null },
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				avatar: true,
+				image: true,
+				position: true,
+			},
+			orderBy: [{ firstName: "asc" }, { lastName: "asc" }],
+		});
+		return { success: true as const, data: members };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to fetch members";
+		return { success: false as const, error: message };
+	}
+}
+
+export async function assignTeamLeaderAction(subDepartmentId: string, userId: string | null) {
+	try {
+		await requireRole("ADMIN");
+
+		const subDepartment = await prisma.subDepartment.findUnique({
+			where: { id: subDepartmentId },
+			select: { departmentId: true },
+		});
+		if (!subDepartment) {
+			return { success: false as const, error: "Sub-department not found" };
+		}
+
+		// Eligibility: a team leader must be an active member of the
+		// sub-department's parent department. Re-check server-side rather than
+		// trusting the submitted id.
+		if (userId !== null) {
+			const candidate = await prisma.user.findUnique({
+				where: { id: userId },
+				select: { departmentId: true, deletedAt: true },
+			});
+			if (!candidate || candidate.deletedAt !== null) {
+				return { success: false as const, error: "Selected user is not available" };
+			}
+			if (candidate.departmentId !== subDepartment.departmentId) {
+				return {
+					success: false as const,
+					error: "A team leader must belong to the parent department",
+				};
+			}
+		}
+
+		await prisma.subDepartment.update({
+			where: { id: subDepartmentId },
+			data: { teamLeaderId: userId },
+		});
+		revalidatePath("/dashboard/departments");
+		return { success: true as const, data: null };
+	} catch (error) {
+		const message = error instanceof Error ? error.message : "Failed to assign team leader";
+		return { success: false as const, error: message };
+	}
 }
 
 export async function createDepartmentAction(formData: unknown) {

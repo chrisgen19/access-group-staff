@@ -74,7 +74,7 @@ const NAV_ITEMS: NavItem[] = [
 		minRole: "ADMIN",
 	},
 	{
-		label: "Departments",
+		label: "All Teams",
 		href: "/dashboard/departments",
 		icon: Building2,
 		minRole: "ADMIN",

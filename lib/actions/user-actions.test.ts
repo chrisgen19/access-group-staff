@@ -50,7 +50,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { logActivity } from "@/lib/activity-log";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { adminResetPasswordAction, updateUserAction } from "./user-actions";
+import { adminResetPasswordAction, softDeleteUserAction, updateUserAction } from "./user-actions";
 
 const ADMIN_ID = "admin_1";
 const TARGET_ID = "user_1";
@@ -300,10 +300,14 @@ describe("updateUserAction sub-department guard", () => {
 		);
 	});
 
-	test("clears the sub-department when the department changes and none is submitted", async () => {
+	test("clears the sub-department and team leaderships when the department changes", async () => {
 		const txUserUpdate = vi.fn().mockResolvedValue({ id: TARGET_ID });
+		const txSubUpdateMany = vi.fn().mockResolvedValue({ count: 0 });
 		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
-			cb({ user: { update: txUserUpdate } })) as never);
+			cb({
+				user: { update: txUserUpdate },
+				subDepartment: { updateMany: txSubUpdateMany },
+			})) as never);
 
 		const result = await updateUserAction(TARGET_ID, {
 			firstName: "Jane",
@@ -319,6 +323,11 @@ describe("updateUserAction sub-department guard", () => {
 				data: expect.objectContaining({ subDepartmentId: null }),
 			}),
 		);
+		// Leaving the department relinquishes any team leaderships held there.
+		expect(txSubUpdateMany).toHaveBeenCalledWith({
+			where: { teamLeaderId: TARGET_ID },
+			data: { teamLeaderId: null },
+		});
 	});
 
 	test("preserves the sub-department when the department is unchanged and none is submitted", async () => {
@@ -338,5 +347,30 @@ describe("updateUserAction sub-department guard", () => {
 		// `undefined` leaves the column untouched, so the existing team stays.
 		const updateArg = txUserUpdate.mock.calls[0][0] as { data: { subDepartmentId?: unknown } };
 		expect(updateArg.data.subDepartmentId).toBeUndefined();
+	});
+});
+
+describe("softDeleteUserAction clears team leaderships", () => {
+	test("relinquishes the user's leaderships when soft-deleting", async () => {
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({
+			id: TARGET_ID,
+			role: "STAFF",
+			deletedAt: null,
+		} as never);
+		const txSubUpdateMany = vi.fn().mockResolvedValue({ count: 1 });
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb({
+				user: { update: vi.fn().mockResolvedValue({ id: TARGET_ID }) },
+				session: { deleteMany: vi.fn() },
+				subDepartment: { updateMany: txSubUpdateMany },
+			})) as never);
+
+		const result = await softDeleteUserAction(TARGET_ID);
+
+		expect(result.success).toBe(true);
+		expect(txSubUpdateMany).toHaveBeenCalledWith({
+			where: { teamLeaderId: TARGET_ID },
+			data: { teamLeaderId: null },
+		});
 	});
 });

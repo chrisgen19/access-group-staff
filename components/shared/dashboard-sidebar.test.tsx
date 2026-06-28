@@ -73,6 +73,21 @@ describe("DashboardSidebar", () => {
 		expect(myTeamLink).toHaveAttribute("href", "/dashboard/my-team");
 		// Staff still must not see admin-only links.
 		expect(screen.queryByRole("link", { name: "Staff" })).not.toBeInTheDocument();
+		expect(screen.queryByRole("link", { name: "All Teams" })).not.toBeInTheDocument();
+	});
+
+	it("shows the All Teams admin link to admins", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
+		mockedUseRouter.mockReturnValue({
+			push: vi.fn(),
+			refresh: vi.fn(),
+		} as unknown as ReturnType<typeof useRouter>);
+		setSession({ role: "ADMIN" });
+
+		render(<DashboardSidebar helpMeEnabled initialUserRole="ADMIN" />);
+
+		const allTeamsLink = screen.getByRole("link", { name: "All Teams" });
+		expect(allTeamsLink).toHaveAttribute("href", "/dashboard/departments");
 	});
 
 	it("keeps the desktop rail width and exposes full nav labels via title", () => {

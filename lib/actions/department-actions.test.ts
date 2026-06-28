@@ -17,9 +17,11 @@ vi.mock("@/lib/db", () => ({
 			create: vi.fn(),
 			update: vi.fn(),
 			delete: vi.fn(),
+			findUnique: vi.fn(),
 		},
 		user: {
 			count: vi.fn(),
+			findUnique: vi.fn(),
 		},
 		$transaction: vi.fn(),
 	},
@@ -29,6 +31,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import {
+	assignTeamLeaderAction,
 	createSubDepartmentAction,
 	deleteSubDepartmentAction,
 	getDepartmentsAction,
@@ -145,7 +148,12 @@ describe("getDepartmentsAction", () => {
 			include: {
 				_count: { select: { users: true } },
 				subDepartments: {
-					include: { _count: { select: { users: true } } },
+					include: {
+						_count: { select: { users: true } },
+						teamLeader: {
+							select: { id: true, firstName: true, lastName: true, avatar: true, image: true },
+						},
+					},
 					orderBy: { name: "asc" },
 				},
 			},
@@ -171,5 +179,84 @@ describe("getDepartmentsWithSubDepartmentsAction", () => {
 			},
 			orderBy: { name: "asc" },
 		});
+	});
+});
+
+describe("assignTeamLeaderAction", () => {
+	test("assigns an active member of the parent department", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue({
+			departmentId: "dept_1",
+		} as never);
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({
+			departmentId: "dept_1",
+			deletedAt: null,
+		} as never);
+		vi.mocked(prisma.subDepartment.update).mockResolvedValue({ id: "sub_1" } as never);
+
+		const result = await assignTeamLeaderAction("sub_1", "user_1");
+
+		expect(result.success).toBe(true);
+		expect(prisma.subDepartment.update).toHaveBeenCalledWith({
+			where: { id: "sub_1" },
+			data: { teamLeaderId: "user_1" },
+		});
+	});
+
+	test("rejects a candidate from a different department", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue({
+			departmentId: "dept_1",
+		} as never);
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({
+			departmentId: "dept_other",
+			deletedAt: null,
+		} as never);
+
+		const result = await assignTeamLeaderAction("sub_1", "user_1");
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/parent department/i);
+		}
+		expect(prisma.subDepartment.update).not.toHaveBeenCalled();
+	});
+
+	test("rejects a soft-deleted candidate", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue({
+			departmentId: "dept_1",
+		} as never);
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({
+			departmentId: "dept_1",
+			deletedAt: new Date(),
+		} as never);
+
+		const result = await assignTeamLeaderAction("sub_1", "user_1");
+
+		expect(result.success).toBe(false);
+		expect(prisma.subDepartment.update).not.toHaveBeenCalled();
+	});
+
+	test("clears the leader (null) without a membership check", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue({
+			departmentId: "dept_1",
+		} as never);
+		vi.mocked(prisma.subDepartment.update).mockResolvedValue({ id: "sub_1" } as never);
+
+		const result = await assignTeamLeaderAction("sub_1", null);
+
+		expect(result.success).toBe(true);
+		expect(prisma.user.findUnique).not.toHaveBeenCalled();
+		expect(prisma.subDepartment.update).toHaveBeenCalledWith({
+			where: { id: "sub_1" },
+			data: { teamLeaderId: null },
+		});
+	});
+
+	test("rejects when the sub-department does not exist", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue(null as never);
+
+		const result = await assignTeamLeaderAction("missing", "user_1");
+
+		expect(result.success).toBe(false);
+		expect(prisma.subDepartment.update).not.toHaveBeenCalled();
 	});
 });
