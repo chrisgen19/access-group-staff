@@ -187,8 +187,11 @@ export async function updateUserAction(userId: string, formData: unknown) {
 
 		const { shiftSchedule, hireDate, birthday, subDepartmentId, ...userFields } = parsed.data;
 
+		// Resolve when the sub-department is submitted OR the department changes.
+		// The latter guards against keeping a sub-department that belongs to the
+		// user's previous department when only `departmentId` is updated.
 		let resolvedSubDepartmentId: string | null | undefined;
-		if (subDepartmentId !== undefined) {
+		if (subDepartmentId !== undefined || parsed.data.departmentId !== undefined) {
 			const effectiveDepartmentId =
 				parsed.data.departmentId !== undefined ? parsed.data.departmentId : targetUser.departmentId;
 			const subDept = await resolveSubDepartmentId(

@@ -177,6 +177,7 @@ export function DepartmentTable({
 														<button
 															type="button"
 															onClick={() => setEditTarget(dept)}
+															aria-label={`Edit department ${dept.name}`}
 															className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
 															title="Edit department"
 														>
@@ -185,6 +186,7 @@ export function DepartmentTable({
 														<button
 															type="button"
 															onClick={() => setDeleteTarget(dept)}
+															aria-label={`Delete department ${dept.name}`}
 															className="rounded-full p-2 text-muted-foreground hover:bg-[oklch(0.96_0.03_18)] hover:text-primary dark:hover:bg-primary/10 transition-colors"
 															title="Delete department"
 														>
@@ -234,6 +236,7 @@ export function DepartmentTable({
 																			<button
 																				type="button"
 																				onClick={() => setSubEditTarget({ dept, sub })}
+																				aria-label={`Edit sub-department ${sub.name}`}
 																				className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
 																				title="Edit sub-department"
 																			>
@@ -242,6 +245,7 @@ export function DepartmentTable({
 																			<button
 																				type="button"
 																				onClick={() => setSubDeleteTarget(sub)}
+																				aria-label={`Delete sub-department ${sub.name}`}
 																				className="rounded-full p-2 text-muted-foreground hover:bg-[oklch(0.96_0.03_18)] hover:text-primary dark:hover:bg-primary/10 transition-colors"
 																				title="Delete sub-department"
 																			>

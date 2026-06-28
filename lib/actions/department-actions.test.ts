@@ -10,6 +10,9 @@ vi.mock("@/lib/auth-utils", () => ({
 
 vi.mock("@/lib/db", () => ({
 	prisma: {
+		department: {
+			findMany: vi.fn(),
+		},
 		subDepartment: {
 			create: vi.fn(),
 			update: vi.fn(),
@@ -18,6 +21,7 @@ vi.mock("@/lib/db", () => ({
 		user: {
 			count: vi.fn(),
 		},
+		$transaction: vi.fn(),
 	},
 }));
 
@@ -27,6 +31,8 @@ import { prisma } from "@/lib/db";
 import {
 	createSubDepartmentAction,
 	deleteSubDepartmentAction,
+	getDepartmentsAction,
+	getDepartmentsWithSubDepartmentsAction,
 	updateSubDepartmentAction,
 } from "./department-actions";
 
@@ -92,8 +98,18 @@ describe("updateSubDepartmentAction", () => {
 });
 
 describe("deleteSubDepartmentAction", () => {
+	function mockTransaction(userCount: number) {
+		const tx = {
+			user: { count: vi.fn().mockResolvedValue(userCount) },
+			subDepartment: { delete: vi.fn().mockResolvedValue({ id: "sub_1" }) },
+		};
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (client: unknown) => unknown) =>
+			cb(tx)) as never);
+		return tx;
+	}
+
 	test("blocks deletion while users are still assigned", async () => {
-		vi.mocked(prisma.user.count).mockResolvedValue(3 as never);
+		const tx = mockTransaction(3);
 
 		const result = await deleteSubDepartmentAction("sub_1");
 
@@ -101,16 +117,59 @@ describe("deleteSubDepartmentAction", () => {
 		if (!result.success) {
 			expect(result.error).toMatch(/reassign users/i);
 		}
-		expect(prisma.subDepartment.delete).not.toHaveBeenCalled();
+		expect(tx.subDepartment.delete).not.toHaveBeenCalled();
 	});
 
-	test("deletes when no users are assigned", async () => {
-		vi.mocked(prisma.user.count).mockResolvedValue(0 as never);
-		vi.mocked(prisma.subDepartment.delete).mockResolvedValue({ id: "sub_1" } as never);
+	test("deletes within a serializable transaction when no users are assigned", async () => {
+		const tx = mockTransaction(0);
 
 		const result = await deleteSubDepartmentAction("sub_1");
 
 		expect(result.success).toBe(true);
-		expect(prisma.subDepartment.delete).toHaveBeenCalledWith({ where: { id: "sub_1" } });
+		expect(tx.subDepartment.delete).toHaveBeenCalledWith({ where: { id: "sub_1" } });
+		expect(prisma.$transaction).toHaveBeenCalledWith(expect.any(Function), {
+			isolationLevel: "Serializable",
+		});
+	});
+});
+
+describe("getDepartmentsAction", () => {
+	test("returns departments with sub-departments and user counts", async () => {
+		const departments = [{ id: "dept_1", name: "IT", subDepartments: [] }];
+		vi.mocked(prisma.department.findMany).mockResolvedValue(departments as never);
+
+		const result = await getDepartmentsAction();
+
+		expect(result).toEqual({ success: true, data: departments });
+		expect(prisma.department.findMany).toHaveBeenCalledWith({
+			include: {
+				_count: { select: { users: true } },
+				subDepartments: {
+					include: { _count: { select: { users: true } } },
+					orderBy: { name: "asc" },
+				},
+			},
+			orderBy: { name: "asc" },
+		});
+	});
+});
+
+describe("getDepartmentsWithSubDepartmentsAction", () => {
+	test("selects only id/name for sub-departments, ordered by name", async () => {
+		const departments = [{ id: "dept_1", name: "IT", subDepartments: [] }];
+		vi.mocked(prisma.department.findMany).mockResolvedValue(departments as never);
+
+		const result = await getDepartmentsWithSubDepartmentsAction();
+
+		expect(result).toEqual(departments);
+		expect(prisma.department.findMany).toHaveBeenCalledWith({
+			include: {
+				subDepartments: {
+					select: { id: true, name: true },
+					orderBy: { name: "asc" },
+				},
+			},
+			orderBy: { name: "asc" },
+		});
 	});
 });

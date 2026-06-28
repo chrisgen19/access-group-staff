@@ -299,4 +299,25 @@ describe("updateUserAction sub-department guard", () => {
 			}),
 		);
 	});
+
+	test("clears the sub-department when the department changes and none is submitted", async () => {
+		const txUserUpdate = vi.fn().mockResolvedValue({ id: TARGET_ID });
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb({ user: { update: txUserUpdate } })) as never);
+
+		const result = await updateUserAction(TARGET_ID, {
+			firstName: "Jane",
+			lastName: "Cruz",
+			departmentId: "dept_b",
+		});
+
+		expect(result.success).toBe(true);
+		// No lookup needed when clearing — null short-circuits the guard.
+		expect(prisma.subDepartment.findUnique).not.toHaveBeenCalled();
+		expect(txUserUpdate).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({ subDepartmentId: null }),
+			}),
+		);
+	});
 });

@@ -6,6 +6,13 @@ import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
 import { departmentSchema, subDepartmentSchema } from "@/lib/validations/department";
 
+class SubDepartmentInUseError extends Error {
+	constructor() {
+		super("Cannot delete sub-department with assigned users. Reassign users first.");
+		this.name = "SubDepartmentInUseError";
+	}
+}
+
 export async function getDepartmentsAction() {
 	try {
 		await requireRole("ADMIN");
@@ -168,19 +175,27 @@ export async function deleteSubDepartmentAction(id: string) {
 		// Block deletion while users are still assigned. The User → SubDepartment
 		// relation is ON DELETE SET NULL, so deleting anyway would silently strip
 		// the team from those users. Make admins reassign them first.
-		const userCount = await prisma.user.count({ where: { subDepartmentId: id } });
+		//
+		// Count + delete run inside one Serializable transaction so a concurrent
+		// reassignment can't slip between the guard and the delete — any such race
+		// turns into a serialization failure on one of the transactions.
+		await prisma.$transaction(
+			async (tx) => {
+				const userCount = await tx.user.count({ where: { subDepartmentId: id } });
+				if (userCount > 0) {
+					throw new SubDepartmentInUseError();
+				}
+				await tx.subDepartment.delete({ where: { id } });
+			},
+			{ isolationLevel: "Serializable" },
+		);
 
-		if (userCount > 0) {
-			return {
-				success: false as const,
-				error: "Cannot delete sub-department with assigned users. Reassign users first.",
-			};
-		}
-
-		await prisma.subDepartment.delete({ where: { id } });
 		revalidatePath("/dashboard/departments");
 		return { success: true as const, data: null };
 	} catch (error) {
+		if (error instanceof SubDepartmentInUseError) {
+			return { success: false as const, error: error.message };
+		}
 		const message = error instanceof Error ? error.message : "Failed to delete sub-department";
 		return { success: false as const, error: message };
 	}

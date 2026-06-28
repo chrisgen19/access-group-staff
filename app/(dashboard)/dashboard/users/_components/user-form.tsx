@@ -93,9 +93,7 @@ export function UserForm({
 		if (defaultValues?.departmentId) {
 			setValue("departmentId", defaultValues.departmentId);
 		}
-		if (defaultValues?.subDepartmentId) {
-			setValue("subDepartmentId", defaultValues.subDepartmentId);
-		}
+		setValue("subDepartmentId", defaultValues?.subDepartmentId ?? null);
 		if (defaultValues?.role) {
 			setValue("role", defaultValues.role);
 		}

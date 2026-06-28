@@ -51,6 +51,7 @@ export function groupUsersBySubDepartment(
 
 	return [...groups.values()].sort((a, b) => {
 		if (a.isViewerTeam !== b.isViewerTeam) return a.isViewerTeam ? -1 : 1;
+		if (a.subDepartmentId === null && b.subDepartmentId === null) return 0;
 		if (a.subDepartmentId === null) return 1;
 		if (b.subDepartmentId === null) return -1;
 		return a.name.localeCompare(b.name);

@@ -104,6 +104,7 @@ model User {
   ticketsCreated       HelpMeTicket[]    @relation("ticketCreator")
   ticketReplies        TicketReply[]     @relation("ticketReplyAuthor")
 
+  @@index([subDepartmentId])
   @@map("users")
 }
 
