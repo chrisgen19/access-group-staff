@@ -8,10 +8,19 @@ import { getDepartmentsAction } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 import { DepartmentTable } from "./department-table";
 
+interface TeamLeader {
+	id: string;
+	firstName: string;
+	lastName: string;
+	avatar: string | null;
+	image: string | null;
+}
+
 interface SubDepartment {
 	id: string;
 	name: string;
 	_count: { users: number };
+	teamLeader: TeamLeader | null;
 }
 
 interface Department {
@@ -44,8 +53,8 @@ export function DepartmentsClient() {
 		<div className="mx-auto max-w-7xl space-y-6 sm:space-y-8">
 			<DashboardPageHeader
 				eyebrow="Operations"
-				title="Departments"
-				description="Manage organizational departments and team structure."
+				title="All Teams"
+				description="Manage departments, their teams (sub-departments), and team leaders."
 				actions={
 					<button
 						type="button"

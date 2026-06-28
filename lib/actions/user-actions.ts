@@ -212,26 +212,43 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			resolvedSubDepartmentId = null;
 		}
 
-		const updated = await prisma.$transaction(async (tx) => {
-			const user = await tx.user.update({
-				where: { id: userId },
-				data: {
-					...userFields,
-					role: roleIsChanging ? (parsed.data.role as Role) : undefined,
-					subDepartmentId: resolvedSubDepartmentId,
-					hireDate: hireDate === undefined ? undefined : (hireDate ?? null),
-					birthday: birthday === undefined ? undefined : (birthday ?? null),
-					name:
-						parsed.data.firstName && parsed.data.lastName
-							? `${parsed.data.firstName} ${parsed.data.lastName}`
-							: undefined,
-				},
-			});
-			if (shiftSchedule !== undefined) {
-				await upsertShiftSchedule(tx, userId, shiftSchedule ?? null);
-			}
-			return user;
-		});
+		const updated = await prisma.$transaction(
+			async (tx) => {
+				const user = await tx.user.update({
+					where: { id: userId },
+					data: {
+						...userFields,
+						role: roleIsChanging ? (parsed.data.role as Role) : undefined,
+						subDepartmentId: resolvedSubDepartmentId,
+						hireDate: hireDate === undefined ? undefined : (hireDate ?? null),
+						birthday: birthday === undefined ? undefined : (birthday ?? null),
+						name:
+							parsed.data.firstName && parsed.data.lastName
+								? `${parsed.data.firstName} ${parsed.data.lastName}`
+								: undefined,
+					},
+				});
+				if (shiftSchedule !== undefined) {
+					await upsertShiftSchedule(tx, userId, shiftSchedule ?? null);
+				}
+				// Leaving a department invalidates any team leaderships held there
+				// (eligibility requires membership of the parent department), so clear
+				// them to avoid a leader stranded over a team they no longer belong to.
+				if (departmentChanging) {
+					await tx.subDepartment.updateMany({
+						where: { teamLeaderId: userId },
+						data: { teamLeaderId: null },
+					});
+				}
+				return user;
+			},
+			// When the department changes we clear team leaderships, which races
+			// with assignTeamLeaderAction. Postgres SSI only detects that anomaly
+			// when BOTH transactions are Serializable, so match the assign side
+			// here. Ordinary edits keep default isolation to avoid needless
+			// serialization failures.
+			departmentChanging ? { isolationLevel: "Serializable" } : undefined,
+		);
 
 		revalidatePath("/dashboard/users", "layout");
 		revalidatePath(`/dashboard/users/${userId}`);
@@ -288,6 +305,12 @@ export async function softDeleteUserAction(userId: string) {
 					},
 				});
 				await tx.session.deleteMany({ where: { userId } });
+				// A deleted user can no longer lead any team — relinquish leaderships
+				// so teams aren't left pointing at a removed account.
+				await tx.subDepartment.updateMany({
+					where: { teamLeaderId: userId },
+					data: { teamLeaderId: null },
+				});
 				return user;
 			},
 			{ isolationLevel: "Serializable" },

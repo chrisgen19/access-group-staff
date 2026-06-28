@@ -5,25 +5,41 @@ import {
 	Building2,
 	ChevronDown,
 	ChevronRight,
+	Crown,
 	Layers,
 	Pencil,
 	Plus,
 	Trash2,
+	UserPlus,
+	Users2,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/shared/user-avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
 	deleteDepartmentAction,
 	deleteSubDepartmentAction,
 } from "@/lib/actions/department-actions";
+import { cn } from "@/lib/utils";
 import { DepartmentFormDialog } from "./department-form";
 import { SubDepartmentFormDialog } from "./sub-department-form";
+import { SubDepartmentMembersDialog } from "./sub-department-members-dialog";
+import { TeamLeaderPicker } from "./team-leader-picker";
+
+interface TeamLeader {
+	id: string;
+	firstName: string;
+	lastName: string;
+	avatar: string | null;
+	image: string | null;
+}
 
 interface SubDepartment {
 	id: string;
 	name: string;
 	_count: { users: number };
+	teamLeader: TeamLeader | null;
 }
 
 interface Department {
@@ -53,6 +69,11 @@ export function DepartmentTable({
 	} | null>(null);
 	const [subDeleteTarget, setSubDeleteTarget] = useState<SubDepartment | null>(null);
 	const [isDeletingSub, setIsDeletingSub] = useState(false);
+	const [leaderTarget, setLeaderTarget] = useState<{
+		dept: Department;
+		sub: SubDepartment;
+	} | null>(null);
+	const [membersTarget, setMembersTarget] = useState<SubDepartment | null>(null);
 
 	function toggleExpanded(id: string) {
 		setExpanded((prev) => {
@@ -213,31 +234,74 @@ export function DepartmentTable({
 														</div>
 
 														{dept.subDepartments.length === 0 ? (
-															<p className="py-3 text-sm text-muted-foreground">
-																No sub-departments yet.
+															<p className="rounded-2xl border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-muted-foreground dark:border-white/10">
+																No sub-departments yet. Add one to start building teams.
 															</p>
 														) : (
-															<ul className="divide-y divide-gray-200/60 dark:divide-white/10">
+															<ul className="space-y-2.5">
 																{dept.subDepartments.map((sub) => (
 																	<li
 																		key={sub.id}
-																		className="group/sub flex items-center justify-between gap-3 py-2.5"
+																		className="group/sub flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border border-gray-200/60 bg-card px-4 py-3 transition-colors hover:border-gray-300 dark:border-white/10 dark:hover:border-white/20"
 																	>
-																		<div className="min-w-0">
+																		<div className="min-w-0 flex-1">
 																			<p className="truncate text-sm font-medium text-foreground">
 																				{sub.name}
 																			</p>
-																			<p className="text-xs text-muted-foreground">
+																			<button
+																				type="button"
+																				onClick={() => setMembersTarget(sub)}
+																				title="Manage members"
+																				className="mt-0.5 inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-primary"
+																			>
+																				<Users2 size={13} className="shrink-0" />
 																				{sub._count.users}{" "}
-																				{sub._count.users === 1 ? "user" : "users"}
-																			</p>
+																				{sub._count.users === 1 ? "member" : "members"}
+																			</button>
 																		</div>
-																		<div className="flex shrink-0 gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover/sub:opacity-100 focus-within:opacity-100">
+
+																		<button
+																			type="button"
+																			onClick={() => setLeaderTarget({ dept, sub })}
+																			title={
+																				sub.teamLeader ? "Change team leader" : "Assign team leader"
+																			}
+																			className={cn(
+																				"inline-flex max-w-[14rem] shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+																				sub.teamLeader
+																					? "bg-[oklch(0.96_0.03_18)] text-primary hover:bg-[oklch(0.94_0.04_18)] dark:bg-primary/15 dark:hover:bg-primary/20"
+																					: "border border-dashed border-gray-300 text-muted-foreground hover:border-primary/50 hover:text-primary dark:border-white/15",
+																			)}
+																		>
+																			{sub.teamLeader ? (
+																				<>
+																					<Crown size={13} className="shrink-0" />
+																					<UserAvatar
+																						firstName={sub.teamLeader.firstName}
+																						lastName={sub.teamLeader.lastName}
+																						avatar={sub.teamLeader.avatar}
+																						image={sub.teamLeader.image}
+																						size="xs"
+																						className="bg-background/70 text-primary"
+																					/>
+																					<span className="truncate">
+																						{sub.teamLeader.firstName} {sub.teamLeader.lastName}
+																					</span>
+																				</>
+																			) : (
+																				<>
+																					<UserPlus size={14} className="shrink-0" />
+																					Assign leader
+																				</>
+																			)}
+																		</button>
+
+																		<div className="flex shrink-0 items-center gap-1 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:transition-opacity [@media(hover:hover)]:group-hover/sub:opacity-100 focus-within:opacity-100">
 																			<button
 																				type="button"
 																				onClick={() => setSubEditTarget({ dept, sub })}
 																				aria-label={`Edit sub-department ${sub.name}`}
-																				className="rounded-full p-2 text-muted-foreground hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 transition-colors"
+																				className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10"
 																				title="Edit sub-department"
 																			>
 																				<Pencil size={16} />
@@ -246,7 +310,7 @@ export function DepartmentTable({
 																				type="button"
 																				onClick={() => setSubDeleteTarget(sub)}
 																				aria-label={`Delete sub-department ${sub.name}`}
-																				className="rounded-full p-2 text-muted-foreground hover:bg-[oklch(0.96_0.03_18)] hover:text-primary dark:hover:bg-primary/10 transition-colors"
+																				className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-[oklch(0.96_0.03_18)] hover:text-primary dark:hover:bg-primary/10"
 																				title="Delete sub-department"
 																			>
 																				<Trash2 size={16} />
@@ -383,6 +447,28 @@ export function DepartmentTable({
 					subDepartment={subEditTarget.sub}
 					open={!!subEditTarget}
 					onClose={() => setSubEditTarget(null)}
+					onSuccess={onMutate}
+				/>
+			)}
+
+			{leaderTarget && (
+				<TeamLeaderPicker
+					subDepartmentId={leaderTarget.sub.id}
+					subDepartmentName={leaderTarget.sub.name}
+					departmentId={leaderTarget.dept.id}
+					currentLeaderId={leaderTarget.sub.teamLeader?.id ?? null}
+					open={!!leaderTarget}
+					onClose={() => setLeaderTarget(null)}
+					onSuccess={onMutate}
+				/>
+			)}
+
+			{membersTarget && (
+				<SubDepartmentMembersDialog
+					subDepartmentId={membersTarget.id}
+					subDepartmentName={membersTarget.name}
+					open={!!membersTarget}
+					onClose={() => setMembersTarget(null)}
 					onSuccess={onMutate}
 				/>
 			)}

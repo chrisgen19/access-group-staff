@@ -26,6 +26,10 @@ export function canManageDepartments(role: Role): boolean {
 	return hasMinRole(role, "ADMIN");
 }
 
+export function canManageTeams(role: Role): boolean {
+	return hasMinRole(role, "ADMIN");
+}
+
 export function canAssignAdminRole(role: Role): boolean {
 	return hasMinRole(role, "SUPERADMIN");
 }
