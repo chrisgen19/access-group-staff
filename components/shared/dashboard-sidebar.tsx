@@ -13,6 +13,7 @@ import {
 	Trophy,
 	UserCircle,
 	Users,
+	UsersRound,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -58,6 +59,12 @@ const NAV_ITEMS: NavItem[] = [
 		label: "Leaderboard",
 		href: "/dashboard/leaderboard",
 		icon: Trophy,
+		minRole: "STAFF",
+	},
+	{
+		label: "My Team",
+		href: "/dashboard/my-team",
+		icon: UsersRound,
 		minRole: "STAFF",
 	},
 	{

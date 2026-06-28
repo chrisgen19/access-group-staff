@@ -59,6 +59,22 @@ describe("DashboardSidebar", () => {
 		vi.clearAllMocks();
 	});
 
+	it("shows the My Team link to staff users", () => {
+		mockedUsePathname.mockReturnValue("/dashboard");
+		mockedUseRouter.mockReturnValue({
+			push: vi.fn(),
+			refresh: vi.fn(),
+		} as unknown as ReturnType<typeof useRouter>);
+		setSession({ role: "STAFF" });
+
+		render(<DashboardSidebar helpMeEnabled initialUserRole="STAFF" />);
+
+		const myTeamLink = screen.getByRole("link", { name: "My Team" });
+		expect(myTeamLink).toHaveAttribute("href", "/dashboard/my-team");
+		// Staff still must not see admin-only links.
+		expect(screen.queryByRole("link", { name: "Staff" })).not.toBeInTheDocument();
+	});
+
 	it("keeps the desktop rail width and exposes full nav labels via title", () => {
 		mockedUsePathname.mockReturnValue("/dashboard");
 		mockedUseRouter.mockReturnValue({

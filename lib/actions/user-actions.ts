@@ -23,6 +23,34 @@ class LastSuperadminError extends Error {
 	}
 }
 
+type SubDepartmentResolution = { ok: true; value: string | null } | { ok: false; error: string };
+
+/**
+ * Ensures a sub-department assignment is consistent with the user's department.
+ * Returns the value to persist (or null), or an error when the sub-department
+ * does not belong to the chosen department.
+ */
+async function resolveSubDepartmentId(
+	departmentId: string | null,
+	subDepartmentId: string | null,
+): Promise<SubDepartmentResolution> {
+	if (!subDepartmentId) return { ok: true, value: null };
+	if (!departmentId) {
+		return { ok: false, error: "Select a department before assigning a sub-department" };
+	}
+	const subDepartment = await prisma.subDepartment.findUnique({
+		where: { id: subDepartmentId },
+		select: { departmentId: true },
+	});
+	if (!subDepartment || subDepartment.departmentId !== departmentId) {
+		return {
+			ok: false,
+			error: "Selected sub-department does not belong to the chosen department",
+		};
+	}
+	return { ok: true, value: subDepartmentId };
+}
+
 async function upsertShiftSchedule(
 	tx: Prisma.TransactionClient,
 	userId: string,
@@ -74,6 +102,14 @@ export async function createUserAction(formData: unknown) {
 			return { success: false as const, error: "Insufficient permissions to assign this role" };
 		}
 
+		const subDept = await resolveSubDepartmentId(
+			rest.departmentId ?? null,
+			rest.subDepartmentId ?? null,
+		);
+		if (!subDept.ok) {
+			return { success: false as const, error: subDept.error };
+		}
+
 		const result = await auth.api.signUpEmail({
 			body: {
 				email,
@@ -99,6 +135,7 @@ export async function createUserAction(formData: unknown) {
 					position: rest.position,
 					branch: rest.branch ?? null,
 					departmentId: rest.departmentId ?? null,
+					subDepartmentId: subDept.value,
 					hireDate: rest.hireDate ?? null,
 					birthday: rest.birthday ?? null,
 				},
@@ -128,7 +165,7 @@ export async function updateUserAction(userId: string, formData: unknown) {
 
 		const targetUser = await prisma.user.findUnique({
 			where: { id: userId },
-			select: { role: true, deletedAt: true },
+			select: { role: true, deletedAt: true, departmentId: true },
 		});
 
 		if (!targetUser) {
@@ -148,13 +185,29 @@ export async function updateUserAction(userId: string, formData: unknown) {
 			return { success: false as const, error: "Insufficient permissions to assign this role" };
 		}
 
-		const { shiftSchedule, hireDate, birthday, ...userFields } = parsed.data;
+		const { shiftSchedule, hireDate, birthday, subDepartmentId, ...userFields } = parsed.data;
+
+		let resolvedSubDepartmentId: string | null | undefined;
+		if (subDepartmentId !== undefined) {
+			const effectiveDepartmentId =
+				parsed.data.departmentId !== undefined ? parsed.data.departmentId : targetUser.departmentId;
+			const subDept = await resolveSubDepartmentId(
+				effectiveDepartmentId ?? null,
+				subDepartmentId ?? null,
+			);
+			if (!subDept.ok) {
+				return { success: false as const, error: subDept.error };
+			}
+			resolvedSubDepartmentId = subDept.value;
+		}
+
 		const updated = await prisma.$transaction(async (tx) => {
 			const user = await tx.user.update({
 				where: { id: userId },
 				data: {
 					...userFields,
 					role: roleIsChanging ? (parsed.data.role as Role) : undefined,
+					subDepartmentId: resolvedSubDepartmentId,
 					hireDate: hireDate === undefined ? undefined : (hireDate ?? null),
 					birthday: birthday === undefined ? undefined : (birthday ?? null),
 					name:

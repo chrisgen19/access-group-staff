@@ -8,11 +8,18 @@ import { getDepartmentsAction } from "@/lib/actions/department-actions";
 import { DepartmentFormDialog } from "./department-form";
 import { DepartmentTable } from "./department-table";
 
+interface SubDepartment {
+	id: string;
+	name: string;
+	_count: { users: number };
+}
+
 interface Department {
 	id: string;
 	name: string;
 	code: string;
 	_count: { users: number };
+	subDepartments: SubDepartment[];
 }
 
 export function DepartmentsClient() {

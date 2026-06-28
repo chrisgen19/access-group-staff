@@ -30,6 +30,7 @@ interface Department {
 	id: string;
 	name: string;
 	code: string;
+	subDepartments: { id: string; name: string }[];
 }
 
 interface UserFormProps {
@@ -73,6 +74,11 @@ export function UserForm({
 	const hireDateValue = watch("hireDate");
 	const birthdayValue = watch("birthday");
 	const shiftScheduleValue = watch("shiftSchedule");
+	const departmentIdValue = watch("departmentId");
+	const subDepartmentIdValue = watch("subDepartmentId");
+
+	const subDepartmentOptions =
+		departments.find((dept) => dept.id === departmentIdValue)?.subDepartments ?? [];
 
 	const availableRoles =
 		currentUserRole === "SUPERADMIN" ? (["STAFF", "ADMIN"] as const) : (["STAFF"] as const);
@@ -86,6 +92,9 @@ export function UserForm({
 	useEffect(() => {
 		if (defaultValues?.departmentId) {
 			setValue("departmentId", defaultValues.departmentId);
+		}
+		if (defaultValues?.subDepartmentId) {
+			setValue("subDepartmentId", defaultValues.subDepartmentId);
 		}
 		if (defaultValues?.role) {
 			setValue("role", defaultValues.role);
@@ -264,16 +273,48 @@ export function UserForm({
 							</label>
 							<select
 								id="departmentId"
-								value={watch("departmentId") ?? "none"}
-								onChange={(e) =>
-									setValue("departmentId", e.target.value === "none" ? null : e.target.value)
-								}
+								value={departmentIdValue ?? "none"}
+								onChange={(e) => {
+									setValue("departmentId", e.target.value === "none" ? null : e.target.value);
+									setValue("subDepartmentId", null);
+								}}
 								className={selectClass}
 							>
 								<option value="none">No Department</option>
 								{departments.map((dept) => (
 									<option key={dept.id} value={dept.id}>
 										{dept.name} ({dept.code})
+									</option>
+								))}
+							</select>
+						</div>
+
+						<div>
+							<label
+								htmlFor="subDepartmentId"
+								className="block text-sm font-medium text-foreground/70 ml-1 mb-1.5"
+							>
+								Sub-department
+							</label>
+							<select
+								id="subDepartmentId"
+								value={subDepartmentIdValue ?? "none"}
+								onChange={(e) =>
+									setValue("subDepartmentId", e.target.value === "none" ? null : e.target.value)
+								}
+								className={selectClass}
+								disabled={!departmentIdValue || subDepartmentOptions.length === 0}
+							>
+								<option value="none">
+									{!departmentIdValue
+										? "Select a department first"
+										: subDepartmentOptions.length === 0
+											? "No sub-departments available"
+											: "No Sub-department"}
+								</option>
+								{subDepartmentOptions.map((sub) => (
+									<option key={sub.id} value={sub.id}>
+										{sub.name}
 									</option>
 								))}
 							</select>

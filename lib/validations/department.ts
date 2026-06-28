@@ -10,3 +10,9 @@ export const departmentSchema = z.object({
 });
 
 export type DepartmentInput = z.infer<typeof departmentSchema>;
+
+export const subDepartmentSchema = z.object({
+	name: z.string().trim().min(1, "Sub-department name is required"),
+});
+
+export type SubDepartmentInput = z.infer<typeof subDepartmentSchema>;

@@ -143,6 +143,7 @@ export const createUserSchema = z.object({
 	branch: z.enum(["ISO", "PERTH"]).nullable().optional(),
 	role: z.enum(["STAFF", "ADMIN", "SUPERADMIN"]),
 	departmentId: z.string().nullable().optional(),
+	subDepartmentId: z.string().nullable().optional(),
 	hireDate: z.coerce.date().nullable().optional(),
 	birthday: z.coerce.date().nullable().optional(),
 	shiftSchedule: shiftScheduleSchema.nullable().optional(),

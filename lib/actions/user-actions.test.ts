@@ -29,6 +29,9 @@ vi.mock("@/lib/db", () => ({
 		user: {
 			findUnique: vi.fn(),
 		},
+		subDepartment: {
+			findUnique: vi.fn(),
+		},
 		$transaction: vi.fn(),
 	},
 }));
@@ -47,7 +50,7 @@ import { Prisma } from "@/app/generated/prisma/client";
 import { logActivity } from "@/lib/activity-log";
 import { requireRole } from "@/lib/auth-utils";
 import { prisma } from "@/lib/db";
-import { adminResetPasswordAction } from "./user-actions";
+import { adminResetPasswordAction, updateUserAction } from "./user-actions";
 
 const ADMIN_ID = "admin_1";
 const TARGET_ID = "user_1";
@@ -228,5 +231,72 @@ describe("adminResetPasswordAction", () => {
 		} finally {
 			consoleErrorSpy.mockRestore();
 		}
+	});
+});
+
+describe("updateUserAction sub-department guard", () => {
+	beforeEach(() => {
+		vi.mocked(prisma.user.findUnique).mockResolvedValue({
+			role: "STAFF",
+			deletedAt: null,
+			departmentId: "dept_a",
+		} as never);
+	});
+
+	test("rejects a sub-department that does not belong to the chosen department", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue({
+			departmentId: "dept_other",
+		} as never);
+
+		const result = await updateUserAction(TARGET_ID, {
+			firstName: "Jane",
+			lastName: "Cruz",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_1",
+		});
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/sub-department/i);
+		}
+		expect(prisma.$transaction).not.toHaveBeenCalled();
+	});
+
+	test("rejects a sub-department when no department is selected", async () => {
+		const result = await updateUserAction(TARGET_ID, {
+			firstName: "Jane",
+			lastName: "Cruz",
+			departmentId: null,
+			subDepartmentId: "sub_1",
+		});
+
+		expect(result.success).toBe(false);
+		if (!result.success) {
+			expect(result.error).toMatch(/department/i);
+		}
+		expect(prisma.$transaction).not.toHaveBeenCalled();
+	});
+
+	test("persists a valid sub-department assignment", async () => {
+		vi.mocked(prisma.subDepartment.findUnique).mockResolvedValue({
+			departmentId: "dept_a",
+		} as never);
+		const txUserUpdate = vi.fn().mockResolvedValue({ id: TARGET_ID });
+		vi.mocked(prisma.$transaction).mockImplementation((async (cb: (tx: unknown) => unknown) =>
+			cb({ user: { update: txUserUpdate } })) as never);
+
+		const result = await updateUserAction(TARGET_ID, {
+			firstName: "Jane",
+			lastName: "Cruz",
+			departmentId: "dept_a",
+			subDepartmentId: "sub_1",
+		});
+
+		expect(result.success).toBe(true);
+		expect(txUserUpdate).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({ subDepartmentId: "sub_1" }),
+			}),
+		);
 	});
 });
