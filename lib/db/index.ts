@@ -6,12 +6,19 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient() {
-	const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
+	const adapter = new PrismaPg({
+		connectionString: process.env.DATABASE_URL,
+		// Recycle idle sockets before any NAT/proxy/server-side reaper closes them.
+		idleTimeoutMillis: 30_000,
+		keepAlive: true,
+		keepAliveInitialDelayMillis: 10_000,
+		// Fail fast instead of hanging when the database is unreachable.
+		connectionTimeoutMillis: 10_000,
+		max: 10,
+	});
 	return new PrismaClient({ adapter });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
-	globalForPrisma.prisma = prisma;
-}
+globalForPrisma.prisma = prisma;
