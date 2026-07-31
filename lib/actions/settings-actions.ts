@@ -20,7 +20,10 @@ import {
 	TOP_RECOGNIZED_MIN,
 } from "@/lib/leaderboard/constants";
 import {
+	isMonthSource,
+	type LeaderboardMonthSource,
 	type LeaderboardVisibilitySettings,
+	MONTH_SOURCE_DEFAULT,
 	REVEAL_DAY_MAX,
 	REVEAL_DAY_MIN,
 	REVEAL_END_DAY_DEFAULT,
@@ -224,10 +227,12 @@ export async function updateHelpMeEnabled(
 const LEADERBOARD_START_DAY_KEY = "leaderboard_reveal_start_day";
 const LEADERBOARD_END_DAY_KEY = "leaderboard_reveal_end_day";
 const LEADERBOARD_ALWAYS_VISIBLE_KEY = "leaderboard_always_visible";
+const LEADERBOARD_MONTH_SOURCE_KEY = "leaderboard_month_source";
 const LEADERBOARD_KEYS = [
 	LEADERBOARD_START_DAY_KEY,
 	LEADERBOARD_END_DAY_KEY,
 	LEADERBOARD_ALWAYS_VISIBLE_KEY,
+	LEADERBOARD_MONTH_SOURCE_KEY,
 ];
 
 function invalidateLeaderboardCache() {
@@ -257,7 +262,10 @@ export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVis
 		// Absent row means off, so existing installs keep the windowed behaviour.
 		const alwaysVisible = map.get(LEADERBOARD_ALWAYS_VISIBLE_KEY) === "true";
 
-		return { revealStartDay, revealEndDay, alwaysVisible };
+		const rawMonthSource = map.get(LEADERBOARD_MONTH_SOURCE_KEY);
+		const monthSource = isMonthSource(rawMonthSource) ? rawMonthSource : MONTH_SOURCE_DEFAULT;
+
+		return { revealStartDay, revealEndDay, alwaysVisible, monthSource };
 	});
 }
 
@@ -265,6 +273,7 @@ export interface UpdateLeaderboardVisibilityInput {
 	revealStartDay: number;
 	revealEndDay: number;
 	alwaysVisible: boolean;
+	monthSource: LeaderboardMonthSource;
 }
 
 export async function updateLeaderboardVisibilitySettings(
@@ -293,6 +302,10 @@ export async function updateLeaderboardVisibilitySettings(
 		};
 	}
 
+	if (!isMonthSource(input.monthSource)) {
+		return { success: false, error: "Invalid month source" };
+	}
+
 	const alwaysVisible = String(input.alwaysVisible === true);
 
 	// The days are persisted even while "always visible" is on, so switching it
@@ -312,6 +325,11 @@ export async function updateLeaderboardVisibilitySettings(
 			where: { key: LEADERBOARD_ALWAYS_VISIBLE_KEY },
 			update: { value: alwaysVisible },
 			create: { key: LEADERBOARD_ALWAYS_VISIBLE_KEY, value: alwaysVisible },
+		}),
+		prisma.appSetting.upsert({
+			where: { key: LEADERBOARD_MONTH_SOURCE_KEY },
+			update: { value: input.monthSource },
+			create: { key: LEADERBOARD_MONTH_SOURCE_KEY, value: input.monthSource },
 		}),
 	]);
 

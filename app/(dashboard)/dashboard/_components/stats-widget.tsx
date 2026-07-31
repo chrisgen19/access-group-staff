@@ -40,6 +40,7 @@ interface LeaderboardVisibility {
 	alwaysVisible: boolean;
 	sourceMonthKey: string;
 	sourceMonthLabel: string;
+	monthSource: "previous" | "current";
 	revealStart: string;
 	revealEnd: string;
 	nextRevealStart: string;
@@ -348,6 +349,7 @@ export function StatsWidget() {
 
 	const stats = data.data;
 	const resolvedVisibility = stats.leaderboardVisibility;
+	const isLiveMonth = resolvedVisibility.monthSource === "current";
 	const showList = resolvedVisibility.visible && stats.topRecipients.length > 0;
 	const showLocked = !resolvedVisibility.visible;
 	const showEmpty = resolvedVisibility.visible && stats.topRecipients.length === 0;
@@ -407,8 +409,13 @@ export function StatsWidget() {
 						<h4 className="text-sm font-medium text-foreground/70">
 							Most Recognized — {resolvedVisibility.sourceMonthLabel}
 						</h4>
-						<span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
-							Final results
+						<span
+							className={cn(
+								"inline-flex items-center rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide",
+								isLiveMonth ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+							)}
+						>
+							{isLiveMonth ? "In progress" : "Final results"}
 						</span>
 					</div>
 					<ol className="space-y-2">
@@ -482,7 +489,9 @@ export function StatsWidget() {
 					</div>
 					<div className="flex min-h-48 items-center justify-center rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-muted/30 px-6 py-8 text-center">
 						<p className="text-sm text-muted-foreground">
-							No recognitions were recorded last month.
+							{isLiveMonth
+								? "No recognitions yet this month."
+								: "No recognitions were recorded last month."}
 						</p>
 					</div>
 				</div>

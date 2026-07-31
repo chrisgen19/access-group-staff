@@ -83,10 +83,14 @@ export async function GET(request: Request) {
 			count: number;
 		}> = [];
 
-		// During the reveal window we show the previous (completed) month's
-		// finalized winners, read from its archived snapshot — never a live tally.
+		// The previous (completed) month is served from its archived snapshot —
+		// finalized and stable. The running month has no snapshot by design (one
+		// would freeze a partial month), so it is always tallied live.
 		if (visibility.visible) {
-			let recipients = await getArchivedRecipients(visibility.sourceMonthKey, topLimit);
+			const isLiveMonth = visibility.monthSource === "current";
+			let recipients = isLiveMonth
+				? null
+				: await getArchivedRecipients(visibility.sourceMonthKey, topLimit);
 			// Fall back to a live computation when the archive is missing or invalid
 			// (snapshot not yet written, swallowed failure, or corrupt JSON), so the
 			// reveal window never shows a false "no winners" state. Safe for everyone:
@@ -113,6 +117,7 @@ export async function GET(request: Request) {
 					visible: visibility.visible,
 					alwaysVisible: visibility.alwaysVisible,
 					sourceMonthKey: visibility.sourceMonthKey,
+					monthSource: visibility.monthSource,
 					sourceMonthLabel: formatMonthLabel(visibility.sourceMonthKey),
 					revealStart: visibility.revealStart.toISOString(),
 					revealEnd: visibility.revealEnd.toISOString(),

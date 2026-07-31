@@ -7,9 +7,21 @@ export const REVEAL_START_DAY_DEFAULT = 1;
 export const REVEAL_END_DAY_DEFAULT = 20;
 export const ALWAYS_VISIBLE_DEFAULT = false;
 
+// Which month the "Most Recognized" panel draws from: the previous completed
+// month (finalized, read from its archived snapshot) or the running month
+// (live tally that moves as cards are sent).
+export const MONTH_SOURCES = ["previous", "current"] as const;
+export type LeaderboardMonthSource = (typeof MONTH_SOURCES)[number];
+export const MONTH_SOURCE_DEFAULT: LeaderboardMonthSource = "previous";
+
+export function isMonthSource(value: unknown): value is LeaderboardMonthSource {
+	return MONTH_SOURCES.includes(value as LeaderboardMonthSource);
+}
+
 export interface LeaderboardVisibilitySettings {
 	revealStartDay: number;
 	revealEndDay: number;
+	monthSource: LeaderboardMonthSource;
 	// Master switch: when on, the reveal window is bypassed entirely and the
 	// panel stays unlocked. The days are still stored so turning it back off
 	// restores the configured window.
@@ -30,8 +42,11 @@ export interface LeaderboardVisibilityState {
 	// archived winners roll over. Clients watch this to refresh a long-open
 	// dashboard in always-visible mode, where no reveal boundary is ever hit.
 	nextMonthStart: Date;
-	// The completed month whose winners the window reveals (previous calendar month).
+	// The month whose winners are shown — previous or running, per monthSource.
 	sourceMonthKey: string;
+	// Mirrors the setting. When "current" the tally is still in progress, so
+	// clients should label it as live rather than as final winners.
+	monthSource: LeaderboardMonthSource;
 }
 
 const TZ_OFFSET_MS = 8 * 60 * 60 * 1000;
@@ -49,7 +64,7 @@ export function computeLeaderboardVisibility(
 	settings: LeaderboardVisibilitySettings,
 	now: Date = new Date(),
 ): LeaderboardVisibilityState {
-	const { year, month } = getCurrentMonthBoundaries(now);
+	const { year, month, monthKey } = getCurrentMonthBoundaries(now);
 
 	const startDay = clampDay(settings.revealStartDay);
 	const endDay = Math.max(startDay, clampDay(settings.revealEndDay));
@@ -60,6 +75,10 @@ export function computeLeaderboardVisibility(
 
 	const t = now.getTime();
 	const alwaysVisible = settings.alwaysVisible === true;
+	// Guard the boundary: settings may come from a raw DB row on older data.
+	const monthSource = isMonthSource(settings.monthSource)
+		? settings.monthSource
+		: MONTH_SOURCE_DEFAULT;
 	const visible = alwaysVisible || (t >= revealStart.getTime() && t < revealEnd.getTime());
 
 	// Before this month's window → it's still the next opening. At or after it
@@ -74,6 +93,7 @@ export function computeLeaderboardVisibility(
 		revealEnd,
 		nextRevealStart,
 		nextMonthStart: manilaMidnightToUtc(year, month + 1, 1),
-		sourceMonthKey: getPreviousMonthKey(now),
+		sourceMonthKey: monthSource === "current" ? monthKey : getPreviousMonthKey(now),
+		monthSource,
 	};
 }
