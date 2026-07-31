@@ -31,6 +31,7 @@ export default async function AdminSettingsPage() {
 			<LeaderboardVisibilityPanel
 				initialStartDay={visibility.revealStartDay}
 				initialEndDay={visibility.revealEndDay}
+				initialAlwaysVisible={visibility.alwaysVisible}
 			/>
 
 			<HelpMeVisibilityPanel initialEnabled={helpMeEnabled} />

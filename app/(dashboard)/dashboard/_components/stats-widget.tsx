@@ -37,6 +37,7 @@ const STATS_STICKY_BREAKPOINT_QUERY = "(min-width: 1024px)";
 
 interface LeaderboardVisibility {
 	visible: boolean;
+	alwaysVisible: boolean;
 	sourceMonthKey: string;
 	sourceMonthLabel: string;
 	revealStart: string;
@@ -313,11 +314,13 @@ export function StatsWidget() {
 	const visibility = data?.data?.leaderboardVisibility ?? null;
 	// Always watch the next boundary: revealEnd if the leaderboard is currently
 	// visible (so we lock it at window-end), otherwise the next window opening.
-	const nextBoundaryIso = visibility
-		? visibility.visible
-			? visibility.revealEnd
-			: visibility.nextRevealStart
-		: null;
+	// "Always visible" has no boundary at all, so there is nothing to count to.
+	const nextBoundaryIso =
+		!visibility || visibility.alwaysVisible
+			? null
+			: visibility.visible
+				? visibility.revealEnd
+				: visibility.nextRevealStart;
 	const msRemaining = useCountdown(nextBoundaryIso);
 
 	if (isPending) {

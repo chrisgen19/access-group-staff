@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest";
 import { computeLeaderboardVisibility } from "./visibility";
 
 // Asia/Manila is UTC+8 with no DST, so Manila midnight on day D is UTC (D-1) 16:00.
-const WINDOW_1_TO_20 = { revealStartDay: 1, revealEndDay: 20 };
+const WINDOW_1_TO_20 = { revealStartDay: 1, revealEndDay: 20, alwaysVisible: false };
 
 describe("computeLeaderboardVisibility", () => {
 	test("is visible inside the window and points at the previous month", () => {
@@ -20,7 +20,10 @@ describe("computeLeaderboardVisibility", () => {
 	test("is locked before the window opens; next opening is this month", () => {
 		// 2026-06-03 12:00 Manila, window opens day 5
 		const now = new Date("2026-06-03T04:00:00Z");
-		const state = computeLeaderboardVisibility({ revealStartDay: 5, revealEndDay: 20 }, now);
+		const state = computeLeaderboardVisibility(
+			{ revealStartDay: 5, revealEndDay: 20, alwaysVisible: false },
+			now,
+		);
 
 		expect(state.visible).toBe(false);
 		// 2026-06-05 Manila
@@ -51,10 +54,33 @@ describe("computeLeaderboardVisibility", () => {
 
 	test("clamps out-of-range days into 1..28 and keeps start <= end", () => {
 		const now = new Date("2026-06-05T04:00:00Z");
-		const state = computeLeaderboardVisibility({ revealStartDay: 40, revealEndDay: 0 }, now);
+		const state = computeLeaderboardVisibility(
+			{ revealStartDay: 40, revealEndDay: 0, alwaysVisible: false },
+			now,
+		);
 
 		// start clamps to 28, end = max(28, clamp(0->1)) = 28 → window is day 28 only.
 		expect(state.revealStart.toISOString()).toBe("2026-06-27T16:00:00.000Z");
 		expect(state.revealEnd.toISOString()).toBe("2026-06-28T16:00:00.000Z");
+	});
+
+	test("is visible outside the window when alwaysVisible is on", () => {
+		// 2026-06-25 12:00 Manila — well past the day 1-20 window.
+		const now = new Date("2026-06-25T04:00:00Z");
+		const state = computeLeaderboardVisibility({ ...WINDOW_1_TO_20, alwaysVisible: true }, now);
+
+		expect(state.visible).toBe(true);
+		expect(state.alwaysVisible).toBe(true);
+		// The window itself is still computed so turning the switch off restores it.
+		expect(state.revealStart.toISOString()).toBe("2026-05-31T16:00:00.000Z");
+		expect(state.sourceMonthKey).toBe("2026-05");
+	});
+
+	test("still honours the window when alwaysVisible is off", () => {
+		const now = new Date("2026-06-25T04:00:00Z");
+		const state = computeLeaderboardVisibility(WINDOW_1_TO_20, now);
+
+		expect(state.visible).toBe(false);
+		expect(state.alwaysVisible).toBe(false);
 	});
 });

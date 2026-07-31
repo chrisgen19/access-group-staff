@@ -223,7 +223,12 @@ export async function updateHelpMeEnabled(
 
 const LEADERBOARD_START_DAY_KEY = "leaderboard_reveal_start_day";
 const LEADERBOARD_END_DAY_KEY = "leaderboard_reveal_end_day";
-const LEADERBOARD_KEYS = [LEADERBOARD_START_DAY_KEY, LEADERBOARD_END_DAY_KEY];
+const LEADERBOARD_ALWAYS_VISIBLE_KEY = "leaderboard_always_visible";
+const LEADERBOARD_KEYS = [
+	LEADERBOARD_START_DAY_KEY,
+	LEADERBOARD_END_DAY_KEY,
+	LEADERBOARD_ALWAYS_VISIBLE_KEY,
+];
 
 function invalidateLeaderboardCache() {
 	invalidateEntry(leaderboardCache);
@@ -249,13 +254,17 @@ export async function getLeaderboardVisibilitySettings(): Promise<LeaderboardVis
 			parseDay(map.get(LEADERBOARD_END_DAY_KEY), REVEAL_END_DAY_DEFAULT),
 		);
 
-		return { revealStartDay, revealEndDay };
+		// Absent row means off, so existing installs keep the windowed behaviour.
+		const alwaysVisible = map.get(LEADERBOARD_ALWAYS_VISIBLE_KEY) === "true";
+
+		return { revealStartDay, revealEndDay, alwaysVisible };
 	});
 }
 
 export interface UpdateLeaderboardVisibilityInput {
 	revealStartDay: number;
 	revealEndDay: number;
+	alwaysVisible: boolean;
 }
 
 export async function updateLeaderboardVisibilitySettings(
@@ -284,6 +293,10 @@ export async function updateLeaderboardVisibilitySettings(
 		};
 	}
 
+	const alwaysVisible = String(input.alwaysVisible === true);
+
+	// The days are persisted even while "always visible" is on, so switching it
+	// back off restores the admin's configured window instead of the defaults.
 	await prisma.$transaction([
 		prisma.appSetting.upsert({
 			where: { key: LEADERBOARD_START_DAY_KEY },
@@ -294,6 +307,11 @@ export async function updateLeaderboardVisibilitySettings(
 			where: { key: LEADERBOARD_END_DAY_KEY },
 			update: { value: String(input.revealEndDay) },
 			create: { key: LEADERBOARD_END_DAY_KEY, value: String(input.revealEndDay) },
+		}),
+		prisma.appSetting.upsert({
+			where: { key: LEADERBOARD_ALWAYS_VISIBLE_KEY },
+			update: { value: alwaysVisible },
+			create: { key: LEADERBOARD_ALWAYS_VISIBLE_KEY, value: alwaysVisible },
 		}),
 	]);
 

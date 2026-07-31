@@ -58,9 +58,10 @@ const NEXT_REVEAL_START = new Date("2026-06-01T00:00:00Z");
 const SOURCE_MONTH_KEY = "2026-04";
 const REQUEST = new Request("http://localhost/api/recognition/stats");
 
-function mockVisible(visible: boolean) {
+function mockVisible(visible: boolean, alwaysVisible = false) {
 	vi.mocked(computeLeaderboardVisibility).mockReturnValue({
 		visible,
+		alwaysVisible,
 		revealStart: REVEAL_START,
 		revealEnd: REVEAL_END,
 		nextRevealStart: NEXT_REVEAL_START,
@@ -85,6 +86,7 @@ beforeEach(() => {
 	vi.mocked(getLeaderboardVisibilitySettings).mockResolvedValue({
 		revealStartDay: 1,
 		revealEndDay: 20,
+		alwaysVisible: false,
 	});
 	vi.mocked(getTopRecognizedLimit).mockResolvedValue(5);
 	vi.mocked(prisma.recognitionCard.count).mockResolvedValue(0);
@@ -170,6 +172,19 @@ describe("GET /api/recognition/stats", () => {
 		expect(body.data.topRecipients).toEqual([]);
 		expect(body.data.leaderboardVisibility.visible).toBe(false);
 		expect(getArchivedRecipients).not.toHaveBeenCalled();
+	});
+
+	test("serves winners outside the window when always visible is on", async () => {
+		mockVisible(true, true);
+		vi.mocked(getArchivedRecipients).mockResolvedValue([
+			{ userId: "u1", firstName: "Ada", lastName: "Lovelace", avatar: null, count: 5, rank: 1 },
+		]);
+
+		const res = await GET(REQUEST);
+		const body = await res.json();
+
+		expect(body.data.leaderboardVisibility.alwaysVisible).toBe(true);
+		expect(body.data.topRecipients).toHaveLength(1);
 	});
 
 	test("honors ?previewNow for a super admin but still snapshots with the real clock", async () => {
