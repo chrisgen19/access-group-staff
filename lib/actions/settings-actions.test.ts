@@ -119,6 +119,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 			revealStartDay: 1,
 			revealEndDay: 20,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 	});
 
@@ -131,6 +132,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 			revealStartDay: 5,
 			revealEndDay: 15,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 	});
 
@@ -143,6 +145,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 			revealStartDay: 1,
 			revealEndDay: 20,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 	});
 
@@ -155,6 +158,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 			revealStartDay: 18,
 			revealEndDay: 18,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 	});
 
@@ -171,6 +175,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 			revealStartDay: 5,
 			revealEndDay: 15,
 			alwaysVisible: true,
+			monthSource: "previous",
 		});
 	});
 });
@@ -183,6 +188,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 			revealStartDay: 1,
 			revealEndDay: 20,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 
 		expect(result).toEqual({ success: false, error: "Unauthorized" });
@@ -196,6 +202,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 			revealStartDay: 0,
 			revealEndDay: 20,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 
 		expect(result.success).toBe(false);
@@ -209,6 +216,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 			revealStartDay: 15,
 			revealEndDay: 5,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 
 		expect(result).toEqual({
@@ -226,6 +234,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 			revealStartDay: 3,
 			revealEndDay: 18,
 			alwaysVisible: false,
+			monthSource: "previous",
 		});
 
 		expect(result).toEqual({ success: true });
@@ -242,6 +251,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 			revealStartDay: 3,
 			revealEndDay: 18,
 			alwaysVisible: true,
+			monthSource: "previous",
 		});
 
 		expect(result).toEqual({ success: true });

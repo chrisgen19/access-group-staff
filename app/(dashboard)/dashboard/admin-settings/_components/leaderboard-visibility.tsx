@@ -4,41 +4,56 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { updateLeaderboardVisibilitySettings } from "@/lib/actions/settings-actions";
-import { clampDay, REVEAL_DAY_MAX, REVEAL_DAY_MIN } from "@/lib/leaderboard/visibility";
+import {
+	type UpdateLeaderboardVisibilityInput,
+	updateLeaderboardVisibilitySettings,
+} from "@/lib/actions/settings-actions";
+import {
+	clampDay,
+	isMonthSource,
+	type LeaderboardMonthSource,
+	REVEAL_DAY_MAX,
+	REVEAL_DAY_MIN,
+} from "@/lib/leaderboard/visibility";
 import { cn } from "@/lib/utils";
+
+const MONTH_SOURCE_OPTIONS: { value: LeaderboardMonthSource; label: string }[] = [
+	{ value: "previous", label: "Last month" },
+	{ value: "current", label: "This month" },
+];
 
 export interface LeaderboardVisibilityPanelProps {
 	initialStartDay: number;
 	initialEndDay: number;
 	initialAlwaysVisible: boolean;
+	initialMonthSource: LeaderboardMonthSource;
 }
 
 export function LeaderboardVisibilityPanel({
 	initialStartDay,
 	initialEndDay,
 	initialAlwaysVisible,
+	initialMonthSource,
 }: LeaderboardVisibilityPanelProps) {
 	const [startDay, setStartDay] = useState<number>(initialStartDay);
 	const [endDay, setEndDay] = useState<number>(initialEndDay);
 	const [alwaysVisible, setAlwaysVisible] = useState(initialAlwaysVisible);
+	const [monthSource, setMonthSource] = useState<LeaderboardMonthSource>(initialMonthSource);
 	const [isPending, startTransition] = useTransition();
 	const queryClient = useQueryClient();
 
-	function save(
-		nextStart: number,
-		nextEnd: number,
-		nextAlwaysVisible: boolean,
-		onError?: () => void,
-	) {
+	function save(draft: UpdateLeaderboardVisibilityInput, onError?: () => void) {
 		startTransition(async () => {
 			try {
-				const result = await updateLeaderboardVisibilitySettings({
-					revealStartDay: nextStart,
-					revealEndDay: nextEnd,
-					alwaysVisible: nextAlwaysVisible,
-				});
+				const result = await updateLeaderboardVisibilitySettings(draft);
 
 				if (!result.success) {
 					onError?.();
@@ -55,16 +70,28 @@ export function LeaderboardVisibilityPanel({
 		});
 	}
 
-	function handleAlwaysVisibleChange(next: boolean) {
-		const previous = alwaysVisible;
-		setAlwaysVisible(next);
-		// Send the clamped days so a half-edited input can't fail the save, and
-		// mirror them into state so the inputs keep showing what was persisted.
+	// Clamped days keep a half-edited input from failing an unrelated save, and
+	// are mirrored into state so the inputs show what was actually persisted.
+	function normalizedDays() {
 		const nextStart = clampDay(startDay);
 		const nextEnd = Math.max(nextStart, clampDay(endDay));
 		if (nextStart !== startDay) setStartDay(nextStart);
 		if (nextEnd !== endDay) setEndDay(nextEnd);
-		save(nextStart, nextEnd, next, () => setAlwaysVisible(previous));
+		return { revealStartDay: nextStart, revealEndDay: nextEnd };
+	}
+
+	function handleAlwaysVisibleChange(next: boolean) {
+		const previous = alwaysVisible;
+		setAlwaysVisible(next);
+		save({ ...normalizedDays(), alwaysVisible: next, monthSource }, () =>
+			setAlwaysVisible(previous),
+		);
+	}
+
+	function handleMonthSourceChange(next: LeaderboardMonthSource) {
+		const previous = monthSource;
+		setMonthSource(next);
+		save({ ...normalizedDays(), alwaysVisible, monthSource: next }, () => setMonthSource(previous));
 	}
 
 	function handleStartBlur() {
@@ -74,7 +101,7 @@ export function LeaderboardVisibilityPanel({
 		const nextEnd = Math.max(clamped, clampDay(endDay));
 		if (clamped !== startDay) setStartDay(clamped);
 		if (nextEnd !== endDay) setEndDay(nextEnd);
-		save(clamped, nextEnd, alwaysVisible);
+		save({ revealStartDay: clamped, revealEndDay: nextEnd, alwaysVisible, monthSource });
 	}
 
 	function handleEndBlur() {
@@ -82,11 +109,16 @@ export function LeaderboardVisibilityPanel({
 		if (clamped < startDay) {
 			toast.error("Reveal end day must be on or after the start day");
 			setEndDay(startDay);
-			save(startDay, startDay, alwaysVisible);
+			save({
+				revealStartDay: startDay,
+				revealEndDay: startDay,
+				alwaysVisible,
+				monthSource,
+			});
 			return;
 		}
 		if (clamped !== endDay) setEndDay(clamped);
-		save(startDay, clamped, alwaysVisible);
+		save({ revealStartDay: startDay, revealEndDay: clamped, alwaysVisible, monthSource });
 	}
 
 	return (
@@ -103,6 +135,34 @@ export function LeaderboardVisibilityPanel({
 			</div>
 
 			<div className="space-y-4 px-5 py-6 sm:px-8">
+				<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+					<div className="min-w-0">
+						<p className="text-sm font-medium text-foreground">Show winners from</p>
+						<p className="text-xs text-muted-foreground">
+							"Last month" shows the finalized winners of the completed month. "This month" shows a
+							live tally that changes as cards are sent, which is best paired with Always visible.
+						</p>
+					</div>
+					<Select
+						value={monthSource}
+						onValueChange={(val) => {
+							if (isMonthSource(val)) handleMonthSourceChange(val);
+						}}
+						disabled={isPending}
+					>
+						<SelectTrigger className="w-full rounded-full sm:w-40">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{MONTH_SOURCE_OPTIONS.map((opt) => (
+								<SelectItem key={opt.value} value={opt.value}>
+									{opt.label}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+
 				<div className="flex flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between sm:p-5">
 					<div className="min-w-0">
 						<p className="text-sm font-medium text-foreground">Always visible</p>

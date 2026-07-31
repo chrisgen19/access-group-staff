@@ -2,7 +2,12 @@ import { describe, expect, test } from "vitest";
 import { computeLeaderboardVisibility } from "./visibility";
 
 // Asia/Manila is UTC+8 with no DST, so Manila midnight on day D is UTC (D-1) 16:00.
-const WINDOW_1_TO_20 = { revealStartDay: 1, revealEndDay: 20, alwaysVisible: false };
+const WINDOW_1_TO_20 = {
+	revealStartDay: 1,
+	revealEndDay: 20,
+	alwaysVisible: false,
+	monthSource: "previous" as const,
+};
 
 describe("computeLeaderboardVisibility", () => {
 	test("is visible inside the window and points at the previous month", () => {
@@ -21,7 +26,12 @@ describe("computeLeaderboardVisibility", () => {
 		// 2026-06-03 12:00 Manila, window opens day 5
 		const now = new Date("2026-06-03T04:00:00Z");
 		const state = computeLeaderboardVisibility(
-			{ revealStartDay: 5, revealEndDay: 20, alwaysVisible: false },
+			{
+				revealStartDay: 5,
+				revealEndDay: 20,
+				alwaysVisible: false,
+				monthSource: "previous" as const,
+			},
 			now,
 		);
 
@@ -55,7 +65,12 @@ describe("computeLeaderboardVisibility", () => {
 	test("clamps out-of-range days into 1..28 and keeps start <= end", () => {
 		const now = new Date("2026-06-05T04:00:00Z");
 		const state = computeLeaderboardVisibility(
-			{ revealStartDay: 40, revealEndDay: 0, alwaysVisible: false },
+			{
+				revealStartDay: 40,
+				revealEndDay: 0,
+				alwaysVisible: false,
+				monthSource: "previous" as const,
+			},
 			now,
 		);
 
@@ -100,5 +115,41 @@ describe("computeLeaderboardVisibility", () => {
 
 		expect(state.visible).toBe(false);
 		expect(state.alwaysVisible).toBe(false);
+	});
+
+	test("uses the running month as the source when monthSource is current", () => {
+		// 2026-06-05 12:00 Manila
+		const now = new Date("2026-06-05T04:00:00Z");
+		const state = computeLeaderboardVisibility({ ...WINDOW_1_TO_20, monthSource: "current" }, now);
+
+		expect(state.sourceMonthKey).toBe("2026-06");
+		expect(state.monthSource).toBe("current");
+	});
+
+	test("keeps the previous month as the source by default", () => {
+		const now = new Date("2026-06-05T04:00:00Z");
+		const state = computeLeaderboardVisibility(WINDOW_1_TO_20, now);
+
+		expect(state.sourceMonthKey).toBe("2026-05");
+		expect(state.monthSource).toBe("previous");
+	});
+
+	test("rolls the running-month source over the year boundary", () => {
+		// 2027-01-05 12:00 Manila
+		const now = new Date("2027-01-05T04:00:00Z");
+		const state = computeLeaderboardVisibility({ ...WINDOW_1_TO_20, monthSource: "current" }, now);
+
+		expect(state.sourceMonthKey).toBe("2027-01");
+	});
+
+	test("falls back to previous for an unrecognized month source", () => {
+		const now = new Date("2026-06-05T04:00:00Z");
+		const state = computeLeaderboardVisibility(
+			{ ...WINDOW_1_TO_20, monthSource: "garbage" as unknown as "previous" },
+			now,
+		);
+
+		expect(state.monthSource).toBe("previous");
+		expect(state.sourceMonthKey).toBe("2026-05");
 	});
 });

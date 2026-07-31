@@ -57,9 +57,14 @@ const REVEAL_END = new Date("2026-05-21T00:00:00Z");
 const NEXT_REVEAL_START = new Date("2026-06-01T00:00:00Z");
 const NEXT_MONTH_START = new Date("2026-05-31T16:00:00Z");
 const SOURCE_MONTH_KEY = "2026-04";
+const CURRENT_MONTH_KEY = "2026-05";
 const REQUEST = new Request("http://localhost/api/recognition/stats");
 
-function mockVisible(visible: boolean, alwaysVisible = false) {
+function mockVisible(
+	visible: boolean,
+	alwaysVisible = false,
+	monthSource: "previous" | "current" = "previous",
+) {
 	vi.mocked(computeLeaderboardVisibility).mockReturnValue({
 		visible,
 		alwaysVisible,
@@ -67,7 +72,8 @@ function mockVisible(visible: boolean, alwaysVisible = false) {
 		revealEnd: REVEAL_END,
 		nextRevealStart: NEXT_REVEAL_START,
 		nextMonthStart: NEXT_MONTH_START,
-		sourceMonthKey: SOURCE_MONTH_KEY,
+		sourceMonthKey: monthSource === "current" ? CURRENT_MONTH_KEY : SOURCE_MONTH_KEY,
+		monthSource,
 	});
 }
 
@@ -89,6 +95,7 @@ beforeEach(() => {
 		revealStartDay: 1,
 		revealEndDay: 20,
 		alwaysVisible: false,
+		monthSource: "previous",
 	});
 	vi.mocked(getTopRecognizedLimit).mockResolvedValue(5);
 	vi.mocked(prisma.recognitionCard.count).mockResolvedValue(0);
@@ -190,6 +197,35 @@ describe("GET /api/recognition/stats", () => {
 		// Clients rely on this to refresh at the month rollover, since no reveal
 		// boundary is ever reached in always-visible mode.
 		expect(body.data.leaderboardVisibility.nextMonthStart).toBe(NEXT_MONTH_START.toISOString());
+	});
+
+	test("tallies the running month live and never reads the archive", async () => {
+		mockVisible(true, true, "current");
+		vi.mocked(computeMonthRecipients).mockResolvedValue([
+			{ userId: "u1", firstName: "Ada", lastName: "Lovelace", avatar: null, count: 2, rank: 1 },
+		]);
+
+		const res = await GET(REQUEST);
+		const body = await res.json();
+
+		// The running month has no snapshot by design — reading one would serve a
+		// stale partial month.
+		expect(getArchivedRecipients).not.toHaveBeenCalled();
+		expect(computeMonthRecipients).toHaveBeenCalledWith(CURRENT_MONTH_KEY, 5);
+		expect(body.data.leaderboardVisibility.monthSource).toBe("current");
+		expect(body.data.leaderboardVisibility.sourceMonthKey).toBe(CURRENT_MONTH_KEY);
+		expect(body.data.topRecipients).toEqual([
+			{ firstName: "Ada", lastName: "Lovelace", avatar: null, count: 2 },
+		]);
+	});
+
+	test("still archives the previous month while showing the running one", async () => {
+		mockVisible(true, true, "current");
+
+		await GET(REQUEST);
+
+		// Snapshotting is independent of what the widget displays.
+		expect(maybeSnapshotPreviousMonth).toHaveBeenCalledTimes(1);
 	});
 
 	test("honors ?previewNow for a super admin but still snapshots with the real clock", async () => {
