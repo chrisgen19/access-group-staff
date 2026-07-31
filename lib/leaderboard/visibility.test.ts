@@ -64,6 +64,22 @@ describe("computeLeaderboardVisibility", () => {
 		expect(state.revealEnd.toISOString()).toBe("2026-06-28T16:00:00.000Z");
 	});
 
+	test("exposes next month's Manila midnight as the rollover boundary", () => {
+		// 2026-06-25 12:00 Manila → rollover is 2026-07-01 Manila.
+		const now = new Date("2026-06-25T04:00:00Z");
+		const state = computeLeaderboardVisibility(WINDOW_1_TO_20, now);
+
+		expect(state.nextMonthStart.toISOString()).toBe("2026-06-30T16:00:00.000Z");
+	});
+
+	test("rolls the rollover boundary into the next year in December", () => {
+		const now = new Date("2026-12-25T04:00:00Z");
+		const state = computeLeaderboardVisibility(WINDOW_1_TO_20, now);
+
+		// 2027-01-01 Manila
+		expect(state.nextMonthStart.toISOString()).toBe("2026-12-31T16:00:00.000Z");
+	});
+
 	test("is visible outside the window when alwaysVisible is on", () => {
 		// 2026-06-25 12:00 Manila — well past the day 1-20 window.
 		const now = new Date("2026-06-25T04:00:00Z");
@@ -71,6 +87,8 @@ describe("computeLeaderboardVisibility", () => {
 
 		expect(state.visible).toBe(true);
 		expect(state.alwaysVisible).toBe(true);
+		// Still exposed so a long-open dashboard can refresh at the rollover.
+		expect(state.nextMonthStart.toISOString()).toBe("2026-06-30T16:00:00.000Z");
 		// The window itself is still computed so turning the switch off restores it.
 		expect(state.revealStart.toISOString()).toBe("2026-05-31T16:00:00.000Z");
 		expect(state.sourceMonthKey).toBe("2026-05");

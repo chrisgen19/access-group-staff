@@ -55,6 +55,7 @@ const END = new Date("2026-06-01T00:00:00Z");
 const REVEAL_START = new Date("2026-05-01T00:00:00Z");
 const REVEAL_END = new Date("2026-05-21T00:00:00Z");
 const NEXT_REVEAL_START = new Date("2026-06-01T00:00:00Z");
+const NEXT_MONTH_START = new Date("2026-05-31T16:00:00Z");
 const SOURCE_MONTH_KEY = "2026-04";
 const REQUEST = new Request("http://localhost/api/recognition/stats");
 
@@ -65,6 +66,7 @@ function mockVisible(visible: boolean, alwaysVisible = false) {
 		revealStart: REVEAL_START,
 		revealEnd: REVEAL_END,
 		nextRevealStart: NEXT_REVEAL_START,
+		nextMonthStart: NEXT_MONTH_START,
 		sourceMonthKey: SOURCE_MONTH_KEY,
 	});
 }
@@ -185,6 +187,9 @@ describe("GET /api/recognition/stats", () => {
 
 		expect(body.data.leaderboardVisibility.alwaysVisible).toBe(true);
 		expect(body.data.topRecipients).toHaveLength(1);
+		// Clients rely on this to refresh at the month rollover, since no reveal
+		// boundary is ever reached in always-visible mode.
+		expect(body.data.leaderboardVisibility.nextMonthStart).toBe(NEXT_MONTH_START.toISOString());
 	});
 
 	test("honors ?previewNow for a super admin but still snapshots with the real clock", async () => {

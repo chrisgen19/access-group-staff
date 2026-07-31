@@ -26,6 +26,10 @@ export interface LeaderboardVisibilityState {
 	// The next window opening — this month's if we haven't reached it yet,
 	// otherwise next month's. Used for the "reveals in…" countdown when locked.
 	nextRevealStart: Date;
+	// Manila midnight on the 1st of next month, i.e. when sourceMonthKey and the
+	// archived winners roll over. Clients watch this to refresh a long-open
+	// dashboard in always-visible mode, where no reveal boundary is ever hit.
+	nextMonthStart: Date;
 	// The completed month whose winners the window reveals (previous calendar month).
 	sourceMonthKey: string;
 }
@@ -69,6 +73,7 @@ export function computeLeaderboardVisibility(
 		revealStart,
 		revealEnd,
 		nextRevealStart,
+		nextMonthStart: manilaMidnightToUtc(year, month + 1, 1),
 		sourceMonthKey: getPreviousMonthKey(now),
 	};
 }

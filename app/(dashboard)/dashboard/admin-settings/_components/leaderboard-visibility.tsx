@@ -58,9 +58,12 @@ export function LeaderboardVisibilityPanel({
 	function handleAlwaysVisibleChange(next: boolean) {
 		const previous = alwaysVisible;
 		setAlwaysVisible(next);
-		// Send the clamped days so a half-edited input can't fail the save.
+		// Send the clamped days so a half-edited input can't fail the save, and
+		// mirror them into state so the inputs keep showing what was persisted.
 		const nextStart = clampDay(startDay);
 		const nextEnd = Math.max(nextStart, clampDay(endDay));
+		if (nextStart !== startDay) setStartDay(nextStart);
+		if (nextEnd !== endDay) setEndDay(nextEnd);
 		save(nextStart, nextEnd, next, () => setAlwaysVisible(previous));
 	}
 

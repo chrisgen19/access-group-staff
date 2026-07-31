@@ -117,6 +117,7 @@ export async function GET(request: Request) {
 					revealStart: visibility.revealStart.toISOString(),
 					revealEnd: visibility.revealEnd.toISOString(),
 					nextRevealStart: visibility.nextRevealStart.toISOString(),
+					nextMonthStart: visibility.nextMonthStart.toISOString(),
 				},
 			},
 		});
