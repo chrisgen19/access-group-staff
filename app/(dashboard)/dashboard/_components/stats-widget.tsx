@@ -37,11 +37,13 @@ const STATS_STICKY_BREAKPOINT_QUERY = "(min-width: 1024px)";
 
 interface LeaderboardVisibility {
 	visible: boolean;
+	alwaysVisible: boolean;
 	sourceMonthKey: string;
 	sourceMonthLabel: string;
 	revealStart: string;
 	revealEnd: string;
 	nextRevealStart: string;
+	nextMonthStart: string;
 }
 
 interface StatsData {
@@ -313,11 +315,18 @@ export function StatsWidget() {
 	const visibility = data?.data?.leaderboardVisibility ?? null;
 	// Always watch the next boundary: revealEnd if the leaderboard is currently
 	// visible (so we lock it at window-end), otherwise the next window opening.
-	const nextBoundaryIso = visibility
-		? visibility.visible
-			? visibility.revealEnd
-			: visibility.nextRevealStart
-		: null;
+	// In always-visible mode neither is ever reached, so watch the month rollover
+	// instead — the countdown drives the refetch that advances sourceMonthKey and
+	// the archived winners on a dashboard left open past Manila midnight. Nothing
+	// is rendered from it: the countdown text only lives in LockedLeaderboard,
+	// which never mounts while visible.
+	const nextBoundaryIso = !visibility
+		? null
+		: visibility.alwaysVisible
+			? visibility.nextMonthStart
+			: visibility.visible
+				? visibility.revealEnd
+				: visibility.nextRevealStart;
 	const msRemaining = useCountdown(nextBoundaryIso);
 
 	if (isPending) {

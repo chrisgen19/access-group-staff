@@ -118,6 +118,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 		await expect(getLeaderboardVisibilitySettings()).resolves.toEqual({
 			revealStartDay: 1,
 			revealEndDay: 20,
+			alwaysVisible: false,
 		});
 	});
 
@@ -129,6 +130,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 		await expect(getLeaderboardVisibilitySettings()).resolves.toEqual({
 			revealStartDay: 5,
 			revealEndDay: 15,
+			alwaysVisible: false,
 		});
 	});
 
@@ -140,6 +142,7 @@ describe("getLeaderboardVisibilitySettings", () => {
 		await expect(getLeaderboardVisibilitySettings()).resolves.toEqual({
 			revealStartDay: 1,
 			revealEndDay: 20,
+			alwaysVisible: false,
 		});
 	});
 
@@ -151,6 +154,23 @@ describe("getLeaderboardVisibilitySettings", () => {
 		await expect(getLeaderboardVisibilitySettings()).resolves.toEqual({
 			revealStartDay: 18,
 			revealEndDay: 18,
+			alwaysVisible: false,
+		});
+	});
+
+	test("reads the alwaysVisible flag", async () => {
+		vi.mocked(prisma.appSetting.findMany).mockResolvedValue(
+			rows({
+				leaderboard_reveal_start_day: "5",
+				leaderboard_reveal_end_day: "15",
+				leaderboard_always_visible: "true",
+			}),
+		);
+
+		await expect(getLeaderboardVisibilitySettings()).resolves.toEqual({
+			revealStartDay: 5,
+			revealEndDay: 15,
+			alwaysVisible: true,
 		});
 	});
 });
@@ -162,6 +182,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 		const result = await updateLeaderboardVisibilitySettings({
 			revealStartDay: 1,
 			revealEndDay: 20,
+			alwaysVisible: false,
 		});
 
 		expect(result).toEqual({ success: false, error: "Unauthorized" });
@@ -174,6 +195,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 		const result = await updateLeaderboardVisibilitySettings({
 			revealStartDay: 0,
 			revealEndDay: 20,
+			alwaysVisible: false,
 		});
 
 		expect(result.success).toBe(false);
@@ -186,6 +208,7 @@ describe("updateLeaderboardVisibilitySettings", () => {
 		const result = await updateLeaderboardVisibilitySettings({
 			revealStartDay: 15,
 			revealEndDay: 5,
+			alwaysVisible: false,
 		});
 
 		expect(result).toEqual({
@@ -202,11 +225,36 @@ describe("updateLeaderboardVisibilitySettings", () => {
 		const result = await updateLeaderboardVisibilitySettings({
 			revealStartDay: 3,
 			revealEndDay: 18,
+			alwaysVisible: false,
 		});
 
 		expect(result).toEqual({ success: true });
 		expect(requireRole).toHaveBeenCalledWith("ADMIN");
 		expect(prisma.$transaction).toHaveBeenCalledTimes(1);
 		expect(invalidateEntry).toHaveBeenCalledTimes(1);
+	});
+
+	test("persists the alwaysVisible flag alongside the days", async () => {
+		vi.mocked(requireRole).mockResolvedValueOnce({} as Awaited<ReturnType<typeof requireRole>>);
+		vi.mocked(prisma.$transaction).mockResolvedValueOnce([] as never);
+
+		const result = await updateLeaderboardVisibilitySettings({
+			revealStartDay: 3,
+			revealEndDay: 18,
+			alwaysVisible: true,
+		});
+
+		expect(result).toEqual({ success: true });
+		expect(prisma.appSetting.upsert).toHaveBeenCalledWith({
+			where: { key: "leaderboard_always_visible" },
+			update: { value: "true" },
+			create: { key: "leaderboard_always_visible", value: "true" },
+		});
+		// The window is still written so switching back off restores it.
+		expect(prisma.appSetting.upsert).toHaveBeenCalledWith({
+			where: { key: "leaderboard_reveal_start_day" },
+			update: { value: "3" },
+			create: { key: "leaderboard_reveal_start_day", value: "3" },
+		});
 	});
 });

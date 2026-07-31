@@ -111,11 +111,13 @@ export async function GET(request: Request) {
 				topRecipients,
 				leaderboardVisibility: {
 					visible: visibility.visible,
+					alwaysVisible: visibility.alwaysVisible,
 					sourceMonthKey: visibility.sourceMonthKey,
 					sourceMonthLabel: formatMonthLabel(visibility.sourceMonthKey),
 					revealStart: visibility.revealStart.toISOString(),
 					revealEnd: visibility.revealEnd.toISOString(),
 					nextRevealStart: visibility.nextRevealStart.toISOString(),
+					nextMonthStart: visibility.nextMonthStart.toISOString(),
 				},
 			},
 		});

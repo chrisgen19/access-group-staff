@@ -5,19 +5,31 @@ export const REVEAL_DAY_MIN = 1;
 export const REVEAL_DAY_MAX = 28;
 export const REVEAL_START_DAY_DEFAULT = 1;
 export const REVEAL_END_DAY_DEFAULT = 20;
+export const ALWAYS_VISIBLE_DEFAULT = false;
 
 export interface LeaderboardVisibilitySettings {
 	revealStartDay: number;
 	revealEndDay: number;
+	// Master switch: when on, the reveal window is bypassed entirely and the
+	// panel stays unlocked. The days are still stored so turning it back off
+	// restores the configured window.
+	alwaysVisible: boolean;
 }
 
 export interface LeaderboardVisibilityState {
 	visible: boolean;
+	// Mirrors the setting so clients can skip the lock/unlock countdown, which
+	// has no meaning when there is no boundary to reach.
+	alwaysVisible: boolean;
 	revealStart: Date;
 	revealEnd: Date;
 	// The next window opening — this month's if we haven't reached it yet,
 	// otherwise next month's. Used for the "reveals in…" countdown when locked.
 	nextRevealStart: Date;
+	// Manila midnight on the 1st of next month, i.e. when sourceMonthKey and the
+	// archived winners roll over. Clients watch this to refresh a long-open
+	// dashboard in always-visible mode, where no reveal boundary is ever hit.
+	nextMonthStart: Date;
 	// The completed month whose winners the window reveals (previous calendar month).
 	sourceMonthKey: string;
 }
@@ -47,7 +59,8 @@ export function computeLeaderboardVisibility(
 	const revealEnd = manilaMidnightToUtc(year, month, endDay + 1);
 
 	const t = now.getTime();
-	const visible = t >= revealStart.getTime() && t < revealEnd.getTime();
+	const alwaysVisible = settings.alwaysVisible === true;
+	const visible = alwaysVisible || (t >= revealStart.getTime() && t < revealEnd.getTime());
 
 	// Before this month's window → it's still the next opening. At or after it
 	// → the next opening is next month (Date.UTC rolls the year over).
@@ -56,9 +69,11 @@ export function computeLeaderboardVisibility(
 
 	return {
 		visible,
+		alwaysVisible,
 		revealStart,
 		revealEnd,
 		nextRevealStart,
+		nextMonthStart: manilaMidnightToUtc(year, month + 1, 1),
 		sourceMonthKey: getPreviousMonthKey(now),
 	};
 }
